@@ -98,6 +98,7 @@ const Page = () => {
             >
               <Typography variant="h4">
                Login
+               登入
               </Typography>
               <Typography
                 color="text.secondary"
