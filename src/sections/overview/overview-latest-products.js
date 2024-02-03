@@ -20,10 +20,13 @@ import {
 export const OverviewLatestProducts = (props) => {
   const { products = [], sx } = props;
 
+  // Limit to the first 5 products
+  const visibleProducts = products.slice(0, 5);
+
   return (
-    <Card sx={sx}>
-      <CardHeader title="Latest Products" />
-      <List>
+    <Card sx={{ display: 'flex', flexDirection: 'column', ...sx }}>
+      <CardHeader title="所有球員" />
+      <List sx={{ flex: 1, overflowY: 'auto' }}>
         {products.map((product, index) => {
           const hasDivider = index < products.length - 1;
           const ago = formatDistanceToNow(product.updatedAt);
@@ -75,20 +78,6 @@ export const OverviewLatestProducts = (props) => {
         })}
       </List>
       <Divider />
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          color="inherit"
-          endIcon={(
-            <SvgIcon fontSize="small">
-              <ArrowRightIcon />
-            </SvgIcon>
-          )}
-          size="small"
-          variant="text"
-        >
-          View all
-        </Button>
-      </CardActions>
     </Card>
   );
 };
