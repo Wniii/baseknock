@@ -1,5 +1,4 @@
 import ChartBarIcon from '@heroicons/react/24/solid/ChartBarIcon';
-import AddIcon from '@mui/icons-material/Add';
 import CogIcon from '@heroicons/react/24/solid/CogIcon';
 import LockClosedIcon from '@heroicons/react/24/solid/LockClosedIcon';
 import ShoppingBagIcon from '@heroicons/react/24/solid/ShoppingBagIcon';
@@ -11,7 +10,7 @@ import { SvgIcon } from '@mui/material';
 
 export const items = [
   {
-    title: '首頁',
+    title: 'Overview',
     path: '/',
     icon: (
       <SvgIcon fontSize="small">
@@ -19,7 +18,6 @@ export const items = [
       </SvgIcon>
     )
   },
-  
   {
     title: 'Customers',
     path: '/customers',
@@ -39,35 +37,8 @@ export const items = [
     )
   },
   {
-    title: '新增球隊',
-    path: '/team',
-    icon: (
-      <SvgIcon fontSize="small">
-        <AddIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: '新增比賽',
-    path: '/game',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UserIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: '管理',
-    path: '/manage',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UserIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: '賽程表',
-    path: '/schedule',
+    title: 'Account',
+    path: '/account',
     icon: (
       <SvgIcon fontSize="small">
         <UserIcon />
@@ -84,7 +55,7 @@ export const items = [
     )
   },
   {
-    title: '登入',
+    title: 'Login',
     path: '/auth/login',
     icon: (
       <SvgIcon fontSize="small">
@@ -93,7 +64,7 @@ export const items = [
     )
   },
   {
-    title: '註冊',
+    title: 'Register',
     path: '/auth/register',
     icon: (
       <SvgIcon fontSize="small">
