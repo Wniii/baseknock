@@ -68,7 +68,17 @@ export const Layout = (props) => {
             }
           }}
         >
-          <Box sx={{ p: 3 }}>
+          <Box>
+            <div>
+              <Typography align='center'
+                          sx={{fontSize:'56px'}}>Baseknock</Typography>
+            </div>
+            <div>
+              <Typography align='center'
+                          sx={{fontSize:'18px'}}>——大專棒球賽事紀錄平台——</Typography>
+            </div>
+          </Box>
+          {/* <Box sx={{ p: 3 }}>
             <Typography
               align="center"
               color="inherit"
@@ -99,7 +109,7 @@ export const Layout = (props) => {
               alt=""
               src="/assets/auth-illustration.svg"
             />
-          </Box>
+          </Box> */}
         </Grid>
       </Grid>
     </Box>
