@@ -5,7 +5,6 @@ import { subDays, subHours } from 'date-fns';
 import { Box, Container, Grid, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'; // 引入 Dialog 和相關組件
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { OverviewLatestProducts } from 'src/sections/overview/overview-latest-products';
-import ImageComponent from 'src/components/ImageComponent';  // 替換為實際的文件路徑
 import Button from '@mui/material/Button';
 
 // 在此處導入 BallparkImagePage 組件
