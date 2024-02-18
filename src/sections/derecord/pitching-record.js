@@ -37,8 +37,7 @@ export const SettingsPassword = () => {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader
-          subheader="Update password"
-          title="Password"
+          title="投手紀錄"
         />
         <Divider />
         <CardContent>

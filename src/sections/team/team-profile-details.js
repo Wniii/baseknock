@@ -10,34 +10,35 @@ import {
   TextField,
   Unstable_Grid2 as Grid
 } from '@mui/material';
+import Fab from '@mui/material/Fab';
+import AddIcon from '@mui/icons-material/Add';
 
-const states = [
-  {
-    value: 'alabama',
-    label: 'Alabama'
-  },
-  {
-    value: 'new-york',
-    label: 'New York'
-  },
-  {
-    value: 'san-francisco',
-    label: 'San Francisco'
-  },
-  {
-    value: 'los-angeles',
-    label: 'Los Angeles'
-  }
-];
+const addSx = {
+  backgroundColor: '#ffffff',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'right', // 文字水平置中
+  ml:'auto',
+  position:'absolute',
+  bottom: 0, // 定位在父元素的底部
+  right: 0, // 定位在父元素的右側
+  marginRight: '20px', // 可以添加一些額外的右邊距
+  marginBottom: '20px', // 可以添加一些額外的下邊距
+};
 
-export const AccountProfileDetails = () => {
+
+
+
+
+export const TeamProfileDetails = () => {
   const [values, setValues] = useState({
-    firstName: 'Anika',
-    lastName: 'Visser',
-    email: 'demo@devias.io',
-    phone: '',
-    state: 'los-angeles',
-    country: 'USA'
+    Name: '',
+    codeName: '',
+    introduction: '',
+    PName:'',
+    PNum:'',
+   
   });
 
   const handleChange = useCallback(
@@ -58,63 +59,65 @@ export const AccountProfileDetails = () => {
   );
 
   return (
+    
     <form
       autoComplete="off"
       noValidate
       onSubmit={handleSubmit}
     >
+      <div>
       <Card>
         <CardHeader
-          subheader="The information can be edited"
-          title="Profile"
+          // subheader="The information can be edited"
+          // title="Profile"
         />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
             <Grid
               container
-              spacing={3}
+              spacing={2}
             >
               <Grid
-                xs={12}
-                md={6}
+                xs={24}
+                md={12}
               >
                 <TextField
                   fullWidth
-                  helperText="Please specify the first name"
-                  label="First name"
-                  name="firstName"
+                  //helperText="Please specify the first name"
+                  label="球隊名稱"
+                  name="Name"
                   onChange={handleChange}
                   required
                   value={values.firstName}
                 />
               </Grid>
               <Grid
-                xs={12}
-                md={6}
+                xs={24}
+                md={12}
               >
                 <TextField
                   fullWidth
-                  label="Last name"
-                  name="lastName"
+                  label="球隊代號"
+                  name="codeName"
                   onChange={handleChange}
                   required
                   value={values.lastName}
                 />
               </Grid>
               <Grid
-                xs={12}
-                md={6}
+                xs={24}
+                md={12}
               >
                 <TextField
                   fullWidth
-                  label="Email Address"
-                  name="email"
+                  label="球隊簡介"
+                  name="introduction"
                   onChange={handleChange}
                   required
                   value={values.email}
                 />
               </Grid>
-              <Grid
+              {/* <Grid
                 xs={12}
                 md={6}
               >
@@ -163,17 +166,26 @@ export const AccountProfileDetails = () => {
                     </option>
                   ))}
                 </TextField>
-              </Grid>
+              </Grid> */}
+              
             </Grid>
+            
           </Box>
         </CardContent>
-        <Divider />
-        <CardActions sx={{ justifyContent: 'flex-end' }}>
+        {/* <Divider /> */}
+        {/* <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">
             Save details
           </Button>
-        </CardActions>
+        </CardActions> */}
       </Card>
+      
+      
+                
+                
+                
+  </div>
     </form>
+    
   );
 };
