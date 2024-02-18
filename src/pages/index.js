@@ -11,16 +11,17 @@ import { OverviewTotalCustomers } from 'src/sections/overview/overview-total-cus
 import { OverviewTotalProfit } from 'src/sections/overview/overview-total-profit';
 import { OverviewTraffic } from 'src/sections/overview/overview-traffic';
 
+
 const now = new Date();
 
 const Page = () => (
   <>
     <Head>
       <title>
-      大專棒球隊 | Devias Kit
+        test
       </title>
     </Head>
-    <Box
+    {/* <Box
       component="main"
       sx={{
         flexGrow: 1,
@@ -32,6 +33,7 @@ const Page = () => (
           container
           spacing={3}
         >
+          
           <Grid
             xs={12}
             sm={6}
@@ -41,7 +43,7 @@ const Page = () => (
               difference={12}
               positive
               sx={{ height: '100%' }}
-              value="$24k"
+              value="$2k"
             />
           </Grid>
           <Grid
@@ -145,11 +147,12 @@ const Page = () => (
               ]}
               sx={{ height: '100%' }}
             />
-          </Grid>
+          </Grid> */}
+
           <Grid
             xs={12}
             md={12}
-            lg={8}
+            lg={16}
           >
             <OverviewLatestOrders
               orders={[
@@ -217,9 +220,9 @@ const Page = () => (
               sx={{ height: '100%' }}
             />
           </Grid>
-        </Grid>
-      </Container>
-    </Box>
+        {/* </Grid> */}
+      {/* </Container> */}
+    {/* </Box> */}
   </>
 );
 
