@@ -12,29 +12,41 @@ const Page = () => {
   const auth = useAuth();
   const formik = useFormik({
     initialValues: {
-      email: '',
-      name: '',
+      account: '',
       password: '',
+      checkpsw: '',
+      name: '',
+      email: '',
+
       submit: null
     },
     validationSchema: Yup.object({
+      account: Yup
+      .string()
+      .max(255)
+      .required('Account is required'),
+      password: Yup
+        .string()
+        .max(255)
+        .required('Password is required'),
+      checkpsw: Yup
+        .string()
+        .max(255)
+        .required('Please confirm your password'),
+      name: Yup
+        .string()
+        .max(255)
+        .required('Name is required'),
       email: Yup
         .string()
         .email('Must be a valid email')
         .max(255)
         .required('Email is required'),
-      name: Yup
-        .string()
-        .max(255)
-        .required('Name is required'),
-      password: Yup
-        .string()
-        .max(255)
-        .required('Password is required')
+
     }),
     onSubmit: async (values, helpers) => {
       try {
-        await auth.signUp(values.email, values.name, values.password);
+        await auth.signUp(values.account, values.password, values.checkpsw, values.name, values.email);
         router.push('/');
       } catch (err) {
         helpers.setStatus({ success: false });
@@ -48,7 +60,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Register | Devias Kit
+          註冊
         </title>
       </Head>
       <Box
@@ -73,7 +85,7 @@ const Page = () => {
               sx={{ mb: 3 }}
             >
               <Typography variant="h4">
-                Register
+                註冊
               </Typography>
               <Typography
                 color="text.secondary"
@@ -87,7 +99,7 @@ const Page = () => {
                   underline="hover"
                   variant="subtitle2"
                 >
-                  Log in
+                  登入
                 </Link>
               </Typography>
             </Stack>
@@ -95,38 +107,70 @@ const Page = () => {
               noValidate
               onSubmit={formik.handleSubmit}
             >
-              <Stack spacing={3}>
+              <div style={{ textAlign: 'left', padding: '4px'}}>
+                  <Typography variant="h8">帳號/密碼</Typography>
+              </div>
+              <Stack spacing={1}>
+                <TextField
+                  error={!!(formik.touched.account && formik.errors.account)}
+                  fullWidth
+                  helperText={formik.touched.account && formik.errors.account}
+                  label="account"
+                  name="account"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  type="account"
+                  value={formik.values.account}
+                />
+                <TextField
+                  error={!!(formik.touched.password && formik.errors.password)}
+                  fullWidth
+                  helperText={formik.touched.password && formik.errors.password}
+                  label="password"
+                  name="password"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  type="password"
+                  value={formik.values.password}
+                />
+                <TextField
+                  error={!!(formik.touched.checkpsw && formik.errors.checkpsw)}
+                  fullWidth
+                  helperText={formik.touched.checkpsw && formik.errors.checkpsw}
+                  label="confirm password"
+                  name="checkpsw"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  type="checkpsw"
+                  value={formik.values.checkpsw}
+                />
+              </Stack>
+              <br></br>
+              <div style={{ textAlign: 'left', padding: '4px'}}>
+                  <Typography variant="h8">個人資料</Typography>
+              </div>
+              <Stack spacing={1}>
                 <TextField
                   error={!!(formik.touched.name && formik.errors.name)}
                   fullWidth
                   helperText={formik.touched.name && formik.errors.name}
-                  label="Name"
+                  label="name"
                   name="name"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
+                  type="name"
                   value={formik.values.name}
                 />
                 <TextField
                   error={!!(formik.touched.email && formik.errors.email)}
                   fullWidth
                   helperText={formik.touched.email && formik.errors.email}
-                  label="Email Address"
+                  label="email"
                   name="email"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
                   type="email"
                   value={formik.values.email}
-                />
-                <TextField
-                  error={!!(formik.touched.password && formik.errors.password)}
-                  fullWidth
-                  helperText={formik.touched.password && formik.errors.password}
-                  label="Password"
-                  name="password"
-                  onBlur={formik.handleBlur}
-                  onChange={formik.handleChange}
-                  type="password"
-                  value={formik.values.password}
                 />
               </Stack>
               {formik.errors.submit && (
@@ -145,7 +189,7 @@ const Page = () => {
                 type="submit"
                 variant="contained"
               >
-                Continue
+                確認註冊
               </Button>
             </form>
           </div>

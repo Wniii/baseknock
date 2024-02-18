@@ -71,7 +71,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Login | Devias Kit
+          登入
         </title>
       </Head>
       <Box
@@ -97,8 +97,7 @@ const Page = () => {
               sx={{ mb: 3 }}
             >
               <Typography variant="h4">
-               Login
-               登入
+                登入
               </Typography>
               <Typography
                 color="text.secondary"
@@ -112,11 +111,11 @@ const Page = () => {
                   underline="hover"
                   variant="subtitle2"
                 >
-                  Register
+                  註冊
                 </Link>
               </Typography>
             </Stack>
-            <Tabs
+            {/* <Tabs
               onChange={handleMethodChange}
               sx={{ mb: 3 }}
               value={method}
@@ -129,13 +128,18 @@ const Page = () => {
                 label="Phone Number"
                 value="phoneNumber"
               />
-            </Tabs>
+            </Tabs> */}
+
+           
             {method === 'email' && (
               <form
                 noValidate
                 onSubmit={formik.handleSubmit}
               >
-                <Stack spacing={3}>
+            <div style={{ textAlign: 'left', padding: '4px'}}>
+              <Typography variant="h8">一般登入</Typography>
+            </div>
+                <Stack spacing={1}>
                   <TextField
                     error={!!(formik.touched.email && formik.errors.email)}
                     fullWidth
@@ -159,9 +163,9 @@ const Page = () => {
                     value={formik.values.password}
                   />
                 </Stack>
-                <FormHelperText sx={{ mt: 1 }}>
+                {/* <FormHelperText sx={{ mt: 1 }}>
                   Optionally you can skip.
-                </FormHelperText>
+                </FormHelperText> */}
                 {formik.errors.submit && (
                   <Typography
                     color="error"
@@ -174,21 +178,32 @@ const Page = () => {
                 <Button
                   fullWidth
                   size="large"
-                  sx={{ mt: 3 }}
+                  sx={{ mt: 2 }}
                   type="submit"
                   variant="contained"
                 >
-                  Continue
+                  登入
                 </Button>
-                <Button
+                <Box display="flex" justifyContent="center">
+                <Link
+                  component={NextLink}
+                  href="/auth/register"
+                  underline="hover"
+                  variant="subtitle2"
+                  sx={{mt:1}}
+                >
+                  忘記密碼
+                </Link>
+                </Box>
+                {/* <Button
                   fullWidth
                   size="large"
                   sx={{ mt: 3 }}
                   onClick={handleSkip}
                 >
                   Skip authentication
-                </Button>
-                <Alert
+                </Button> */}
+                {/* <Alert
                   color="primary"
                   severity="info"
                   sx={{ mt: 3 }}
@@ -196,10 +211,10 @@ const Page = () => {
                   <div>
                     You can use <b>demo@devias.io</b> and password <b>Password123!</b>
                   </div>
-                </Alert>
+                </Alert> */}
               </form>
             )}
-            {method === 'phoneNumber' && (
+            {/* {method === 'phoneNumber' && (
               <div>
                 <Typography
                   sx={{ mb: 1 }}
@@ -211,7 +226,7 @@ const Page = () => {
                   To prevent unnecessary costs we disabled this feature in the demo.
                 </Typography>
               </div>
-            )}
+            )} */}
           </div>
         </Box>
       </Box>
