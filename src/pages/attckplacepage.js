@@ -9,15 +9,30 @@ import { OverviewLatestProducts } from 'src/sections/overview/overview-latest-pr
 import { OverviewTraffic } from 'src/sections/overview/overview-traffic';
 import { AttackPlayerPage } from 'src/player/AttackPlayerPage';
 import Button from '@mui/material/Button';
+
+
 import {
   FormControl,
   InputLabel,
   Select,
   MenuItem,
 } from '@mui/material';
+import { useRouter } from 'next/router'; // 移到這裡
+
 const now = new Date();
 
-const AttackPlacePage = () => (
+const AttackPlacePage = () => {
+  const router = useRouter(); // 在這裡使用 useRouter
+
+  const handleReturnClick = () => {
+    router.push('/your-other-page');
+  };
+
+  const handleSaveClick = () => {
+    router.push('/DefencePlacePage'); // 導航到另一個頁面的路徑
+  };
+
+  return (
   <>
     <Head>
       <title>大專棒球隊 | Devias Kit | Attack Place</title>
@@ -157,10 +172,10 @@ const AttackPlacePage = () => (
                 清除先發
               </Button>
               <div style={{ marginTop: '30px' }}>
-                <Button variant="contained" color="primary">
+              <Button variant="contained" color="primary" onClick={handleReturnClick}>
                  返回
                 </Button>
-                <Button variant="contained" color="primary" style={{ marginLeft: '8px' }}>
+                <Button variant="contained" color="primary" onClick={handleSaveClick} style={{ marginLeft: '8px' }}>
                  儲存
                 </Button>
               </div>
@@ -235,7 +250,7 @@ const AttackPlacePage = () => (
     </Box>
   </>
 );
-
+}
 AttackPlacePage.getLayout = (page) => (
   <DashboardLayout>
     {page}

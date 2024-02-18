@@ -201,7 +201,7 @@ export const DefendSelect = () => {
           '得圈點',
           '滿壘'
         ].map((label, index) => (
-          <Grid item xs={4} key={index}>
+          <Grid item xs={4} key={index}  style={{ width: '100px', whiteSpace: 'nowrap' }}>
             <FormControlLabel
               control={<Checkbox defaultChecked />}
               label={label}

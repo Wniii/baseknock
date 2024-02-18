@@ -17,7 +17,7 @@ const Page = () => (
   <>
     <Head>
       <title>
-        Overview | Devias Kit
+      大專棒球隊 | Devias Kit
       </title>
     </Head>
     <Box
