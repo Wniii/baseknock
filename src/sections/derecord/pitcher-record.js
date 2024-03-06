@@ -23,12 +23,7 @@ import {
   ListItemText,
   ListItemAvatar,
   Avatar,
-  TextField,
-  Accordion, 
-  AccordionDetails, 
-  AccordionSummary,
 } from "@mui/material";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export const PitcherRecord = () => {
   const handleSubmit = useCallback((event) => {
@@ -47,1127 +42,193 @@ export const PitcherRecord = () => {
                 <Stack>
                   <div>
                   <List sx={{ width: '100%', maxWidth: 960, bgcolor: 'background.paper' }}>
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1a-content"
-          id="panel1a-header"
-        >
-          <ListItem alignItems="flex-start">
-            <ListItemAvatar>
-              <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            </ListItemAvatar>
-            <ListItemText
-              primary="69 茲提  0.0 IP 0 SO 0 BB 0 R"
-            />
-          </ListItem>
-        </AccordionSummary>
-        <AccordionDetails>
-        <div>
-                    <ListItemText
-                        primary="好球"
+                    <ListItem alignItems="flex-start">
+                        <ListItemAvatar>
+                        <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                        </ListItemAvatar>
+                        <ListItemText
+                        primary="69 茲提  0.0 IP 0 SO 0 BB 0 R"
                         />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                    <ListItem alignItems="flex-start">
+                        <ListItemAvatar>
+                        <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
+                        </ListItemAvatar>
+                        <ListItemText
+                        primary="10 加西  0.0 IP 0 SO 0 BB 0 R"
+                        />
+                    </ListItem>
+                    </List>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">1</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">2</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">3</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">4</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">5</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">6</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">7</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">8</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">9</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
                   </div>
+                </Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Stack>
                   <div>
-                    <ListItemText
-                        primary="壞球"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">1</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">2</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">3</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">4</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">5</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">6</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">7</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">8</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">9</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
                   </div>
-                  <div>
-                    <ListItemText
-                        primary="奪三振"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="被安打"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="四壞"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="出局"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="失分"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-          <Typography>
-            {/* Add your detailed content here */}
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      <Divider variant="inset" component="li" />
-      <Accordion>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel2a-content"
-          id="panel2a-header"
-        >
-          <ListItem alignItems="flex-start">
-            <ListItemAvatar>
-              <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-            </ListItemAvatar>
-            <ListItemText
-              primary="10 加西  0.0 IP 0 SO 0 BB 0 R"
-            />
-          </ListItem>
-        </AccordionSummary>
-        <AccordionDetails>
-        <div>
-                    <ListItemText
-                        primary="好球"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="壞球"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="奪三振"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="被安打"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="四壞"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="出局"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-                  <div>
-                    <ListItemText
-                        primary="失分"
-                        />
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                  </div>
-        </AccordionDetails>
-      </Accordion>
-    </List>
-                    </div>
-                   
                 </Stack>
               </Stack>
             </Grid>

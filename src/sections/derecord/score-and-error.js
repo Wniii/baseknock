@@ -17,7 +17,6 @@ import {
   NativeSelect,
   InputBase,
   Unstable_Grid2 as Grid,
-  TextField,
 } from "@mui/material";
 
 export const ScoreAndError = () => {
@@ -37,78 +36,87 @@ export const ScoreAndError = () => {
                 <Typography variant="h6">卡皮巴拉</Typography>
                 <Stack>
                   <div>
-                    <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">1</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">2</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">3</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">4</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">5</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">6</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">7</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">8</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">9</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
                   </div>
                 </Stack>
               </Stack>
@@ -116,78 +124,87 @@ export const ScoreAndError = () => {
                 <Typography variant="h6">失誤</Typography>
                 <Stack>
                   <div>
-                  <TextField
-                      label="1"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="2"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="3"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="4"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="5"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="6"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="7"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="8"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
-                    <TextField
-                      label="9"
-                      id="standard-size-normal"
-                      defaultValue="0"
-                      size="normal"
-                      variant="standard"
-                      sx={{ width: "50px" }}
-                    />
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">1</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">2</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">3</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">4</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">5</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">6</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">7</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">8</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
+                    <FormControl sx={{ m: 1 }} variant="standard">
+                      <InputLabel htmlFor="demo-customized-select-native">9</InputLabel>
+                      <NativeSelect id="demo-customized-select-native">
+                        <option aria-label="None" value="0" />
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                      </NativeSelect>
+                    </FormControl>
                   </div>
                 </Stack>
               </Stack>
