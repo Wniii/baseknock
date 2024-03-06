@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { Button, Menu, MenuItem, SvgIcon } from '@mui/material';
+
 import ChartBarIcon from '@heroicons/react/24/solid/ChartBarIcon';
 import AddIcon from '@mui/icons-material/Add';
 import CogIcon from '@heroicons/react/24/solid/CogIcon';
@@ -7,7 +10,16 @@ import UserIcon from '@heroicons/react/24/solid/UserIcon';
 import UserPlusIcon from '@heroicons/react/24/solid/UserPlusIcon';
 import UsersIcon from '@heroicons/react/24/solid/UsersIcon';
 import XCircleIcon from '@heroicons/react/24/solid/XCircleIcon';
-import { SvgIcon } from '@mui/material';
+import { Title } from '@mui/icons-material';
+
+ import { DropdownMenuItem } from 'src/layouts/dashboard/dropdownmenuitem';
+// import { SvgIcon } from '@mui/material';
+
+// import React from 'react';
+// import IconButton from '@material-ui/core/IconButton';
+// import Menu from '@material-ui/core/Menu';
+// import MenuItem from '@material-ui/core/MenuItem';
+// import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 export const items = [
   {
@@ -74,6 +86,38 @@ export const items = [
       </SvgIcon>
     )
   },
+
+  {
+    title: '數據',
+    icon: (
+      <SvgIcon fontSize="small">
+        <CogIcon />
+      </SvgIcon>
+    ),
+    options: [
+      {
+        title: '打擊數據',
+        path: '/hitrecord'
+      },
+      {
+        title: '防守數據',
+        path: '/defendrecord'
+      },
+      {
+        title: '各項排名',
+        path: '/rank'
+      },
+      {
+        title: '團隊比較',
+        path: '/vsteam'
+      },
+      {
+        title: '球員比較',
+        path: '/vsplayer'
+      }
+    ]
+  },
+
   {
     title: 'Settings',
     path: '/settings',
@@ -111,3 +155,22 @@ export const items = [
     )
   }
 ];
+
+
+const MyComponent = () => {
+  return (
+    <div>
+      {items.map((item, index) => (
+        <div key={index}>
+          {item.options ? (
+            <DropdownMenuItem title={item.title} options={item.options} />
+          ) : (
+            <div>{item.title}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default MyComponent;
