@@ -1,5 +1,4 @@
-
-
+import { SvgIcon } from '@mui/material';
 import ChartBarIcon from '@heroicons/react/24/solid/ChartBarIcon';
 import AddIcon from '@mui/icons-material/Add';
 import CogIcon from '@heroicons/react/24/solid/CogIcon';
@@ -9,11 +8,6 @@ import UserIcon from '@heroicons/react/24/solid/UserIcon';
 import UserPlusIcon from '@heroicons/react/24/solid/UserPlusIcon';
 import UsersIcon from '@heroicons/react/24/solid/UsersIcon';
 import XCircleIcon from '@heroicons/react/24/solid/XCircleIcon';
-import { Title } from '@mui/icons-material';
-
-
-import { SvgIcon } from '@mui/material';
-
 
 export const items = [
   {
@@ -22,25 +16,6 @@ export const items = [
     icon: (
       <SvgIcon fontSize="small">
         <ChartBarIcon />
-      </SvgIcon>
-    )
-  },
-  
-  {
-    title: 'Customers',
-    path: '/customers',
-    icon: (
-      <SvgIcon fontSize="small">
-        <UsersIcon />
-      </SvgIcon>
-    )
-  },
-  {
-    title: 'Companies',
-    path: '/companies',
-    icon: (
-      <SvgIcon fontSize="small">
-        <ShoppingBagIcon />
       </SvgIcon>
     )
   },
@@ -54,7 +29,7 @@ export const items = [
     )
   },
   {
-    title: '新增比賽',
+    title: '新增比赛',
     path: '/game',
     icon: (
       <SvgIcon fontSize="small">
@@ -80,25 +55,69 @@ export const items = [
       </SvgIcon>
     )
   },
-
   {
     title: '數據',
-    path: '/hitrecord',
+    items: [
+      {
+        title: '打擊數據',
+        path: '/hitrecord',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+      {
+        title: '防守數據',
+        path: '/defendrecord',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+      {
+        title: '各項排名',
+        path: '/rank',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+      {
+        title: '球隊比較',
+        path: '/vsteam',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+      {
+        title: '球員比較',
+        path: '/vsplayer',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+      {
+        title: '個人數據',
+        path: '/personal-data',
+        icon: (
+          <SvgIcon fontSize="small">
+            <ChartBarIcon />
+          </SvgIcon>
+        ),
+      },
+    ],
     icon: (
       <SvgIcon fontSize="small">
         <ChartBarIcon />
       </SvgIcon>
     ),
-  },
-
-  {
-    title: 'Settings',
-    path: '/settings',
-    icon: (
-      <SvgIcon fontSize="small">
-        <CogIcon />
-      </SvgIcon>
-    )
   },
   {
     title: '登入',
@@ -118,15 +137,4 @@ export const items = [
       </SvgIcon>
     )
   },
-  {
-    title: 'Error',
-    path: '/404',
-    icon: (
-      <SvgIcon fontSize="small">
-        <XCircleIcon />
-      </SvgIcon>
-    )
-  }
 ];
-
-

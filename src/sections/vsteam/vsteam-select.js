@@ -188,7 +188,7 @@ export const VsteamSelect = () => {
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">
-            Save
+            確認
           </Button>
         </CardActions>
       </Card>

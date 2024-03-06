@@ -13,6 +13,7 @@ import { applyPagination } from 'src/utils/apply-pagination';
 
 const now = new Date();
 
+
 const data = [
   {
     id: '5e887ac47eed253091be10cb',
@@ -199,7 +200,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Customers | Devias Kit
+          打擊數據
         </title>
       </Head>
       <Box
@@ -213,52 +214,14 @@ const Page = () => {
           <Stack spacing={3}>
             <Stack
               direction="row"
-              justifyContent="space-between"
+              justify2Content="space-between"
               spacing={4}
             >
               <Stack spacing={1}>
-                <Typography variant="h4">
-                  打擊數據
-                </Typography>
-                {/* <Stack
-                  alignItems="center"
-                  direction="row"
-                  spacing={1}
-                >
-                  <Button
-                    color="inherit"
-                    startIcon={(
-                      <SvgIcon fontSize="small">
-                        <ArrowUpOnSquareIcon />
-                      </SvgIcon>
-                    )}
-                  >
-                    Import
-                  </Button>
-                  <Button
-                    color="inherit"
-                    startIcon={(
-                      <SvgIcon fontSize="small">
-                        <ArrowDownOnSquareIcon />
-                      </SvgIcon>
-                    )}
-                  >
-                    Export
-                  </Button>
-                </Stack> */}
+              <Typography variant="h4">
+                打擊數據
+              </Typography>
               </Stack>
-              <div>
-                <Button
-                  startIcon={(
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  )}
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
             </Stack>
             <CustomersSearch />
             <CustomersTable

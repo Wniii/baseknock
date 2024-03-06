@@ -13,25 +13,20 @@ import {
   Unstable_Grid2 as Grid
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { CompanyCard } from 'src/sections/rank/rank-table';
+import { Rankpage } from 'src/sections/rank/rank-table';
 import { CompaniesSearch } from 'src/sections/rank/rank-search';
 
-const companies = [
-  {
-    id: '2569ce0d517a7f06d3ea1f24',
-    createdAt: '27/03/2019',
-    description: 'Dropbox is a file hosting service that offers cloud storage, file synchronization, a personal cloud.',
-    logo: '/assets/logos/logo-dropbox.png',
-    title: 'Dropbox',
-    downloads: '594'
-  },
-];
+import { subDays, subHours } from 'date-fns';
+
+
+const now = new Date();
+
 
 const Page = () => (
   <>
     <Head>
       <title>
-        Companies | Devias Kit
+        各項排名
       </title>
     </Head>
     <Box
@@ -50,54 +45,47 @@ const Page = () => (
           >
             <Stack spacing={1}>
               <Typography variant="h4">
-                Companies
+                各項排名
               </Typography>
               <Stack
                 alignItems="center"
                 direction="row"
                 spacing={1}
               >
-                <Button
-                  color="inherit"
-                  startIcon={(
-                    <SvgIcon fontSize="small">
-                      <ArrowUpOnSquareIcon />
-                    </SvgIcon>
-                  )}
-                >
-                  Import
-                </Button>
-                <Button
-                  color="inherit"
-                  startIcon={(
-                    <SvgIcon fontSize="small">
-                      <ArrowDownOnSquareIcon />
-                    </SvgIcon>
-                  )}
-                >
-                  Export
-                </Button>
               </Stack>
             </Stack>
-            <div>
-              <Button
-                startIcon={(
-                  <SvgIcon fontSize="small">
-                    <PlusIcon />
-                  </SvgIcon>
-                )}
-                variant="contained"
-              >
-                Add
-              </Button>
-            </div>
           </Stack>
           <CompaniesSearch />
           <Grid
             container
             spacing={3}
           >
-            {companies.map((company) => (
+            <Rankpage
+              players={[
+                {
+                  id: '1',
+                  image: '/assets/products/product-1.png',
+                  name: '攻擊位玩家1',
+                  updatedAt: subHours(now, 6).getTime()
+                },
+                {
+                  id: '2',
+                  image: '/assets/products/product-1.png',
+                  name: '攻擊位玩家1',
+                  updatedAt: subHours(now, 6).getTime()
+                },
+                {
+                  id: '3',
+                  image: '/assets/products/product-1.png',
+                  name: '攻擊位玩家1',
+                  updatedAt: subHours(now, 6).getTime()
+                },
+                // Add more attack place players as needed
+              ]}
+              sx={{ height: '100%', overflowY: 'auto' }}
+            />
+            
+            {/* {companies.map((company) => (
               <Grid
                 xs={12}
                 md={6}
@@ -106,7 +94,7 @@ const Page = () => (
               >
                 <CompanyCard company={company} />
               </Grid>
-            ))}
+            ))} */}
           </Grid>
           <Box
             sx={{
