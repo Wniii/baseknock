@@ -136,7 +136,8 @@ export const CustomersTable = (props) => {
                                     height: '100%' 
                                   }}>
                         <Button 
-                          variant='contained'
+                          variant='outlined'
+                          color='inherit'
                           startIcon={<AddIcon />}
                           sx={{ width: '50px', height: '30px', padding: 0 }}
                         >
