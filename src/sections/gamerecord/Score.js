@@ -124,7 +124,50 @@ export const Score = (props) => {
                         
                     </TableCell>
                   </TableRow>
-             
+                  <TableRow
+                    hover
+                  >
+                    <TableCell>
+                      卡皮巴拉
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell></TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                    <TableCell>
+                        
+                    </TableCell>
+                  </TableRow>
             </TableBody>
           </Table>
         </Box>

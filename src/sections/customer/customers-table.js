@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import {
   Avatar,
   Box,
+  Button,
   Card,
   Checkbox,
   Stack,
@@ -16,6 +17,7 @@ import {
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import { getInitials } from 'src/utils/get-initials';
+import AddIcon from '@mui/icons-material/Add';
 
 export const CustomersTable = (props) => {
   const {
@@ -56,19 +58,37 @@ export const CustomersTable = (props) => {
                   />
                 </TableCell>
                 <TableCell>
-                  Name
+                  打者
                 </TableCell>
                 <TableCell>
-                  Email
+                  E
                 </TableCell>
                 <TableCell>
-                  Location
+                  1
                 </TableCell>
                 <TableCell>
-                  Phone
+                  2
                 </TableCell>
                 <TableCell>
-                  Signed Up
+                  3
+                </TableCell>
+                <TableCell>
+                  4
+                </TableCell>
+                <TableCell>
+                  5
+                </TableCell>
+                <TableCell>
+                  6
+                </TableCell>
+                <TableCell>
+                  7
+                </TableCell>
+                <TableCell>
+                  8
+                </TableCell>
+                <TableCell>
+                  9
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -95,7 +115,7 @@ export const CustomersTable = (props) => {
                         }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell style={{ width: '150px' }}>
                       <Stack
                         alignItems="center"
                         direction="row"
@@ -109,17 +129,46 @@ export const CustomersTable = (props) => {
                         </Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell>
-                      {customer.email}
+                    <TableCell style={{ width: '50px' }}>
+                      <div style={{ display: 'flex', 
+                                    justifyContent: 'center', 
+                                    alignItems: 'center',  
+                                    height: '100%' 
+                                  }}>
+                        <Button 
+                          variant='contained'
+                          startIcon={<AddIcon />}
+                          sx={{ width: '50px', height: '30px', padding: 0 }}
+                        >
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {customer.address.city}, {customer.address.state}, {customer.address.country}
+                      
                     </TableCell>
                     <TableCell>
-                      {customer.phone}
+                      
                     </TableCell>
                     <TableCell>
-                      {createdAt}
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
+                    </TableCell>
+                    <TableCell>
+                      
                     </TableCell>
                   </TableRow>
                 );
