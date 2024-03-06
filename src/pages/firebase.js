@@ -4,14 +4,13 @@ import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAS9i4vURpqqpi8hsSV20RSFi6DqUU8Cc8",
-    authDomain: "baseknock-b309d.firebaseapp.com",
-    databaseURL: "https://baseknock-b309d-default-rtdb.firebaseio.com",
-    projectId: "baseknock-b309d",
-    storageBucket: "baseknock-b309d.appspot.com",
-    messagingSenderId: "833396187285",
-    appId: "1:833396187285:web:1fc67e53a4ead9cd997b9c",
-    measurementId: "G-GCJLCCW76J"
+    apiKey: "AIzaSyCCKNU9obvHvR8dh82qPT7qBmSs0icpZBw",
+    authDomain: "test-e9b32.firebaseapp.com",
+    projectId: "test-e9b32",
+    storageBucket: "test-e9b32.appspot.com",
+    messagingSenderId: "198527740789",
+    appId: "1:198527740789:web:58d86bcf0c84628505813c",
+    measurementId: "G-R83MG1D5MM"
   };
 
 let app;
