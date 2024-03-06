@@ -40,7 +40,7 @@ export const items = [
   },
   {
     title: '新增球隊',
-    path: '/account',
+    path: '/team',
     icon: (
       <SvgIcon fontSize="small">
         <AddIcon />
