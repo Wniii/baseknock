@@ -10,7 +10,10 @@ import {
   FormControlLabel,
   Stack,
 
-  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 
   Typography,
   Unstable_Grid2 as Grid
@@ -23,16 +26,7 @@ export const CompaniesSearch = () => {
   // 添加其他需要的状态属性
 });
 
-  const interval = [
-    {
-      value: '生涯',
-      label: '生涯'
-    },
-    {
-      value: '沒有區間',
-      label: '沒有區間'
-    }
-  ];
+ 
 
 
   // 定义 handleChange 函数来处理输入框变化
@@ -56,28 +50,19 @@ export const CompaniesSearch = () => {
         xs={12}
         md={4}
       >
-                <TextField
-                  fullWidth
-                  label="查詢區間"
-                  name="interval"
-                  onChange={handleChange}
-                  select
-                  SelectProps={{ 
-                    native: true,
-                    style: { padding: '7px', margin: '5px 0' }
-                   }}
-                  value={values.interval}
-                  sx={{ marginTop: '10px' }}
-                >
-                  {interval.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
+              <FormControl variant="outlined" style={{ minWidth: '150px' }}>
+              <InputLabel id="dropdown-label-1">查詢期間</InputLabel>
+              <Select
+                labelId="dropdown-label-1"
+                label="選項1"
+                // Add onChange and value props as needed
+              >
+                {/* Add MenuItem components with options */}
+                <MenuItem value={1}>生涯</MenuItem>
+                <MenuItem value={2}>沒有區間</MenuItem>
+                {/* Add more options as needed */}
+              </Select>
+            </FormControl>
         </Grid>
         </Grid><br></br>
   <Grid container spacing={6}>
@@ -109,7 +94,7 @@ export const CompaniesSearch = () => {
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">
-            Save
+            確認
           </Button>
         </CardActions>
       </Card>

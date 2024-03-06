@@ -2,11 +2,10 @@ import { formatDistanceToNow } from 'date-fns';
 import PropTypes from 'prop-types';
 import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import EllipsisVerticalIcon from '@heroicons/react/24/solid/EllipsisVerticalIcon';
+
 import {
   Box,
-  Button,
   Card,
-  CardActions,
   CardHeader,
   Divider,
   IconButton,
@@ -17,50 +16,51 @@ import {
   SvgIcon
 } from '@mui/material';
 
-export const CompanyCard = (props) => {
-  const { products = [], sx } = props;
+export const Rankpage = (props) => {
+  const { players = [], sx } = props;
+  console.log(players);
+  // Limit to the first 5 players
+  const visiblePlayers = players;
+  
 
   return (
-    <Card sx={sx}>
+    <Card sx={{ display: 'flex', flexDirection: 'column', ...sx }}>
       <CardHeader title="打擊率" />
-      <List>
-        {products.map((product, index) => {
-          const hasDivider = index < products.length - 1;
-          const ago = formatDistanceToNow(product.updatedAt);
+      <List sx={{ flex: 1, overflowY: 'auto' }}>
+        {visiblePlayers.map((player, index) => {
+          const hasDivider = index < visiblePlayers.length - 1;
+          const ago = formatDistanceToNow(player.updatedAt);
+          const playerNumber = index + 1;
 
           return (
             <ListItem
               divider={hasDivider}
-              key={product.id}
+              key={player.id}
             >
               <ListItemAvatar>
-                {
-                  product.image
-                    ? (
-                      <Box
-                        component="img"
-                        src={product.image}
-                        sx={{
-                          borderRadius: 1,
-                          height: 48,
-                          width: 48
-                        }}
-                      />
-                    )
-                    : (
-                      <Box
-                        sx={{
-                          borderRadius: 1,
-                          backgroundColor: 'neutral.200',
-                          height: 48,
-                          width: 48
-                        }}
-                      />
-                    )
-                }
+                {player.image ? (
+                  <Box
+                    component="img"
+                    src={player.image}
+                    sx={{
+                      borderRadius: 1,
+                      height: 48,
+                      width: 48
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      borderRadius: 1,
+                      backgroundColor: 'neutral.200',
+                      height: 48,
+                      width: 48
+                    }}
+                  />
+                )}
               </ListItemAvatar>
               <ListItemText
-                primary={product.name}
+                primary={`${playerNumber}. ${player.name}`}
                 primaryTypographyProps={{ variant: 'subtitle1' }}
                 secondary={`Updated ${ago} ago`}
                 secondaryTypographyProps={{ variant: 'body2' }}
@@ -75,25 +75,11 @@ export const CompanyCard = (props) => {
         })}
       </List>
       <Divider />
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          color="inherit"
-          endIcon={(
-            <SvgIcon fontSize="small">
-              <ArrowRightIcon />
-            </SvgIcon>
-          )}
-          size="small"
-          variant="text"
-        >
-          View all
-        </Button>
-      </CardActions>
     </Card>
   );
 };
 
-CompanyCard.propTypes = {
-  products: PropTypes.array,
+Rankpage.propTypes = {
+  players: PropTypes.array,
   sx: PropTypes.object
 };
