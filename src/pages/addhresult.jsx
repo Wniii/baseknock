@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { firestore } from "./firebase"; // 正确的导入路径
 import { addDoc, collection, doc, setDoc } from "firebase/firestore"; // 正确的导入语句
 
-export default function CreateUserDocumentButton() {
+export default function CreateHresultDocumentButton() {
     const [hresultId, setHitResultId] = useState(""); // 用户ID
     const [一安, set一安] = useState(""); // 密码
     const [二安, set二安] = useState(""); // 电子邮件
