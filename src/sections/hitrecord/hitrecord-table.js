@@ -54,9 +54,6 @@ export const CustomersTable = (props) => {
 
   const open = Boolean(anchorEl);
 
-  // const selectedSome = (selected.length > 0) && (selected.length < items.length);
-  // const selectedAll = (items.length > 0) && (selected.length === items.length);
-
   return (
     <Card>
       <Scrollbar>
@@ -64,7 +61,7 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-              <TableCell size="small">
+                <TableCell size="small">
                   查看細節
                 </TableCell>
                 <TableCell>
@@ -155,37 +152,40 @@ export const CustomersTable = (props) => {
                     key={customer.id}
                     selected={isSelected}
                   >
-    
-                  <Button
-                    size="small"
-                    startIcon={<SearchIcon />}
-                    aria-owns={open ? 'popover' : undefined}
-                    aria-haspopup="true"
-                    onMouseEnter={handlePopoverOpen}
-                    onMouseLeave={handlePopoverClose}
-                  >
-                    查看
-                  </Button>
-                  <Popover
-                    id="popover"
-                    open={open}
-                    anchorEl={anchorEl}
-                    onClose={handlePopoverClose}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'center',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'center',
-                    }}
-                  >
-                    {/* 这里放置您的弹出窗口内容 */}
-                    <Typography>弹出窗口内容</Typography>
-                  </Popover>
-                    
                     <TableCell>
-                      <Stack
+                      <Button
+                        size="small"
+                        startIcon={<SearchIcon />}
+                        aria-owns={open ? 'popover' : undefined}
+                        aria-haspopup="true"
+                        onMouseEnter={handlePopoverOpen}
+                        onMouseLeave={handlePopoverClose}
+                      >
+                        查看
+                      </Button>
+                      <Popover
+                        id="popover"
+                        open={open}
+                        anchorEl={anchorEl}
+                        onClose={handlePopoverClose}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'center',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'center',
+                        }}
+                      >
+                        {/* 这里放置您的弹出窗口内容 */}
+                        <Typography>弹出窗口内容</Typography>
+                      </Popover>
+                    </TableCell>
+                    <TableCell>
+                      1
+                    </TableCell>
+                    <TableCell>
+                    <Stack
                         alignItems="center"
                         direction="row"
                         spacing={2}
@@ -197,9 +197,6 @@ export const CustomersTable = (props) => {
                           {customer.name}
                         </Typography>
                       </Stack>
-                    </TableCell>
-                    <TableCell>
-                      {customer.email}
                     </TableCell>
                     <TableCell>
                       {customer.address.city}, {customer.address.state}, {customer.address.country}
@@ -220,7 +217,6 @@ export const CustomersTable = (props) => {
     </Card>
   );
 };
-
 CustomersTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
