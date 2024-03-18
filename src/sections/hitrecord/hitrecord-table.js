@@ -1,58 +1,46 @@
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
-
-import React, { useState } from 'react';
-
 import {
   Avatar,
   Box,
   Card,
-  Checkbox,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TablePagination,
   TableRow,
   Typography,
-
   Button,
-  Popover
-
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import { getInitials } from 'src/utils/get-initials';
-
-import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
 export const CustomersTable = (props) => {
   const {
     count = 0,
     items = [],
-    onDeselectAll,
-    onDeselectOne,
-    onPageChange = () => {},
-    onRowsPerPageChange,
-    onSelectAll,
-    onSelectOne,
-    page = 0,
-    rowsPerPage = 0,
     selected = []
   } = props;
-  
-  const [anchorEl, setAnchorEl] = useState(null);
 
-  const handlePopoverOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const [open, setOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  const handleOpen = (customer) => {
+    setSelectedCustomer(customer);
+    setOpen(true);
   };
 
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
+  const handleClose = () => {
+    setOpen(false);
   };
-
-  const open = Boolean(anchorEl);
 
   return (
     <Card>
@@ -61,12 +49,8 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell size="small">
-                  查看細節
-                </TableCell>
-                <TableCell>
-                  排名
-                </TableCell>
+                <TableCell size="small">查看細節</TableCell>
+                <TableCell>排名</TableCell>
                 <TableCell>
                   球員
                 </TableCell>
@@ -147,42 +131,11 @@ export const CustomersTable = (props) => {
                 const createdAt = format(customer.createdAt, 'dd/MM/yyyy');
 
                 return (
-                  <TableRow
-                    hover
-                    key={customer.id}
-                    selected={isSelected}
-                  >
+                  <TableRow hover key={customer.id} selected={isSelected}>
                     <TableCell>
-                      <Button
-                        size="small"
-                        startIcon={<SearchIcon />}
-                        aria-owns={open ? 'popover' : undefined}
-                        aria-haspopup="true"
-                        onMouseEnter={handlePopoverOpen}
-                        onMouseLeave={handlePopoverClose}
-                      >
+                      <Button size="small" startIcon={<SearchIcon />} onClick={() => handleOpen(customer)}>
                         查看
                       </Button>
-                      <Popover
-                        id="popover"
-                        open={open}
-                        anchorEl={anchorEl}
-                        onClose={handlePopoverClose}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'center',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'center',
-                        }}
-                      >
-                        {/* 这里放置您的弹出窗口内容 */}
-                        <Typography>弹出窗口内容</Typography>
-                      </Popover>
-                    </TableCell>
-                    <TableCell>
-                      1
                     </TableCell>
                     <TableCell>
                     <Stack
@@ -199,6 +152,9 @@ export const CustomersTable = (props) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
+                      {customer.email}
+                    </TableCell>
+                    <TableCell>
                       {customer.address.city}, {customer.address.state}, {customer.address.country}
                     </TableCell>
                     <TableCell>
@@ -207,6 +163,7 @@ export const CustomersTable = (props) => {
                     <TableCell>
                       {createdAt}
                     </TableCell>
+
                   </TableRow>
                 );
               })}
@@ -214,19 +171,54 @@ export const CustomersTable = (props) => {
           </Table>
         </Box>
       </Scrollbar>
+      <CustomerDialog open={open} onClose={handleClose} customer={selectedCustomer} />
     </Card>
   );
 };
+
 CustomersTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
-  onDeselectAll: PropTypes.func,
-  onDeselectOne: PropTypes.func,
-  onPageChange: PropTypes.func,
-  onRowsPerPageChange: PropTypes.func,
-  onSelectAll: PropTypes.func,
-  onSelectOne: PropTypes.func,
-  page: PropTypes.number,
-  rowsPerPage: PropTypes.number,
   selected: PropTypes.array
 };
+
+const CustomerDialog = ({ open, onClose, customer }) => {
+  const handleClose = () => {
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose}>
+     
+      <DialogContent>
+        {customer && (
+          <>
+           <DialogTitle>{customer.name}</DialogTitle>
+            <DialogContentText>
+            <img
+        src='https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
+        width={'250px'}
+      />
+      <img
+        src='https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
+        width={'250px'}
+      />
+            </DialogContentText>
+            {/* 其他客戶詳細資訊 */}
+          </>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>關閉</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+CustomerDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  customer: PropTypes.object
+};
+
+export default CustomersTable;
