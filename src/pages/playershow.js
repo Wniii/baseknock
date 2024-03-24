@@ -78,10 +78,10 @@ const ALLPlayerPage = () => {
     setPlayers(players.filter(p => p.id !== player.id));
   };
 
-  const saveSelectedPlayers = async () => {
+  const saveSelectedPlayers = async (selectedPlayers, g_id) => {
     try {
       const glistCollection = collection(firestore, 'glist');
-      await Promise.all(selectedPlayers.map(player => addDoc(glistCollection, player)));
+      await Promise.all(selectedPlayers.map(player => addDoc(glistCollection, { ...player, g_id })));
       console.log('Selected players added to glist successfully!');
       setSelectedPlayers([]); // 保存后清空选择的球员列表
     } catch (error) {
@@ -97,15 +97,8 @@ const ALLPlayerPage = () => {
     router.push('/DefencePlacePage');
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const playerId = e.dataTransfer.getData('playerId');
-    const player = players.find((p) => p.id === playerId);
-    if (player) {
-      setSelectedPlayers([...selectedPlayers, player]);
-      setPlayers(players.filter(p => p.id !== player.id));
-    }
-  };
+  const { g_id } = router.query; // 提取 g_id 参数
+  
 
   return (
     <>
@@ -240,7 +233,7 @@ const ALLPlayerPage = () => {
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardHeader title="先发球员" />
                 <CardActions>
-                  <Button variant="contained" onClick={saveSelectedPlayers}>
+               <Button variant="contained" color="primary" onClick={() => saveSelectedPlayers(selectedPlayers, g_id)}>
                     储存
                   </Button>
                 </CardActions>
