@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
 import { firestore } from './firebase';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,6 +19,15 @@ const ALLPlayerPage = () => {
 
   const [players, setPlayers] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const [g_id, setGId] = useState(null); // 添加状态变量来存储g_id
+
+  // 生成随机的 glist_id
+  const generateRandomBlistId = () => {
+    // 生成一个随机的字符串作为 glist_id，可以根据您的需求自定义长度和字符集
+    return Math.random().toString(36).substr(2, 9);
+  };
+
+  const [blist_id, setBlistId] = useState(generateRandomBlistId()); // 添加状态变量来存储blist_id
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -35,6 +44,14 @@ const ALLPlayerPage = () => {
     fetchPlayers();
   }, []);
 
+  useEffect(() => {
+    // 从路由参数中获取g_id
+    const { query } = router;
+    if (query && query.g_id) {
+      setGId(query.g_id);
+    }
+  }, [router.query]);
+
   const addPlayerToFirestore = async () => {
     try {
       const newPlayerData = {
@@ -49,6 +66,7 @@ const ALLPlayerPage = () => {
       console.error('Error creating new player document:', error);
     }
   };
+
   const handleDropPlayer = (index) => {
     return (e) => {
       e.preventDefault();
@@ -61,14 +79,14 @@ const ALLPlayerPage = () => {
       setSelectedPlayers(newPlayers);
     };
   };
-  
-  
+
   const getIndexForDrop = (clientY, currentIndex) => {
     const listItemHeight = 56; // ListItem 的默认高度
     const offset = clientY - (currentIndex * listItemHeight);
     const newIndex = Math.round(offset / listItemHeight);
     return Math.max(0, Math.min(selectedPlayers.length, currentIndex + newIndex));
   };
+
   const handleDragStart = (e, player) => {
     e.dataTransfer.setData('playerId', player.id);
   };
@@ -78,27 +96,60 @@ const ALLPlayerPage = () => {
     setPlayers(players.filter(p => p.id !== player.id));
   };
 
-  const saveSelectedPlayers = async (selectedPlayers, g_id) => {
+  // 生成随机的 glist_id
+  
+
+  const saveSelectedPlayers = async () => {
     try {
-      const glistCollection = collection(firestore, 'glist');
-      await Promise.all(selectedPlayers.map(player => addDoc(glistCollection, { ...player, g_id })));
-      console.log('Selected players added to glist successfully!');
-      setSelectedPlayers([]); // 保存后清空选择的球员列表
+        // 在 Firestore 中获取 'blist' 集合的引用，并指定文档 ID
+        const blistDocRef = doc(firestore, 'blist', blist_id);
+
+        const playerData = {};
+        // 创建包含选择的球员名字的对象
+        const homePlayers = [];
+        for (let i = 0; i <= 9; i++) { // 修改循环起始索引为 1，终止条件为 i <= 10
+            homePlayers.push(selectedPlayers[i]?.p_name || ''); // 将球员名字添加到 homePlayers 数组中
+        }
+        playerData['home'] = homePlayers; // 将 homePlayers 数组存储到 playerData 中
+
+        // 创建包含 1 到 9 的数组作为 away
+
+
+        playerData['blist_id'] = blist_id; // 添加随机生成的 blist_id
+        playerData['g_id'] = g_id; // 使用传递过来的 g_id     
+
+        // 将 playerData 添加到 'blist' 集合中的特定文档中
+        await setDoc(blistDocRef, playerData);
+
+        console.log('Selected players added to blist successfully!');
+        setSelectedPlayers([]); // 保存后清空选择的球员列表
     } catch (error) {
-      console.error('Error adding selected players to glist:', error);
+        console.error('Error adding selected players to blist:', error);
     }
-  };
+}
+
+  
 
   const handleReturnClick = () => {
     router.push('/your-other-page');
   };
 
-  const handleSaveClick = () => {
-    router.push('/DefencePlacePage');
+  const handleSaveAndNavigate = async () => {
+    try {
+      await saveSelectedPlayers(); // 等待保存函数执行完成
+      // 使用router.push将g_id传递到另一个页面
+      router.push({
+        pathname: '/DefencePlacePage',
+        query: {
+          g_id: g_id, // 使用之前传递过来的 g_id
+          blist_id: blist_id // 使用当前页面的 blist_id
+        }
+      });
+      console.log('blist_id:', blist_id);
+    } catch (error) {
+      console.error('Error saving selected players:', error);
+    }
   };
-
-  const { g_id } = router.query; // 提取 g_id 参数
-  
 
   return (
     <>
@@ -222,7 +273,12 @@ const ALLPlayerPage = () => {
                 <Button variant="contained" color="primary" onClick={handleReturnClick} style={{ marginRight: '8px', width: '100px', height: '50px' }}>
                   返回
                 </Button>
-                <Button variant="contained" color="primary" onClick={handleSaveClick} style={{ width: '100px', height: '50px' }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSaveAndNavigate}
+                  style={{ width: '100px', height: '50px' }}
+                >
                   储存
                 </Button>
               </div>
@@ -232,11 +288,6 @@ const ALLPlayerPage = () => {
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardHeader title="先发球员" />
-                <CardActions>
-               <Button variant="contained" color="primary" onClick={() => saveSelectedPlayers(selectedPlayers, g_id)}>
-                    储存
-                  </Button>
-                </CardActions>
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                 <List onDragOver={(e) => e.preventDefault()}>
                   {selectedPlayers.map((player, index) => (

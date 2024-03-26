@@ -87,7 +87,7 @@ const SchedulePage = () => {
 
         // 導航到另一個頁面並將 g_id 傳遞作為查詢參數
         router.push({
-            pathname: '/playershow',
+            pathname: '/DefencePlacePage',
             query: { g_id: selectedGame.g_id }
         });
     };
