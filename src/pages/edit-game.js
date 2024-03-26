@@ -2,7 +2,7 @@ import Head from "next/head";
 import { Box, Container, Stack, Typography, Unstable_Grid2 as Grid } from "@mui/material";
 import { Layout as DashboardLayout } from "src/layouts/dashboard/layout";
 import { AccountProfile } from "src/sections/data/account-profile";
-import { EditGameForm } from "src/sections/data/edit-game-form";
+import { EditGameForm } from "src/pages/edit-game-form";
 
 const Page = () => (
   <>
