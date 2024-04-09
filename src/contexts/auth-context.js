@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { firestore } from "../pages/firebase";
+import { query, collection, where, getDocs } from "firebase/firestore";
+
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE',
@@ -127,29 +130,35 @@ export const AuthProvider = (props) => {
     });
   };
 
-  const signIn = async (email, password) => {
-    if (email !== 'demo@devias.io' || password !== 'Password123!') {
-      throw new Error('Please check your email and password');
-    }
-
+  const signIn = async (u_email, u_password) => {
     try {
+      // 连接数据库，检查用户是否存在
+      const q = query(collection(firestore, "users"), where('u_email', '==', u_email), where('u_password', '==', u_password));
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        // 用户不存在或密码错误
+        throw new Error('Please check your email and password');
+      }
+  
+      // 用户存在且密码正确，进行登录
+      const user = {
+        id: querySnapshot.docs[0].id, // 获取用户文档的ID
+        email: querySnapshot.docs[0].data().u_email, // 获取用户的邮箱
+        // 其他用户信息根据需要从数据库中获取
+      };
+  
       window.sessionStorage.setItem('authenticated', 'true');
+  
+      dispatch({
+        type: HANDLERS.SIGN_IN,
+        payload: user
+      });
     } catch (err) {
       console.error(err);
+      throw new Error('Please check your email and password');
     }
-
-    const user = {
-      id: '5e86809283e28b96d2d38537',
-      avatar: '/assets/avatars/avatar-anika-visser.png',
-      name: 'Anika Visser',
-      email: 'anika.visser@devias.io'
-    };
-
-    dispatch({
-      type: HANDLERS.SIGN_IN,
-      payload: user
-    });
   };
+  
 
   const signUp = async (email, name, password) => {
     throw new Error('Sign up is not implemented');

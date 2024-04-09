@@ -85,12 +85,8 @@ const AddPlayerSx = {
 
 
 
-const buttonSx = {
-  backgroundColor: 'd3d3d3',
-  display: 'flex',
-  justifyContent: 'center', // 將兩個按鈕水平置中
 
-};
+
 
 
 
@@ -227,7 +223,7 @@ export const AddTeam = () => {
       </Box>
     </CardContent>
   </Card>
-  <div style={buttonSx}>
+  {/* <div style={buttonSx}>
     <div>
       <Button size="large" sx={{ mt: 2, mr: 1 }} type="cancel" variant="contained">
         取消
@@ -236,7 +232,7 @@ export const AddTeam = () => {
         確認新增
       </Button>
     </div>
-  </div>
+  </div> */}
 </form>
 </div>
 );
