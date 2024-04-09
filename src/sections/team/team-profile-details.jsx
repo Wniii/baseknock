@@ -32,12 +32,12 @@ const CreateTeamDocumentButton = React.forwardRef((props, ref) => {
 
   return (
     <div>
-      <Card>
+      <Card sx={{ p: 2 }}>
         <CardHeader />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
             <Grid container spacing={2}>
-              <Grid xs={24} md={12}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="球隊名稱"
@@ -48,7 +48,7 @@ const CreateTeamDocumentButton = React.forwardRef((props, ref) => {
                   value={name || ''}
                 />
               </Grid>
-              <Grid xs={24} md={12}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="球隊代號"
@@ -58,7 +58,7 @@ const CreateTeamDocumentButton = React.forwardRef((props, ref) => {
                   value={codeName || ''}
                 />
               </Grid>
-              <Grid xs={24} md={12}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="球隊簡介"

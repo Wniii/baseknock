@@ -13,6 +13,10 @@ const buttonSx = {
   padding: '8px',
 };
 
+const sectionSx = {
+  p: 2, // 添加白边
+};
+
 const Page = () => {
   const createTeamDocumentButtonRef = useRef();
 
@@ -42,13 +46,13 @@ const Page = () => {
             <Divider />
             <div>
               <Grid container spacing={3}>
-                <Grid xs={12} md={6} lg={4}>
+                <Grid item xs={12} md={6} lg={4} sx={sectionSx}>
                   <TeamProfile />
                 </Grid>
-                <Grid xs={12} md={6} lg={8}>
+                <Grid item xs={12} md={6} lg={8} sx={sectionSx}>
                   <CreateTeamDocumentButton ref={createTeamDocumentButtonRef} />
                 </Grid>
-                <Grid xs={12} md={12} lg={12}>
+                <Grid item xs={12} sx={sectionSx}>
                   <AddTeam />
                 </Grid>
               </Grid>
