@@ -22,6 +22,7 @@ export default function CreateGlistDocumentButton() {
     const [away_if, setAway_if] = useState(""); // 客队内野手
     const [away_cf, setAway_cf] = useState(""); // 客队中外野手
     const [away_rf, setAway_rf] = useState(""); // 客队右外野手
+    const [gameID, setGameID] = useState("");
 
     const handleCreateGlistDocument = async (e) => {
         e.preventDefault();
@@ -47,7 +48,8 @@ export default function CreateGlistDocumentButton() {
                 away_ss: away_ss,
                 away_if: away_if,
                 away_cf: away_cf,
-                away_rf: away_rf
+                away_rf: away_rf,
+                g_id: gameID
             });
 
             alert("Glist document created successfully!");
@@ -172,6 +174,12 @@ export default function CreateGlistDocumentButton() {
                     type="text"
                     value={away_rf || ''}
                     onChange={(e) => setAway_rf(e.target.value)}
+                />
+                <label>GameID:</label>
+                <input
+                    type="text"
+                    value={gameID || ''}
+                    onChange={(e) => setGameID(e.target.value)}
                 />
                 <button type="submit">Create Glist Document</button>
             </form>

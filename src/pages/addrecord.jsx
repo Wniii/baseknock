@@ -7,6 +7,7 @@ export default function CreateRecordDocumentButton() {
     const [innings, setInnings] = useState(""); // 局数
     const [score1, setScore1] = useState(""); // 分数1
     const [score2, setScore2] = useState(""); // 分数2
+    const [gameID, setGameID] = useState("");
 
     const handleCreateRecordDocument = async (e) => {
         e.preventDefault();
@@ -17,7 +18,8 @@ export default function CreateRecordDocumentButton() {
                 r_id: recordID,
                 r_innings: innings,
                 r_score1: score1,
-                r_score2: score2
+                r_score2: score2,
+                g_id: gameID
             });
 
             alert("Record document created successfully!");
@@ -52,6 +54,12 @@ export default function CreateRecordDocumentButton() {
                     type="text"
                     value={score2 || ''}
                     onChange={(e) => setScore2(e.target.value)}
+                />
+                <label>GameID:</label>
+                <input
+                    type="text"
+                    value={gameID || ''}
+                    onChange={(e) => setGameID(e.target.value)}
                 />
                 <button type="submit">Create Record Document</button>
             </form>

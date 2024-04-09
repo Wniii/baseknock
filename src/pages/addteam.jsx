@@ -8,6 +8,8 @@ export default function CreateTeamDocumentButton() {
     const [school, setSchool] = useState(""); // 学校
     const [coach, setCoach] = useState(""); // 教练
     const [manager, setManager] = useState(""); // 经理
+    const [introduction, setIntro] = useState(""); // 簡介
+
     const [game, setGame] = useState(0); // 比赛场次
     const [win, setWin] = useState(0); // 胜场
     const [lose, setLose] = useState(0); // 败场
@@ -25,6 +27,7 @@ export default function CreateTeamDocumentButton() {
                 t_school: school,
                 t_coach: coach,
                 t_manager: manager,
+                t_introduction: introduction,
                 t_game: game,
                 t_win: win,
                 t_lose: lose,
@@ -70,6 +73,12 @@ export default function CreateTeamDocumentButton() {
                     type="text"
                     value={manager || ''}
                     onChange={(e) => setManager(e.target.value)}
+                />
+                <label>Introduction:</label>
+                <input
+                    type="text"
+                    value={introduction || ''}
+                    onChange={(e) => setIntro(e.target.value)}
                 />
                 <label>Game:</label>
                 <input

@@ -32,10 +32,8 @@ export const BaseSituation = () => {
             壘上情況
           </Typography>
           <Divider style={{ flex: '1', marginLeft: '10px' }} />
-        </div>
-  
-            <div style={{marginLeft: '150px', marginTop: '10px'}}>   
-                     
+        </div>  
+            <div style={{marginLeft: '150px', marginTop: '10px'}}>            
                 <FormControlLabel
                   control={<Checkbox defaultChecked={false} />}
                   label="一壘"
@@ -49,7 +47,7 @@ export const BaseSituation = () => {
                     control={<Checkbox />}
                     label="三壘"
                   />
-             </div> 
+            </div> 
     </CardContent>
     </Card>      
     </form>

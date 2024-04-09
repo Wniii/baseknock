@@ -1,32 +1,33 @@
 import {
-    Avatar,
-    Box,
-    Button,
-    Card,
-    CardActions,
-    CardContent,
-    CardHeader,
-    Divider,
-    Typography,
-    TextField,
-    Unstable_Grid2 as Grid
-  } from '@mui/material';
-  
-  
-  
-  const user = {
-    // avatar: '/assets/avatars/avatar-anika-visser.png',
-    // city: 'Los Angeles',
-    // country: 'USA',
-    // jobTitle: 'Senior Developer',
-    // name: 'Anika Visser',
-    // timezone: 'GTM-7'
-  };
-  
-  
-  
-  export const TeamProfile = () => (
-    <div>
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Divider,
+  Typography,
+  TextField,
+  Unstable_Grid2 as Grid
+} from '@mui/material';
+
+
+
+
+const user = {
+  // avatar: '/assets/avatars/avatar-anika-visser.png',
+  // city: 'Los Angeles',
+  // country: 'USA',
+  // jobTitle: 'Senior Developer',
+  // name: 'Anika Visser',
+  // timezone: 'GTM-7'
+};
+
+
+
+export const TeamProfile = () => (
+  <div>
     <Card>
       <CardContent>
         <Box
@@ -76,9 +77,8 @@ import {
       </CardActions>
     </Card>
     <br></br>
-    
-  
-    </div>
-  );
-  
-  
+
+
+  </div>
+);
+

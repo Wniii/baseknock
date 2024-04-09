@@ -11,6 +11,7 @@ export default function CreateGameDocumentButton() {
     const [recorder, setRecorder] = useState(""); // 记录员
     const [homeAway, setHomeAway] = useState(""); // 主场/客场
     const [label, setLabel] = useState(""); // 标签
+    const [teamId, setTeamId] = useState("");
 
     const handleCreateGameDocument = async (e) => {
         e.preventDefault();
@@ -18,6 +19,7 @@ export default function CreateGameDocumentButton() {
         try {
             // 创建一个名为 "game" 的集合，并在其中创建一个比赛文档
             await setDoc(doc(firestore, "game", gameID), {
+                t_id: teamId,
                 g_id: gameID,
                 g_date: date,
                 g_opponent: opponent,
@@ -84,6 +86,12 @@ export default function CreateGameDocumentButton() {
                     type="text"
                     value={label || ''}
                     onChange={(e) => setLabel(e.target.value)}
+                />
+                <label>TeamID:</label>
+                <input
+                    type="text"
+                    value={teamId || ''}
+                    onChange={(e) => setTeamId(e.target.value)}
                 />
                 <button type="submit">Create Game Document</button>
             </form>

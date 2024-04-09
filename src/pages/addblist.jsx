@@ -22,6 +22,7 @@ export default function CreateBlistDocumentButton() {
     const [away7, setAway7] = useState(""); // 客队棒次七
     const [away8, setAway8] = useState(""); // 客队棒次八
     const [away9, setAway9] = useState(""); // 客队棒次九
+    const [gameID, setGameID] = useState("");
 
     const handleCreateBlistDocument = async (e) => {
         e.preventDefault();
@@ -47,7 +48,8 @@ export default function CreateBlistDocumentButton() {
                 away_6: away6,
                 away_7: away7,
                 away_8: away8,
-                away_9: away9
+                away_9: away9,
+                g_id: gameID
             });
 
             alert("Blist document created successfully!");
@@ -172,6 +174,12 @@ export default function CreateBlistDocumentButton() {
                     type="text"
                     value={away9 || ''}
                     onChange={(e) => setAway9(e.target.value)}
+                />
+                <label>GameID:</label>
+                <input
+                    type="text"
+                    value={gameID || ''}
+                    onChange={(e) => setGameID(e.target.value)}
                 />
                 <button type="submit">Create Blist Document</button>
             </form>
