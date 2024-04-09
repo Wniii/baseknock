@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { firestore } from "./firebase"; // 正确的导入路径
-import { addDoc, collection, doc, setDoc } from "firebase/firestore"; // 正确的导入语句
+import { firestore } from "./firebase"; 
+import { addDoc, collection, doc, setDoc } from "firebase/firestore"; 
+
 
 export default function CreateHresultDocumentButton() {
-    const [hresultId, setHitResultId] = useState(""); // 用户ID
-    const [一安, set一安] = useState(""); // 密码
-    const [二安, set二安] = useState(""); // 电子邮件
-    const [三安, set三安] = useState(""); // 球员ID
+    const [hresultId, setHitResultId] = useState(""); 
+    const [一安, set一安] = useState(""); 
+    const [二安, set二安] = useState(""); 
+    const [三安, set三安] = useState(""); 
     const [全打, set全打] = useState("");
     const [三振, set三振] = useState("");
     const [四壞, set四壞] = useState("");
@@ -24,6 +25,8 @@ export default function CreateHresultDocumentButton() {
     const [壞球數, set壞球數] = useState("");
     const [壘上情形, set壘上情形] = useState("");
     const [出局數, set出局數] = useState("");
+    const [playerId, setPlayerId] = useState("");
+    const [gameID, setGameID] = useState("");
 
 
     const handleCreateUserDocument = async (e) => {
@@ -53,6 +56,8 @@ export default function CreateHresultDocumentButton() {
                 hr_b: 壞球數,
                 hr_base: 壘上情形,
                 hr_outs: 出局數,
+                p_id: playerId,
+                g_id: gameID,
 
             });
 
@@ -190,6 +195,18 @@ export default function CreateHresultDocumentButton() {
                     type="checkbox"
                     value={出局數}
                     onChange={(e) => set出局數(e.target.value)}
+                />
+                <label>playerId</label>
+                <input
+                    type="text"
+                    value={playerId}
+                    onChange={(e) => setPlayerId(e.target.value)}
+                />
+                <label>gameID</label>
+                <input
+                    type="text"
+                    value={gameID}
+                    onChange={(e) => setGameID(e.target.value)}
                 />
                 <button type="submit">Create hit result</button>
             </form>

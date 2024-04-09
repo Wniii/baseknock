@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import { firestore } from '../../pages/firebase';
 import {
   Button,
   Card,
@@ -22,6 +23,30 @@ export const HitTable = () => {
     },
     []
   );
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try{
+        const playerCollection = collection(firestore, "players");
+        const playerSnapshot = await getDocs(playerCollection);
+        const playerData = playerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data()}));
+    } catch (error){
+       console.error('Error fetching players:', error);
+    }};
+    fetchPlayers();
+  }, []);
+  
+
+  // 將新的擊打結果儲存至 Firestore
+  const handleCreateHitResult = async (hitResultData) => {
+    try {
+      const hitResultRef = await addDoc(collection(firestore, "hresult"), hitResultData);
+      console.log("Document written with ID: ", hitResultRef.id);
+      alert("Hit result created successfully!");
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -53,9 +78,17 @@ export const HitTable = () => {
                 textAlign: 'center',
               }}
             >
+              {/* {players.length > 0 ? (
               <Typography variant="body1" color="white">
-                背號 姓名
+              {players.map(player => (
+                <span key={player.id}>{player.p_number} {player.p_name}</span>
+              ))}
               </Typography>
+               ) : (
+                <Typography variant="body1" color="white">
+                  Loading...
+                </Typography>
+              )}*/}
             </Paper>
             <div style={{display: 'flex', alignItems: 'center', marginLeft: '100px'}}>
               <Typography variant='h5'>

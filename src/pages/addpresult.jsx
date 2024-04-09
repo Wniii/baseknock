@@ -8,6 +8,8 @@ export default function CreatePitchResultDocumentButton() {
     const [ball, setBall] = useState(0); // 四球
     const [total, setTotal] = useState(0); // 投球总数
     const [style, setStyle] = useState(""); // 风格
+    const [playerId, setPlayerId] = useState("");
+    const [gameID, setGameID] = useState("");
 
     const handleCreatePitchResultDocument = async (e) => {
         e.preventDefault();
@@ -19,7 +21,9 @@ export default function CreatePitchResultDocumentButton() {
                 pr_strike: strike,
                 pr_ball: ball,
                 pr_total: total,
-                pr_style: style
+                pr_style: style,
+                p_id: playerId,
+                g_id: gameID
             });
 
             alert("Pitch Result document created successfully!");
@@ -60,6 +64,18 @@ export default function CreatePitchResultDocumentButton() {
                     type="text"
                     value={style || ''}
                     onChange={(e) => setStyle(e.target.value)}
+                />
+                <label>PlayerID:</label>
+                <input
+                    type="text"
+                    value={playerId || ''}
+                    onChange={(e) => setPlayerId(e.target.value)}
+                />
+                <label>GameID:</label>
+                <input
+                    type="text"
+                    value={gameID || ''}
+                    onChange={(e) => setGameID(e.target.value)}
                 />
                 <button type="submit">Create Pitch Result Document</button>
             </form>

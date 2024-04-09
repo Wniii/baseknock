@@ -43,6 +43,7 @@ export const HitDetail = () => {
                     borderRadius={5}
                     padding={1}
                     color='success'
+                    type='checkbox'
                 >
                     一安
                 </Button>
@@ -53,6 +54,7 @@ export const HitDetail = () => {
                         borderRadius={5}
                         padding={1}
                         color='success'
+                        type='checkbox'
                     >
                         二安
                     </Button>
@@ -159,7 +161,7 @@ export const HitDetail = () => {
                     雙殺
                 </Button>
             </div>
-            <div style={{width: '100px', textAlign: 'center'}}></div>
+            
             <div style={{width: '100px', textAlign: 'center'}}>
                 <Button
                     variant='outlined'
@@ -168,6 +170,16 @@ export const HitDetail = () => {
                     color='error'
                 >
                     違規
+                </Button>
+            </div>
+            <div style={{width: '100px', textAlign: 'center'}}>
+                <Button
+                    variant='outlined'
+                    borderRadius={5}
+                    padding={1}
+                    color='inherit'
+                >
+                    不知
                 </Button>
             </div>
             <div style={{width: '100px', textAlign: 'center'}}>
@@ -216,9 +228,9 @@ export const HitDetail = () => {
                     variant='outlined'
                     borderRadius={5}
                     padding={1}
-                    color='inherit'
+                    color='info'
                 >
-                    不知
+                    觸身
                 </Button>
             </div>
             <div style={{width: '100px', textAlign: 'center'}}>
