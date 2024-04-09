@@ -54,39 +54,37 @@ export const EditGame = ({ g_id }) => {
     label: '',
     remark: '',
   });
-
-  useEffect(() => {
-    const { query } = router;
+  const fetchData = async () => {
+    try {
+      const docRef = doc(firestore, "games", g_id); // 创建文档引用
+      const docSnap = await getDoc(docRef); // 检索文档数据
+      if (docSnap.exists()) {
+        const gameData = docSnap.data(); // 获取文档的数据
+        console.log("Game data:", gameData);
   
-    // 从路由参数中获取 g_id
-    if (query && query.g_id) {
-      setValues((prevState) => ({
-        ...prevState,
-        g_id: query.g_id
-      }));
-    }
-
-  }, [router.query]);
-
-  useEffect(() => {
-    console.log('Received g_id:', g_id);
-    const fetchGameDetails = async () => {
-      try {
-        const gameDoc = await getDoc(doc(firestore, "games", g_id));
-        if (gameDoc.exists()) {
-          const gameData = gameDoc.data();
-          setValues(gameData);
-        } else {
-          console.log("No such document!");
-        }
-      } catch (error) {
-        console.error("Error fetching game details:", error);
+        // 从文档数据中获取所需的字段值
+        const { GDate, GTime, awayteam, coach, gName, hometeam, label, recorder, remark, t_id } = gameData;
+  
+        console.log("GDate:", GDate);
+        console.log("GTime:", GTime);
+        console.log("awayteam:", awayteam);
+        console.log("coach:", coach);
+        console.log("gName:", gName);
+        console.log("hometeam:", hometeam);
+        console.log("label:", label);
+        console.log("recorder:", recorder);
+        console.log("remark:", remark);
+        console.log("t_id:", t_id);
+        
+        // 这里可以对获取到的数据进行进一步处理
+      } else {
+        console.log("No such document!");
       }
-    };
-
-    fetchGameDetails();
-  }, [g_id]);
-
+    } catch (error) {
+      console.error("Error fetching document:", error);
+    }
+  };
+ console.log("g_id",g_id)
   const handleChange = useCallback((event) => {
     if (event.target && event.target.name) {
       const { name, value } = event.target;
@@ -123,7 +121,6 @@ export const EditGame = ({ g_id }) => {
       alert("An error occurred while updating game information.");
     }
   };
-
   return (
     <div>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from "react";
 import {
   Box,
   Button,
@@ -10,60 +10,59 @@ import {
   TextField,
   Unstable_Grid2 as Grid
 } from '@mui/material';
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-
-const addSx = {
-  backgroundColor: '#ffffff',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center', // 垂直置中
-  textAlign: 'right', // 文字水平置中
-  ml:'auto',
-  position:'absolute',
-  bottom: 0, // 定位在父元素的底部
-  right: 0, // 定位在父元素的右側
-  marginRight: '20px', // 可以添加一些額外的右邊距
-  marginBottom: '20px', // 可以添加一些額外的下邊距
-};
+import { firestore } from "../../pages/firebase"; // 正确的导入路径
+import { addDoc, collection, doc, setDoc } from "firebase/firestore"; // 正确的导入语句
 
 
+export default function CreateTeamDocumentButton() {
+  const [teamId, setTeamId] = useState(""); // 球队ID
+  const [name, setName] = useState(""); // 球队名称
+  const [school, setSchool] = useState(""); // 学校
+  const [coach, setCoach] = useState(""); // 教练
+  const [manager, setManager] = useState(""); // 经理
+  const [introduction, setIntro] = useState(""); // 簡介
 
+  const [game, setGame] = useState(0); // 比赛场次
+  const [win, setWin] = useState(0); // 胜场
+  const [lose, setLose] = useState(0); // 败场
+  const [tie, setTie] = useState(0); // 平局
+  const [pct, setPCT] = useState(0); // 胜率
 
+  const handleCreateTeamDocument = async (e) => {
+      e.preventDefault();
 
-export const TeamProfileDetails = () => {
-  const [values, setValues] = useState({
-    Name: '',
-    codeName: '',
-    introduction: '',
-    PName:'',
-    PNum:'',
-   
-  });
+      try {
+          // 创建一个名为 "team" 的集合，并在其中创建一个球队文档
+          await setDoc(doc(firestore, "team", teamId), {
+              t_id: teamId,
+              t_name: name,
+              t_school: school,
+              t_coach: coach,
+              t_manager: manager,
+              t_introduction: introduction,
+              
+          });
 
-  const handleChange = useCallback(
-    (event) => {
-      setValues((prevState) => ({
-        ...prevState,
-        [event.target.name]: event.target.value
-      }));
-    },
-    []
-  );
+          alert("Team document created successfully!");
+      } catch (error) {
+          console.error("Error creating team document:", error);
+      }
+  };
 
-  const handleSubmit = useCallback(
-    (event) => {
-      event.preventDefault();
-    },
-    []
-  );
+  const createTeamDocumentButtonRef = useRef();
+
+  // 暴露函数在组件实例上
+  createTeamDocumentButtonRef.current = {
+    handleSubmit: handleCreateTeamDocument
+  };
+
 
   return (
     
     <form
-      autoComplete="off"
-      noValidate
-      onSubmit={handleSubmit}
+      // autoComplete="off"
+      // noValidate
+      onSubmit={handleCreateTeamDocument}
     >
       <div>
       <Card>
@@ -85,11 +84,12 @@ export const TeamProfileDetails = () => {
                   fullWidth
                   //helperText="Please specify the first name"
                   label="球隊名稱"
-                  name="Name"
-                  onChange={handleChange}
+                  name="school"
+                  type="text"
+                  onChange={(e) => setSchool(e.target.value)}
                   required
-                  value={values.firstName}
-                />
+                  value={school || ''}
+                  />
               </Grid>
               <Grid
                 xs={24}
@@ -98,11 +98,11 @@ export const TeamProfileDetails = () => {
                 <TextField
                   fullWidth
                   label="球隊代號"
-                  name="codeName"
-                  onChange={handleChange}
+                  name="name"
+                  onChange={(e) => setName(e.target.value)}
                   required
-                  value={values.lastName}
-                />
+                  value={name || ''}
+                  />
               </Grid>
               <Grid
                 xs={24}
@@ -112,10 +112,11 @@ export const TeamProfileDetails = () => {
                   fullWidth
                   label="球隊簡介"
                   name="introduction"
-                  onChange={handleChange}
+                  type="text"
+                  onChange={(e) => setIntro(e.target.value)}
                   required
-                  value={values.email}
-                />
+                  value={introduction || ''}
+                  />
               </Grid>
               {/* <Grid
                 xs={12}
