@@ -17,6 +17,10 @@ import {
 import { Scrollbar } from 'src/components/scrollbar';
 import { getInitials } from 'src/utils/get-initials';
 
+import React, { useEffect, useState } from 'react';
+import { firestore } from 'src/pages/firebase'; // 导入 firestore
+import { collection, getDocs } from "firebase/firestore"; // 导入获取文档的方法
+
 export const DefendTable = (props) => {
   const {
     count = 0,
@@ -35,6 +39,23 @@ export const DefendTable = (props) => {
   // const selectedSome = (selected.length > 0) && (selected.length < items.length);
   // const selectedAll = (items.length > 0) && (selected.length === items.length);
 
+  const [open, setOpen] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [playersData, setPlayersData] = useState([]); // 用于存储从数据库中获取的球员数据
+  useEffect(() => {
+    // 在组件加载时从数据库中获取球员数据
+    const fetchPlayersData = async () => {
+      const playersCollection = collection(firestore, "player");
+      const querySnapshot = await getDocs(playersCollection);
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push(doc.data());
+      });
+      setPlayersData(data);
+    };
+    fetchPlayersData();
+  }, []); // 空依赖项，表示仅在组件加载时运行一次
+
   return (
     <Card>
       <Scrollbar>
@@ -49,85 +70,68 @@ export const DefendTable = (props) => {
                   球員
                 </TableCell>
                 <TableCell>
-                  打席
+                  勝投
                 </TableCell>
                 <TableCell>
-                  打數
+                  敗投
+                </TableCell>
+                <TableCell>
+                  ERA
+                </TableCell>
+                <TableCell>
+                  出賽
+                </TableCell>
+                <TableCell>
+                  先發
+                </TableCell>
+                <TableCell>
+                  局數
                 </TableCell>
                 <TableCell>
                   安打
                 </TableCell>
                 <TableCell>
-                  壘打數
+                  失分
                 </TableCell>
                 <TableCell>
-                  壘數
-                </TableCell>
-                <TableCell>
-                  得分
-                </TableCell>
-                <TableCell>
-                  打點
-                </TableCell>
-                <TableCell>
-                  一安
-                </TableCell>
-                <TableCell>
-                  二安
-                </TableCell>
-                <TableCell>
-                  三安
-                </TableCell>
-                <TableCell>
-                  全壘打
-                </TableCell>
-                <TableCell>
-                  三振
-                </TableCell>
-                <TableCell>
-                  雙殺
+                  球數
                 </TableCell>
                 <TableCell>
                   四壞
                 </TableCell>
                 <TableCell>
-                  犧飛
+                  奪三振
                 </TableCell>
                 <TableCell>
-                  打擊率
+                  WHIP
                 </TableCell>
                 <TableCell>
-                  上壘率
+                  雙殺
                 </TableCell>
                 <TableCell>
-                  長打率
+                  好壞球比
                 </TableCell>
                 <TableCell>
-                  OPS
+                  每局耗球比
                 </TableCell>
                 <TableCell>
-                  三圍
+                  K/9
                 </TableCell>
                 <TableCell>
-                  壘上無人
+                  BB/9
                 </TableCell>
                 <TableCell>
-                  得點圈
-                </TableCell>
-                <TableCell>
-                  滿壘
+                  H/9
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((customer) => {
-                const isSelected = selected.includes(customer.id);
-                const createdAt = format(customer.createdAt, 'dd/MM/yyyy');
-
+            {items.map((player, index) => {
+                  const isSelected = selected.includes(player.id);
                 return (
                   <TableRow
                     hover
-                    key={customer.id}
+                    key={player.id}
                     selected={isSelected}
                   >
                     <TableCell>
@@ -136,25 +140,22 @@ export const DefendTable = (props) => {
                         direction="row"
                         spacing={2}
                       >
-                        <Avatar src={customer.avatar}>
-                          {getInitials(customer.name)}
-                        </Avatar>
                         <Typography variant="subtitle2">
-                          {customer.name}
+                          {index + 1} {/* 替代 player.name */}
                         </Typography>
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      {customer.email}
+                    {player.p_name}
                     </TableCell>
                     <TableCell>
-                      {customer.address.city}, {customer.address.state}, {customer.address.country}
+                      
                     </TableCell>
                     <TableCell>
-                      {customer.phone}
+                      
                     </TableCell>
                     <TableCell>
-                      {createdAt}
+                      
                     </TableCell>
                   </TableRow>
                 );

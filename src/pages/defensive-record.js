@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { Box, Container, Stack, Typography } from "@mui/material";
 import { ScoreAndError } from "src/sections/derecord/score-and-error";
-import { PitcherRecord } from "src/sections/derecord/pitcher-record";
+import { PitcherRecord } from "./pitcher-record";
 import { Layout as DashboardLayout } from "src/layouts/dashboard/layout";
 
 const Page = () => (
