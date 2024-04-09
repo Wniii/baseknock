@@ -13,7 +13,7 @@ import { setDoc, doc } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 
 const position = [
-  { value: 'P', label: 'P' },
+  { value: 'aaaa', label: 'aaaa' },
   { value: 'C', label: 'C' },
   { value: '1B', label: '1B' },
   { value: '2B', label: '2B' },
