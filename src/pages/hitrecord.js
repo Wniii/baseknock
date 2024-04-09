@@ -1,4 +1,6 @@
-import { useCallback, useMemo, useState, useEffect } from 'react';
+// Page.js
+
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import { subDays, subHours } from 'date-fns';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
@@ -10,13 +12,12 @@ import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from 'src/pages/firebase';
 import { applyPagination } from 'src/utils/apply-pagination';
 
-
-const now = new Date();
-
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [playersData, setPlayersData] = useState([]);
+  const [selectedColumns, setSelectedColumns] = useState([]); // 将 setSelectedColumns 添加到 Page 组件中
+
   const player = useMemo(() => applyPagination(playersData, page, rowsPerPage), [playersData, page, rowsPerPage]);
   const playerId = useMemo(() => player.map(player => player.id), [player]);
   const playerSelection = useSelection(playerId);
@@ -38,13 +39,17 @@ const Page = () => {
         data.push({
           p_id: doc.id,
           p_name: doc.data().p_name
+        });
       });
-    });
 
       setPlayersData(data);
     };
     fetchPlayersData();
   }, []);
+
+  const handleSearchConfirm = useCallback((columns) => {
+    setSelectedColumns(columns);
+  }, []); // 将 setSelectedColumns 添加到 useCallback 依赖项中
 
   return (
     <>
@@ -66,13 +71,13 @@ const Page = () => {
               spacing={4}
             >
               <Stack spacing={1}>
-              <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
-  打擊數據
-</Typography>
-
+                <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
+                  打擊數據
+                </Typography>
               </Stack>
             </Stack>
-            <HitrecordSearch />
+            {/* 将 ParentComponent 替换为 HitrecordTable 的子组件 */}
+            <HitrecordSearch onConfirm={handleSearchConfirm} />
             <HitrecordTable
               count={playersData.length}
               items={player}
@@ -85,6 +90,7 @@ const Page = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               selected={playerSelection.selected}
+              selectedColumns={selectedColumns} // 将 selectedColumns 传递给 HitrecordTable 组件
             />
           </Stack>
         </Container>

@@ -22,34 +22,31 @@ import {
 import { Scrollbar } from 'src/components/scrollbar';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { firestore } from 'src/pages/firebase'; // 导入 firestore
-import { collection, getDocs } from "firebase/firestore"; // 导入获取文档的方法
+import { firestore } from 'src/pages/firebase';
+import { collection, getDocs } from "firebase/firestore";
 
 export const HitrecordTable = (props) => {
   const {
     count = 0,
     items = [],
-    selected = []
+    selected = [],
+    selectedColumns = [] // 新增選擇的欄位數組
   } = props;
 
   const [open, setOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [playersData, setPlayersData] = useState([]); // 用于存储从数据库中获取的球员数据
-
+  const [playersData, setPlayersData] = useState([]);
 
   const handleOpen = (player) => {
     setSelectedPlayer(player);
     setOpen(true);
   };
 
-  const handleClose = () => {0
+  const handleClose = () => {
     setOpen(false);
   };
 
-  
-
   useEffect(() => {
-    // 在组件加载时从数据库中获取球员数据
     const fetchPlayersData = async () => {
       const playersCollection = collection(firestore, "player");
       const querySnapshot = await getDocs(playersCollection);
@@ -60,98 +57,28 @@ export const HitrecordTable = (props) => {
       setPlayersData(data);
     };
     fetchPlayersData();
-  }, []); // 空依赖项，表示仅在组件加载时运行一次
+  }, []);
 
-  
-
-  
   return (
     <Card>
       <Scrollbar>
-        <Box sx={{ minWidth: 2500 }}>
+        <Box sx={{ minWidth: 2500, overflowX: 'auto' }}> {/* 使用 overflow-x: auto 让表头可以横向滚动 */}
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell size="small">查看細節</TableCell>
-                <TableCell>排名</TableCell>
-                <TableCell>
-                  球員
-                </TableCell>
-                <TableCell>
-                  打席
-                </TableCell>
-                <TableCell>
-                  打數
-                </TableCell>
-                <TableCell>
-                  安打
-                </TableCell>
-                <TableCell>
-                  壘打數
-                </TableCell>
-                <TableCell>
-                  壘數
-                </TableCell>
-                <TableCell>
-                  得分
-                </TableCell>
-                <TableCell>
-                  打點
-                </TableCell>
-                <TableCell>
-                  一安
-                </TableCell>
-                <TableCell>
-                  二安
-                </TableCell>
-                <TableCell>
-                  三安
-                </TableCell>
-                <TableCell>
-                  全壘打
-                </TableCell>
-                <TableCell>
-                  三振
-                </TableCell>
-                <TableCell>
-                  雙殺
-                </TableCell>
-                <TableCell>
-                  四壞
-                </TableCell>
-                <TableCell>
-                  犧飛
-                </TableCell>
-                <TableCell>
-                  打擊率
-                </TableCell>
-                <TableCell>
-                  上壘率
-                </TableCell>
-                <TableCell>
-                  長打率
-                </TableCell>
-                <TableCell>
-                  OPS
-                </TableCell>
-                <TableCell>
-                  三圍
-                </TableCell>
-                <TableCell>
-                  壘上無人
-                </TableCell>
-                <TableCell>
-                  得點圈
-                </TableCell>
-                <TableCell>
-                  滿壘
-                </TableCell>
+                <TableCell size="small" style={{ position: 'sticky', left: 0, zIndex: 1 }}>查看細節</TableCell> {/* 使用 position: sticky 让列固定 */}
+                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>排名</TableCell>
+                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
+                {selectedColumns.map((column) => (
+                  <TableCell key={column}>
+                    {column}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
-                {items.map((player, index) => {
-                  const isSelected = selected.includes(player.id);
-                  // const createdAt = format(player.createdAt, 'dd/MM/yyyy');
+              {items.map((player, index) => {
+                const isSelected = selected.includes(player.id);
 
                 return (
                   <TableRow hover key={player.id} selected={isSelected}>
@@ -161,27 +88,21 @@ export const HitrecordTable = (props) => {
                       </Button>
                     </TableCell>
                     <TableCell>
-                        <Typography variant="subtitle2">
-                          {index + 1} {/* 替代 player.name */}
-                        </Typography>
+                      <Typography variant="subtitle2">
+                        {index + 1}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       {player.p_name}
                     </TableCell>
-                    <TableCell>
-                      {/* {player.address.city}, {player.address.state}, {player.address.country} */}
-                    </TableCell>
-                    <TableCell>
-                      {player.phone}
-                    </TableCell>
-                    <TableCell>
-                      {/* {createdAt} */}
-                    </TableCell>
-
+                    {selectedColumns.map((column) => (
+                      <TableCell key={column}>
+                        {player[column]}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 );
               })}
-            
             </TableBody>
           </Table>
         </Box>
@@ -190,12 +111,12 @@ export const HitrecordTable = (props) => {
     </Card>
   );
 };
-  
 
 HitrecordTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
-  selected: PropTypes.array
+  selected: PropTypes.array,
+  selectedColumns: PropTypes.array // 新增選擇的欄位數組的 PropTypes 定義
 };
 
 const PlayerDialog = ({ open, onClose, player }) => {
@@ -230,6 +151,7 @@ const PlayerDialog = ({ open, onClose, player }) => {
     </Dialog>
   );
 };
+
 
 PlayerDialog.propTypes = {
   open: PropTypes.bool.isRequired,

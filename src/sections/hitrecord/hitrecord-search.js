@@ -14,52 +14,79 @@ import {
   Unstable_Grid2 as Grid
 } from '@mui/material';
 
-export const HitrecordSearch = () => {
-  // 使用 useState 钩子来创建状态和更新函数
+export const HitrecordSearch = ({ onConfirm }) => {
   const [values, setValues] = useState({
     state: '',
-    // 添加其他需要的状态属性
   });
+ 
+  const [checkboxStates, setCheckboxStates] = useState([
+    { label: '打席', checked: false },
+    { label: '打數', checked: false },
+    { label: '安打', checked: false },
+    { label: '壘打數', checked: false },
+    { label: '上壘數', checked: false },
+    { label: '得分', checked: false },
+    { label: '打點', checked: false },
+    { label: '一安', checked: false },
+    { label: '二安', checked: false },
+    { label: '三安', checked: false },
+    { label: '全壘打', checked: false },
+    { label: '雙殺', checked: false },
+    { label: '四壞', checked: false },
+    { label: '犧飛', checked: false },
+    { label: '打擊率', checked: false },
+    { label: '上壘率', checked: false },
+    { label: '長打率', checked: false },
+    { label: 'OPS', checked: false },
+    { label: '三圍', checked: false },
+    { label: '壘上無人', checked: false },
+    { label: '得圈點', checked: false },
+    { label: '滿壘', checked: false },
+  ]);
 
-  const interval = [
-    {
-      value: '生涯',
-      label: '生涯'
-    },
-    {
-      value: '沒有區間',
-      label: '沒有區間'
-    }
-  ];
 
-  const sort = [
-    {
-      value: 'alabama',
-      label: 'Alabama'
-    },
-  ];
+    const interval = [
+      { value: '生涯', label: '生涯' },
+      { value: '沒有區間', label: '沒有區間' }
+    ];
+  
+    const sort = [{ value: 'alabama', label: 'Alabama' }];
+  
+    const recent = [{ value: 'alabama', label: 'Alabama' }];
 
-  const recent = [
-    {
-      value: 'alabama',
-      label: 'Alabama'
-    },
-  ];
-
-  // 定义 handleChange 函数来处理输入框变化
   const handleChange = useCallback((event) => {
-    // 使用更新函数来更新状态
     setValues((prevValues) => ({
       ...prevValues,
       [event.target.name]: event.target.value
     }));
-  }, []); // 请注意，依赖项是一个空数组，表示这个回调函数不依赖于外部变量
+  }, []);
 
+  const handleSelectAllChange = (event) => {
+    const isChecked = event.target.checked;
+    const updatedCheckboxStates = checkboxStates.map((checkbox) => ({
+      ...checkbox,
+      checked: isChecked
+    }));
+    setCheckboxStates(updatedCheckboxStates);
+  };
+
+  
+  const handleCheckboxChange = (index) => (event) => {
+    const { checked } = event.target;
+    const updatedCheckboxStates = [...checkboxStates];
+    updatedCheckboxStates[index] = { ...updatedCheckboxStates[index], checked };
+    setCheckboxStates(updatedCheckboxStates);
+  };
+
+  const handleConfirm = () => {
+    const selectedColumns = checkboxStates.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.label);
+    onConfirm(selectedColumns);
+  };
   return (
     <Card>
       <CardContent sx={{ pt: 2 }}>
         <Grid container spacing={5}>
-          <Grid xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="查詢區間"
@@ -83,7 +110,7 @@ export const HitrecordSearch = () => {
               ))}
             </TextField>
           </Grid>
-          <Grid xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="排序"
@@ -107,7 +134,7 @@ export const HitrecordSearch = () => {
               ))}
             </TextField>
           </Grid>
-          <Grid xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="最近打席"
@@ -134,7 +161,6 @@ export const HitrecordSearch = () => {
         </Grid>
         <br />
         <Grid container spacing={6}>
-          {/* 第一个 Grid 用于显示 Notifications */}
           <Grid item xs={12}>
             <Typography variant="h6">
               比賽性質
@@ -155,42 +181,20 @@ export const HitrecordSearch = () => {
               ))}
             </Grid>
           </Grid>
-          {/* 第二个 Grid 用于显示 Messages */}
           <Grid item xs={12}>
             <Typography variant="h6">
               選示欄位
             </Typography>
             <Grid container spacing={1}>
-              {[
-                '全選',
-                '打席',
-                '打數',
-                '安打',
-                '壘打數',
-                '上壘數',
-                '得分',
-                '打點',
-                '一安',
-                '二安',
-                '三安',
-                '全壘打',
-                '三振',
-                '雙殺',
-                '四壞',
-                '犧飛',
-                '打擊率',
-                '上壘率',
-                '長打率',
-                'OPS',
-                '三圍',
-                '壘上無人',
-                '得圈點',
-                '滿壘'
-              ].map((label, index) => (
-                <Grid item xs={4} key={index} style={{ width: '100px', whiteSpace: 'nowrap' }}>
+              <FormControlLabel
+                control={<Checkbox onChange={handleSelectAllChange} />}
+                label="全選"
+              />
+              {checkboxStates.map((checkbox, index) => (
+                <Grid item xs={4} key={index} >
                   <FormControlLabel
-                    control={<Checkbox defaultChecked />}
-                    label={label}
+                    control={<Checkbox checked={checkbox.checked} onChange={handleCheckboxChange(index)} />}
+                    label={checkbox.label}
                   />
                 </Grid>
               ))}
@@ -199,11 +203,10 @@ export const HitrecordSearch = () => {
         </Grid>
       </CardContent>
       <Divider />
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button variant="contained">
-          確認
-        </Button>
+      <CardActions>
+        <Button onClick={handleConfirm}>確認</Button>
       </CardActions>
     </Card>
   );
 };
+
