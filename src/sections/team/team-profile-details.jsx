@@ -17,16 +17,9 @@ import { addDoc, collection, doc, setDoc } from "firebase/firestore"; // 正确�
 export default function CreateTeamDocumentButton() {
   const [teamId, setTeamId] = useState(""); // 球队ID
   const [name, setName] = useState(""); // 球队名称
-  const [school, setSchool] = useState(""); // 学校
-  const [coach, setCoach] = useState(""); // 教练
-  const [manager, setManager] = useState(""); // 经理
+  const [codeName, setCodeName] = useState(""); // 代號
   const [introduction, setIntro] = useState(""); // 簡介
 
-  const [game, setGame] = useState(0); // 比赛场次
-  const [win, setWin] = useState(0); // 胜场
-  const [lose, setLose] = useState(0); // 败场
-  const [tie, setTie] = useState(0); // 平局
-  const [pct, setPCT] = useState(0); // 胜率
 
   const handleCreateTeamDocument = async (e) => {
       e.preventDefault();
@@ -35,11 +28,11 @@ export default function CreateTeamDocumentButton() {
           // 创建一个名为 "team" 的集合，并在其中创建一个球队文档
           await setDoc(doc(firestore, "team", teamId), {
               t_id: teamId,
-              t_name: name,
-              t_school: school,
+              name: name,
+              codeName: codeName,
               t_coach: coach,
               t_manager: manager,
-              t_introduction: introduction,
+              introduction: introduction,
               
           });
 
@@ -60,15 +53,11 @@ export default function CreateTeamDocumentButton() {
   return (
     
     <form
-      // autoComplete="off"
-      // noValidate
       onSubmit={handleCreateTeamDocument}
     >
       <div>
       <Card>
         <CardHeader
-          // subheader="The information can be edited"
-          // title="Profile"
         />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
@@ -84,11 +73,11 @@ export default function CreateTeamDocumentButton() {
                   fullWidth
                   //helperText="Please specify the first name"
                   label="球隊名稱"
-                  name="school"
+                  name="name"
                   type="text"
-                  onChange={(e) => setSchool(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   required
-                  value={school || ''}
+                  value={name || ''}
                   />
               </Grid>
               <Grid
@@ -98,10 +87,10 @@ export default function CreateTeamDocumentButton() {
                 <TextField
                   fullWidth
                   label="球隊代號"
-                  name="name"
-                  onChange={(e) => setName(e.target.value)}
+                  name="codeName"
+                  onChange={(e) => setCodeName(e.target.value)}
                   required
-                  value={name || ''}
+                  value={codeName || ''}
                   />
               </Grid>
               <Grid
@@ -118,72 +107,12 @@ export default function CreateTeamDocumentButton() {
                   value={introduction || ''}
                   />
               </Grid>
-              {/* <Grid
-                xs={12}
-                md={6}
-              >
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  name="phone"
-                  onChange={handleChange}
-                  type="number"
-                  value={values.phone}
-                />
-              </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
-                <TextField
-                  fullWidth
-                  label="Country"
-                  name="country"
-                  onChange={handleChange}
-                  required
-                  value={values.country}
-                />
-              </Grid>
-              <Grid
-                xs={12}
-                md={6}
-              >
-                <TextField
-                  fullWidth
-                  label="Select State"
-                  name="state"
-                  onChange={handleChange}
-                  required
-                  select
-                  SelectProps={{ native: true }}
-                  value={values.state}
-                >
-                  {states.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-              </Grid> */}
-              
             </Grid>
             
           </Box>
         </CardContent>
-        {/* <Divider /> */}
-        {/* <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained">
-            Save details
-          </Button>
-        </CardActions> */}
       </Card>
-      
-      
-                
-                
+       
                 
   </div>
     </form>
