@@ -15,7 +15,7 @@ import { addDoc, collection, doc, setDoc } from "firebase/firestore"; // 正确�
 
 
 export default function CreateTeamDocumentButton() {
-  const [teamId, setTeamId] = useState(""); // 球队ID
+  const [teamId, setTeamId] = useState(generateRandomBlistId()); // 球队ID
   const [name, setName] = useState(""); // 球队名称
   const [school, setSchool] = useState(""); // 学校
   const [coach, setCoach] = useState(""); // 教练
@@ -30,6 +30,7 @@ export default function CreateTeamDocumentButton() {
 
   const handleCreateTeamDocument = async (e) => {
       e.preventDefault();
+
 
       try {
           // 创建一个名为 "team" 的集合，并在其中创建一个球队文档
