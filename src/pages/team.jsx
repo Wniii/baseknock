@@ -15,6 +15,9 @@ const buttonSx = {
 
 const sectionSx = {
   p: 2, // 添加白边
+  display: 'flex', // 添加flex布局
+  justifyContent: 'flex-start', // 左对齐
+  alignItems: 'flex-start', // 上对齐
 };
 
 const Page = () => {
@@ -46,13 +49,13 @@ const Page = () => {
             <Divider />
             <div>
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6} lg={4} sx={sectionSx}>
+                <Grid item xs={12} md={6} lg={4}>
                   <TeamProfile />
                 </Grid>
                 <Grid item xs={12} md={6} lg={8} sx={sectionSx}>
                   <CreateTeamDocumentButton ref={createTeamDocumentButtonRef} />
                 </Grid>
-                <Grid item xs={12} sx={sectionSx}>
+                <Grid item xs={12}>
                   <AddTeam />
                 </Grid>
               </Grid>

@@ -32,7 +32,7 @@ const CreateTeamDocumentButton = React.forwardRef((props, ref) => {
 
   return (
     <div>
-      <Card sx={{ p: 2 }}>
+      <Card sx={{ p: 0 }}>
         <CardHeader />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
