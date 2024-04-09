@@ -1,62 +1,83 @@
-import React, { useCallback, useState, useEffect } from "react";
-import { useRouter } from "next/router"; // 引入 useRouter
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   Box,
   Button,
   Card,
-  CardActions,
   CardContent,
-  CardHeader,
-  Divider,
-  TextField,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
   FormControl,
-  FormLabel,
   Grid,
   InputLabel,
   MenuItem,
   Select,
-} from "@mui/material";
-import { firestore } from "./firebase"; // 引入您的 Firebase 初始化程式碼
+  TextField,
+  Typography,
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { firestore } from "./firebase"; 
+import { useRouter } from 'next/router';
+import { doc, getDoc, updateDoc } from "firebase/firestore"; 
 
-export const EditGameForm = () => {
-  const router = useRouter(); // 使用 useRouter
+const hometeamOptions = [
+  { value: 'fju', label: '輔仁大學' },
+  { value: 'kpbl', label: '卡皮巴拉' }
+];
 
+const awayteamOptions = [
+  { value: 'fju', label: '輔仁大學' },
+  { value: 'kpbl', label: '卡皮巴拉' }
+];
+
+const gNameOptions = [
+  { value: 'friendly', label: '友誼賽' },
+  { value: 'ubl', label: '大專盃' },
+  { value: 'mei', label: '梅花旗' }
+];
+
+const labelOptions = [
+  { value: 'top8', label: '八強賽' },
+  { value: 'top4', label: '四強賽' },
+  { value: 'champ', label: '冠亞賽' },
+  { value: 'others', label: '其他' }
+];
+
+export const EditGame = ({ g_id }) => {
+  const router = useRouter(); // 使用路由器
   const [values, setValues] = useState({
-    gameID: "",
-    date: "",
-    opponent: "",
-    court: "",
-    name: "",
-    recorder: "",
-    homeAway: "",
-    label: "",
+    GDate: null,
+    GTime: null,
+    hometeam: '',
+    awayteam: '',
+    gName: '',
+    coach: '',
+    recorder: '',
+    label: '',
+    remark: '',
   });
-  const [gId, setGId] = useState('');
 
   useEffect(() => {
+    const { query } = router;
+  
+    // 从路由参数中获取 g_id
+    if (query && query.g_id) {
+      setValues((prevState) => ({
+        ...prevState,
+        g_id: query.g_id
+      }));
+    }
+
+  }, [router.query]);
+
+  useEffect(() => {
+    console.log('Received g_id:', g_id);
     const fetchGameDetails = async () => {
       try {
-        const gameId = router.query.g_id;
-        if (gameId) {
-          const gameDoc = await firestore.collection("games").doc(gameId).get();
-          if (gameDoc.exists) {
-            const gameData = gameDoc.data();
-            setValues((prevState) => ({
-              ...prevState,
-              gameID: gameId,
-              date: gameData.date || "",
-              opponent: gameData.opponent || "",
-              court: gameData.court || "",
-              name: gameData.name || "",
-              recorder: gameData.recorder || "",
-              homeAway: gameData.homeAway || "",
-              label: gameData.label || "",
-            }));
-            setGId(gameId);
-          }
+        const gameDoc = await getDoc(doc(firestore, "games", g_id));
+        if (gameDoc.exists()) {
+          const gameData = gameDoc.data();
+          setValues(gameData);
+        } else {
+          console.log("No such document!");
         }
       } catch (error) {
         console.error("Error fetching game details:", error);
@@ -64,171 +85,170 @@ export const EditGameForm = () => {
     };
 
     fetchGameDetails();
-  }, [router.query.g_id]);
+  }, [g_id]);
 
   const handleChange = useCallback((event) => {
-    const { name, value } = event.target;
-    setValues((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    if (event.target && event.target.name) {
+      const { name, value } = event.target;
+      setValues((prevState) => ({
+        ...prevState,
+        [name]: value
+      }));
+    }
   }, []);
 
-  const handleSubmit = useCallback(
-    async (event) => {
-      event.preventDefault();
+  const handleDateChange = (date) => {
+    const formattedDate = date.toISOString().split('T')[0];
+    setValues((prevState) => ({
+      ...prevState,
+      GDate: formattedDate
+    }));
+  };
 
-      try {
-        // 將表單資料存儲到 Firebase Firestore 中的 "games" 集合中
-        await firestore.collection("games").doc().set(values);
+  const handleTimeChange = (time) => {
+    setValues((prevState) => ({
+      ...prevState,
+      GTime: time
+    }));
+  };
 
-        alert("Game information saved successfully!");
-      } catch (error) {
-        console.error("Error saving game information:", error);
-        alert("An error occurred while saving game information.");
-      }
-    },
-    [values]
-  );
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      await updateDoc(doc(firestore, "games", g_id), values);
+      alert("Game information updated successfully!");
+    } catch (error) {
+      console.error("Error updating game information:", error);
+      alert("An error occurred while updating game information.");
+    }
+  };
 
   return (
-    <form autoComplete="off" noValidate onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader subheader="The information can be edited" title="賽後資訊" />
-        <CardContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <FormLabel>勝敗</FormLabel>
-                <RadioGroup row name="homeAway" value={values.homeAway} onChange={handleChange}>
-                  <FormControlLabel value="win" control={<Radio />} label="勝" />
-                  <FormControlLabel value="lose" control={<Radio />} label="敗" />
-                  <FormControlLabel value="tie" control={<Radio />} label="平" />
-                  <FormControlLabel value="We abstain" control={<Radio />} label="我方棄權" />
-                  <FormControlLabel
-                    value="Opponent abstains"
-                    control={<Radio />}
-                    label="對手棄權"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
+    <div>
+      <form autoComplete="off" noValidate onSubmit={handleSubmit}>
+        <Card>
+          <CardContent>
+            <Grid container spacing={4}>
+              <DatePicker
+                label="比賽日期"
+                name="GDate"
+                onChange={handleDateChange}
+                required
+                value={values.GDate}
                 fullWidth
-                label="賽後簡報"
-                name="label"
-                onChange={handleChange}
-                value={values.label}
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="YouTube Video Link"
-                name="recorder"
-                onChange={handleChange}
-                value={values.recorder}
-              />
-            </Grid>
-          </Grid>
-        </CardContent>
-        <CardHeader subheader="The information can be edited" title="賽前資訊" />
-        <CardContent sx={{ pt: 0 }}>
-          <Box sx={{ m: -1.5 }}>
-            <Grid container spacing={3}>
+              <Grid item xs={12} md={5}>
+                <TimePicker
+                  label="比賽時間"
+                  name="GTime"
+                  onChange={handleTimeChange}
+                  required
+                  value={values.GTime}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <FormControl fullWidth required>
+                  <InputLabel>主隊</InputLabel>
+                  <Select
+                    value={values.hometeam}
+                    onChange={handleChange}
+                    name="hometeam"
+                  >
+                    {hometeamOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={2} align="center">
+                <Typography variant="body1" component="div" sx={{ paddingTop: '15px' }}>V.S</Typography>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <FormControl fullWidth required>
+                  <InputLabel>客隊</InputLabel>
+                  <Select
+                    value={values.awayteam}
+                    onChange={handleChange}
+                    name="awayteam"
+                  >
+                    {awayteamOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={5}>
+                <FormControl fullWidth required>
+                  <InputLabel>比賽性質</InputLabel>
+                  <Select
+                    value={values.gName}
+                    onChange={handleChange}
+                    name="gName"
+                  >
+                    {gNameOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
-                                  fullWidth
-                                  label="比賽日期"
-                                  name="date"
-                                  onChange={handleChange}
-                                  value={values.date}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="比賽時間"
-                                  name="time"
-                                  onChange={handleChange}
-                                  value={values.time}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="使用隊名"
-                                  name="teamName"
-                                  onChange={handleChange}
-                                  value={values.teamName}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="對手"
-                                  name="opponent"
-                                  onChange={handleChange}
-                                  value={values.opponent}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <FormControl fullWidth>
-                                  <InputLabel id="gameType-label">比賽性質</InputLabel>
-                                  <Select
-                                    labelId="gameType-label"
-                                    id="gameType"
-                                    name="gameType"
-                                    value={values.gameType}
-                                    onChange={handleChange}
-                                  >
-                                    <MenuItem value="season">季賽</MenuItem>
-                                    <MenuItem value="playoff">季後賽</MenuItem>
-                                    <MenuItem value="cup">盃賽</MenuItem>
-                                    <MenuItem value="friendly">友誼賽</MenuItem>
-                                  </Select>
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="教練"
-                                  name="coach"
-                                  onChange={handleChange}
-                                  value={values.coach}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="記錄員"
-                                  name="recorder"
-                                  onChange={handleChange}
-                                  value={values.recorder}
-                                />
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <TextField
-                                  fullWidth
-                                  label="標籤"
-                                  name="tag"
-                                  onChange={handleChange}
-                                  value={values.label}
-                                />
-                              </Grid>
-                            </Grid>
-                          </Box>
-                        </CardContent>
-                        <Divider />
-                        <CardActions sx={{ justifyContent: "flex-end" }}>
-                          <Button type="submit" variant="contained">
-                            Save details
-                          </Button>
-                        </CardActions>
-                      </Card>
-                    </form>
-                  );
-                };
-                
-                 
+                  fullWidth
+                  label="教練"
+                  name="coach"
+                  onChange={handleChange}
+                  value={values.coach}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="記錄員"
+                  name="recorder"
+                  onChange={handleChange}
+                  value={values.recorder}
+                />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <FormControl fullWidth required>
+                  <InputLabel>標籤</InputLabel>
+                  <Select
+                    value={values.label}
+                    onChange={handleChange}
+                    name="label"
+                  >
+                    {labelOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  fullWidth
+                  label="備註"
+                  name="remark"
+                  onChange={handleChange}
+                  value={values.remark}
+                />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+        <Button type="submit" variant="contained" color="primary">
+          確認編輯
+        </Button>
+      </form>
+    </div>
+  );
+};
