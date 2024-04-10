@@ -140,7 +140,7 @@ export const AddTeam = () => {
           </Box>
         </CardContent>
       </Card>
-      <div style={{  bottom: 90, left: '60%', transform: 'translateX(-40%)', width: '180%', zIndex: 999 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: '82%', transform: 'translateX(-80%)', width: '70%', zIndex: 999 }}>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <div style={{ textAlign: 'left', padding: '8px' }}>
           <Typography variant="h6">球員名單</Typography>

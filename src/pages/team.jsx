@@ -4,7 +4,7 @@ import { Box, Button, Container, Stack, Typography, Grid, Divider } from '@mui/m
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { TeamProfile } from 'src/sections/team/team-profile';
 import CreateTeamDocumentButton from 'src/sections/team/team-profile-details';
-import { AddTeam } from 'src/sections/team/addTeam';
+import { AddTeam } from 'src/sections/team/addTeam'; // 修改这一行
 
 const buttonSx = {
   backgroundColor: 'd3d3d3',
@@ -22,13 +22,18 @@ const sectionSx = {
 
 const Page = () => {
   const createTeamDocumentButtonRef = useRef();
+  const handleSubmitRef = useRef();
 
   const handleFormSubmit = () => {
     if (createTeamDocumentButtonRef.current) {
       createTeamDocumentButtonRef.current.handleSubmit();
     }
+    if (handleSubmitRef.current) {
+      handleSubmitRef.current.handleSubmit();
+    }
+  
   };
-
+  
   return (
     <>
       <Head>
@@ -55,23 +60,11 @@ const Page = () => {
                 <Grid item xs={12} md={6} lg={8} sx={sectionSx}>
                   <CreateTeamDocumentButton ref={createTeamDocumentButtonRef} />
                 </Grid>
-                <Grid item xs={12}>
-                  <AddTeam />
-                </Grid>
               </Grid>
             </div>
           </Stack>
         </Container>
-        <div style={buttonSx}>
-          <div>
-            <Button size="large" sx={{ mt: 2, mr: 1 }} type="cancel" variant="contained">
-              取消
-            </Button>
-            <Button size="large" sx={{ mt: 2 }} variant="contained" onClick={handleFormSubmit}>
-              確認新增
-            </Button>
-          </div>
-        </div>
+        
       </Box>
     </>
   );
