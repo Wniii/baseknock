@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Avatar,
   Box,
@@ -8,77 +9,58 @@ import {
   CardHeader,
   Divider,
   Typography,
-  TextField,
-  Unstable_Grid2 as Grid
 } from '@mui/material';
 
+export const TeamProfile = () => {
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
+  // Function to handle file selection
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const fileUrl = URL.createObjectURL(file);
+      setAvatarUrl(fileUrl);
+    }
+  };
 
-
-const user = {
-  // avatar: '/assets/avatars/avatar-anika-visser.png',
-  // city: 'Los Angeles',
-  // country: 'USA',
-  // jobTitle: 'Senior Developer',
-  // name: 'Anika Visser',
-  // timezone: 'GTM-7'
-};
-
-
-
-export const TeamProfile = () => (
-  <div>
-    <Card>
-      <CardContent>
-        <Box
-          sx={{
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Avatar
-            src={user.avatar}
+  return (
+    <div>
+      <Card>
+        <CardContent>
+          <Box
             sx={{
-              height: 80,
-              mb: 7,
-              width: 80,
-              justifyContent: 'center',
+              alignItems: 'center',
+              display: 'flex',
+              flexDirection: 'column'
             }}
-          />
-          <Typography
-            gutterBottom
-            variant="h5"
           >
-            {user.name}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            variant="body2"
-          >
-            {user.city} {user.country}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            variant="body2"
-          >
-            {user.timezone}
-          </Typography>
-        </Box>
-      </CardContent>
-      <Divider />
-      <CardActions>
-        <Button
-          fullWidth
-          variant="text"
-        >
-          Upload picture
-        </Button>
-      </CardActions>
-    </Card>
-    <br></br>
-
-
-  </div>
-);
-
+            <Avatar
+              src={avatarUrl}
+              sx={{
+                height: 120, // Set the height to make it square
+                width: 120, // Set the width to make it square
+                mb: 2,
+                borderRadius: 0, // Override MUI's default border-radius
+              }}
+            />
+          </Box>
+        </CardContent>
+        <Divider />
+        <CardActions>
+          {/* File input for uploading picture */}
+          <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} id="upload-avatar" />
+          <label htmlFor="upload-avatar">
+            <Button
+              fullWidth
+              variant="text"
+              component="span"
+            >
+              Upload picture
+            </Button>
+          </label>
+        </CardActions>
+      </Card>
+      <br></br>
+    </div>
+  );
+};
