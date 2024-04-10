@@ -49,7 +49,9 @@ export const TeamProfile = () => {
             sx={{
               alignItems: 'center',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              width: 120,
+              height: 120,
             }}
           >
             {/* 如果有选择文件，则显示预览图片 */}
@@ -57,10 +59,11 @@ export const TeamProfile = () => {
               <Avatar
                 src={previewUrl}
                 sx={{
-                  height: 80,
-                  mb: 7,
+                  height: 120,
+                  mb: 120,
                   width: 80,
-                  justifyContent: 'center',
+                  md: 2,
+                  borderRadius: 0,
                 }}
               />
             )}
