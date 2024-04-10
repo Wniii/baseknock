@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   Box,
   Button,
@@ -9,11 +9,10 @@ import {
   Typography
 } from '@mui/material';
 import { firestore } from "../../pages/firebase";
-import { setDoc, doc } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
 
 const position = [
-  { value: 'aaaa', label: 'aaaa' },
+  { value: 'P', label: 'P' },
   { value: 'C', label: 'C' },
   { value: '1B', label: '1B' },
   { value: '2B', label: '2B' },
@@ -47,7 +46,6 @@ export const AddTeam = () => {
     Name: '',
     codeName: '',
     introduction: '',
-
     players: Array.from({ length: 2 }, (_, index) => ({
       PName: '',
       PNum: '',
@@ -55,17 +53,6 @@ export const AddTeam = () => {
       habit: ''
     }))
   });
-
-  const handleChange = useCallback(
-    (event) => {
-      const { name, value } = event.target;
-      setValues((prevState) => ({
-        ...prevState,
-        [name]: value
-      }));
-    },
-    []
-  );
 
   const handlePlayerChange = useCallback(
     (index, event) => {
@@ -121,7 +108,12 @@ export const AddTeam = () => {
     },
     [values]
   );
-  
+
+  const ref = useRef(null); // 创建一个 ref
+
+  React.useImperativeHandle(ref, () => ({
+    handleSubmit: handleSubmit
+  }));
 
   return (
     <div>
