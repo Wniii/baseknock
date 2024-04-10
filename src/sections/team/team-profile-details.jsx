@@ -5,6 +5,7 @@ import { firestore } from "../../pages/firebase";
 import { v4 as uuidv4 } from 'uuid';
 
 const position = [
+  { value: '', label: '' },
   { value: 'P', label: 'P' },
   { value: 'C', label: 'C' },
   { value: '1B', label: '1B' },
@@ -17,6 +18,7 @@ const position = [
 ];
 
 const habit = [
+  { value: '', label: '' },
   { value: 'LL', label: '左投/左打' },
   { value: 'LR', label: '左投/右打' },
   { value: 'RR', label: '右投/右打' },
@@ -99,6 +101,7 @@ export const AddTeam = () => {
 
   return (
     <div>
+
       <Card sx={{ p: 0 }}>
         <CardHeader />
         <CardContent sx={{ pt: 0 }}>
@@ -110,7 +113,7 @@ export const AddTeam = () => {
                   label="球隊名稱"
                   name="name"
                   type="text"
-                  onChange={(e) => setValues({...values, Name: e.target.value})}
+                  onChange={(e) => setValues({ ...values, Name: e.target.value })}
                   required
                   value={values.Name}
                 />
@@ -120,7 +123,7 @@ export const AddTeam = () => {
                   fullWidth
                   label="球隊代號"
                   name="codeName"
-                  onChange={(e) => setValues({...values, codeName: e.target.value})}
+                  onChange={(e) => setValues({ ...values, codeName: e.target.value })}
                   required
                   value={values.codeName}
                 />
@@ -131,7 +134,7 @@ export const AddTeam = () => {
                   label="球隊簡介"
                   name="introduction"
                   type="text"
-                  onChange={(e) => setValues({...values, introduction: e.target.value})}
+                  onChange={(e) => setValues({ ...values, introduction: e.target.value })}
                   required
                   value={values.introduction}
                 />
@@ -141,82 +144,83 @@ export const AddTeam = () => {
         </CardContent>
       </Card>
       <div style={{ position: 'absolute', bottom: 0, left: '82%', transform: 'translateX(-80%)', width: '70%', zIndex: 999 }}>
-      <form autoComplete="off" noValidate onSubmit={handleSubmit}>
-        <div style={{ textAlign: 'left', padding: '8px' }}>
-          <Typography variant="h6">球員名單</Typography>
-        </div>
-        <Card sx={AddPlayerSx}>
-          <CardContent sx={{ pt: 3 }}>
-            <Box sx={{ m: -1.5 }}>
-              {values.players.map((player, index) => (
-                <Grid key={index} container spacing={2}>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="姓名"
-                      name="PName"
-                      onChange={(e) => handlePlayerChange(index, e)}
-                      required
-                      value={player.PName}
-                    />
+        <form autoComplete="off" noValidate onSubmit={handleSubmit}>
+          <div style={{ textAlign: 'left', padding: '8px' }}>
+            <Typography variant="h6">球員名單</Typography>
+          </div>
+          <Card sx={AddPlayerSx}>
+            <CardContent sx={{ pt: 3 }}>
+              <Box sx={{ m: -1.5 }}>
+                {values.players.map((player, index) => (
+                  <Grid key={index} container spacing={2}>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="姓名"
+                        name="PName"
+                        onChange={(e) => handlePlayerChange(index, e)}
+                        required
+                        value={player.PName}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="背號"
+                        name="PNum"
+                        onChange={(e) => handlePlayerChange(index, e)}
+                        required
+                        value={player.PNum}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="守備位置"
+                        name="position"
+                        onChange={(e) => handlePlayerChange(index, e)}
+                        required
+                        select
+                        SelectProps={{ native: true }}
+                        value={player.position}
+                      >
+                        {position.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </TextField>
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <TextField
+                        fullWidth
+                        label="投打習慣"
+                        name="habit"
+                        onChange={(e) => handlePlayerChange(index, e)}
+                        required
+                        select
+                        SelectProps={{ native: true }}
+                        value={player.habit}
+                      >
+                        {habit.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </TextField>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="背號"
-                      name="PNum"
-                      onChange={(e) => handlePlayerChange(index, e)}
-                      required
-                      value={player.PNum}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="守備位置"
-                      name="position"
-                      onChange={(e) => handlePlayerChange(index, e)}
-                      required
-                      select
-                      SelectProps={{ native: true }}
-                      value={player.position}
-                    >
-                      {position.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      label="投打習慣"
-                      name="habit"
-                      onChange={(e) => handlePlayerChange(index, e)}
-                      required
-                      select
-                      SelectProps={{ native: true }}
-                      value={player.habit}
-                    >
-                      {habit.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </TextField>
-                  </Grid>
-                </Grid>
-              ))}
-            </Box>
-          </CardContent>
-        </Card>
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Button type="submit" variant="contained">確認新增</Button>
-        </div>
-      </form>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Button type="submit" variant="contained">確認新增</Button>
+          </div>
+        </form>
       </div>
     </div>
+    
   );
 };
 
