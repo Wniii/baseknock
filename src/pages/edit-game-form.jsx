@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -12,11 +12,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { DatePicker } from '@mui/x-date-pickers';
+import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
+import { MobileDateTimePicker } from '@mui/x-date-pickers/MobileDateTimePicker';
+import { TimePicker } from '@mui/x-date-pickers';
 import { firestore } from "./firebase"; 
-import { useRouter } from 'next/router';
 import { doc, getDoc, updateDoc } from "firebase/firestore"; 
+import { useRouter } from 'next/router';
 
 const hometeamOptions = [
   { value: 'fju', label: '輔仁大學' },
@@ -42,10 +44,10 @@ const labelOptions = [
 ];
 
 export const EditGame = ({ g_id }) => {
-  const router = useRouter(); // 使用路由器
+  const router = useRouter();
   const [values, setValues] = useState({
-    GDate: null,
-    GTime: null,
+    GDate: null, // 初始化为空字符串，而非 null
+    GTime: null, // 初始化为空字符串，而非 null
     hometeam: '',
     awayteam: '',
     gName: '',
@@ -54,59 +56,60 @@ export const EditGame = ({ g_id }) => {
     label: '',
     remark: '',
   });
-  const fetchData = async () => {
-    try {
-      const docRef = doc(firestore, "games", g_id); // 创建文档引用
-      const docSnap = await getDoc(docRef); // 检索文档数据
-      if (docSnap.exists()) {
-        const gameData = docSnap.data(); // 获取文档的数据
-        console.log("Game data:", gameData);
-  
-        // 从文档数据中获取所需的字段值
-        const { GDate, GTime, awayteam, coach, gName, hometeam, label, recorder, remark, t_id } = gameData;
-  
-        console.log("GDate:", GDate);
-        console.log("GTime:", GTime);
-        console.log("awayteam:", awayteam);
-        console.log("coach:", coach);
-        console.log("gName:", gName);
-        console.log("hometeam:", hometeam);
-        console.log("label:", label);
-        console.log("recorder:", recorder);
-        console.log("remark:", remark);
-        console.log("t_id:", t_id);
-        
-        // 这里可以对获取到的数据进行进一步处理
-      } else {
-        console.log("No such document!");
-      }
-    } catch (error) {
-      console.error("Error fetching document:", error);
-    }
-  };
- console.log("g_id",g_id)
-  const handleChange = useCallback((event) => {
-    if (event.target && event.target.name) {
-      const { name, value } = event.target;
-      setValues((prevState) => ({
-        ...prevState,
-        [name]: value
-      }));
-    }
-  }, []);
 
-  const handleDateChange = (date) => {
-    const formattedDate = date.toISOString().split('T')[0];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const docRef = doc(firestore, "games", g_id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const gameData = docSnap.data();
+          setValues((prevState) => ({
+            ...prevState,
+            GDate: gameData.GDate,
+            GTime: gameData.GTime,
+            hometeam: gameData.hometeam || '',
+            awayteam: gameData.awayteam || '',
+            gName: gameData.gName || '',
+            coach: gameData.coach || '',
+            recorder: gameData.recorder || '',
+            label: gameData.label || '',
+            remark: gameData.remark || '',
+          }));
+        } else {
+          console.log("No such document!");
+        }
+      } catch (error) {
+        console.error("Error fetching document:", error);
+      }
+    };
+
+    fetchData();
+  }, [g_id]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
     setValues((prevState) => ({
       ...prevState,
-      GDate: formattedDate
+      [name]: value,
+    }));
+  };
+
+  const handleDateChange = (date) => {
+    setValues((prevState) => ({
+      ...prevState,
+      GDate:date
     }));
   };
 
   const handleTimeChange = (time) => {
+    const hours = time.getHours().toString().padStart(2, '0');
+    const minutes = time.getMinutes().toString().padStart(2, '0');
+    const seconds = time.getSeconds().toString().padStart(2, '0');
+    const formattedTime = `${hours}:${minutes}:${seconds}`;
     setValues((prevState) => ({
       ...prevState,
-      GTime: time
+      GTime: formattedTime || new Date().toLocaleTimeString('en-US'), // 如果 formattedTime 为空则默认为当前时间
     }));
   };
 
@@ -121,27 +124,28 @@ export const EditGame = ({ g_id }) => {
       alert("An error occurred while updating game information.");
     }
   };
+
   return (
     <div>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Card>
           <CardContent>
             <Grid container spacing={4}>
-              <DatePicker
+              <MobileDateTimePicker
                 label="比賽日期"
                 name="GDate"
                 onChange={handleDateChange}
-                required
-                value={values.GDate}
+                value={values.GDate || ''}
                 fullWidth
               />
               <Grid item xs={12} md={5}>
                 <TimePicker
+                  defaultValue={values.GTime || ''}
                   label="比賽時間"
                   name="GTime"
                   onChange={handleTimeChange}
-                  required
-                  value={values.GTime}
+                  value={values.GTime || ''}
+                  ampm={false}
                   fullWidth
                 />
               </Grid>

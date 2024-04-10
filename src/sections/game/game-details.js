@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Box,
   Button,
@@ -78,7 +78,6 @@ export const AddGame = () => {
     }
   }, []);
 
-  
   const generateRandomId = () => {
     // 生成一個隨機的 g_id
     return Math.random().toString(36).substr(2, 9);
@@ -86,20 +85,13 @@ export const AddGame = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     try {
       const g_id = generateRandomId(); // 生成隨機的 g_id
       const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
-      const hours = new Date(GTime).getHours();
-      const minutes = new Date(GTime).getMinutes();
-      const seconds = new Date(GTime).getSeconds();
-      
-      // 格式化为 24 小时制时间字符串
-      const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  
-      // 将日期转换为 Firebase 期望的格式（YYYY-MM-DD）
-      const formattedDate = new Date(GDate).toLocaleDateString();
-  
+      const formattedDate = GDate.toISOString().split('T')[0]; // 格式化日期
+      const formattedTime = `${GTime.getHours()}:${GTime.getMinutes()}:${GTime.getSeconds()}`; // 格式化时间
+
       // 在 "games" 集合中添加一个新文档，文档 ID 为 g_id
       const docRef = doc(collection(firestore, "games"), g_id);
       await setDoc(docRef, {
@@ -114,14 +106,25 @@ export const AddGame = () => {
         label: values.label,
         remark: values.remark,
       });
-  
+
       console.log("Document written with ID: ", g_id);
-      alert("Game document created successfully!");
+      alert(JSON.stringify({
+        g_id: g_id,
+        GDate: formattedDate,
+        GTime: formattedTime,
+        hometeam: values.hometeam,
+        awayteam: values.awayteam,
+        gName: values.gName,
+        coach: values.coach,
+        recorder: values.recorder,
+        label: values.label,
+        remark: values.remark,
+      })); // 顯示每筆資料內容
     } catch (error) {
       console.error("Error creating game document:", error);
+      alert("An error occurred while creating game document.");
     }
   };
-  
 
   return (
     <div>
@@ -129,31 +132,33 @@ export const AddGame = () => {
         <Card>
           <CardContent>
             <Grid container spacing={4}>
-            <DatePicker
-                      label="比賽日期"
-                      name="GDate"
-                      onChange={(date) => {
-                        const formattedDate = date.toISOString().split('T')[0]; // 格式化为 YYYY-MM-DD
-                        console.log('Selected date:', formattedDate);
-                        handleChange({ target: { name: 'GDate', value: formattedDate } });
-                      }}
-                      required
-                      value={values.GDate}
-                      fullWidth
-                    />
-                <Grid item xs={12} md={5}>
-                  <TimePicker
-                    label="比賽時間"
-                    name="GTime"
-                    onChange={(time) => {
-                      console.log('Selected time:', time);
-                      handleChange({ target: { name: 'GTime', value: time } });
-                    }}
-                    required
-                    value={values.GTime}
-                    fullWidth // 让时间选择器的表单项变长
-                  />
-                </Grid>
+              <DatePicker
+                defaultValue={values.GDate}
+                label="比賽日期"
+                name="GDate"
+                onChange={(date) => {
+                  console.log('Selected date:', date);
+                  handleChange({ target: { name: 'GDate', value: date } });
+                }}
+                required
+                value={values.GDate}
+                fullWidth
+              />
+              <Grid item xs={12} md={5}>
+                <TimePicker
+                  defaultValue={values.GTime}
+                  label="比賽時間"
+                  name="GTime"
+                  onChange={(time) => {
+                    console.log('Selected time:', time);
+                    handleChange({ target: { name: 'GTime', value: time } });
+                  }}
+                  required
+                  value={values.GTime}
+                  ampm={false}
+                  fullWidth
+                />
+              </Grid>
               <Grid item xs={12} md={5}>
                 <FormControl fullWidth required>
                   <InputLabel>主隊</InputLabel>
@@ -171,8 +176,8 @@ export const AddGame = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={2} align="center">
-    <Typography variant="body1" component="div" sx={{ paddingTop: '15px' }}>V.S</Typography>
-  </Grid>
+                <Typography variant="body1" component="div" sx={{ paddingTop: '15px' }}>V.S</Typography>
+              </Grid>
               <Grid item xs={12} md={5}>
                 <TextField
                   fullWidth
@@ -212,18 +217,16 @@ export const AddGame = () => {
               <Grid item xs={15} md={6}>
                 <FormControl fullWidth required>
                   <TextField
-                  fullWidth
-                  label="教練"
-                  name="coach"
-                  onChange={handleChange}
-                  value={values.coach}
-                />
-                  
+                    fullWidth
+                    label="教練"
+                    name="coach"
+                    onChange={handleChange}
+                    value={values.coach}
+                  />
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
-              
-              <TextField
+                <TextField
                   fullWidth
                   label="記錄員"
                   name="recorder"
@@ -259,8 +262,10 @@ export const AddGame = () => {
             </Grid>
           </CardContent>
         </Card>
-        <Button type="submit" variant="contained" color="primary">確認新增</Button>
+        <Button type="submit" variant="contained" color="primary">
+          確認新增
+        </Button>
       </form>
     </div>
   );
-}
+};
