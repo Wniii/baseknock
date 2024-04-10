@@ -6,20 +6,38 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   Divider,
-  Typography,
+  Typography
 } from '@mui/material';
+import { ref, uploadBytes } from 'firebase/storage';
+import { storage } from 'src/pages/firebase'; // 导入您的Firebase配置
 
 export const TeamProfile = () => {
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null); // 用于预览图片
 
-  // Function to handle file selection
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const fileUrl = URL.createObjectURL(file);
-      setAvatarUrl(fileUrl);
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result); // 设置预览图片
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    try {
+      const storageRef = ref(storage, `profileImages/${file.name}`);
+      await uploadBytes(storageRef, file);
+      alert('图片上传成功');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('上传失败');
     }
   };
 
@@ -34,33 +52,34 @@ export const TeamProfile = () => {
               flexDirection: 'column'
             }}
           >
-            <Avatar
-              src={avatarUrl}
-              sx={{
-                height: 120, // Set the height to make it square
-                width: 120, // Set the width to make it square
-                mb: 2,
-                borderRadius: 0, // Override MUI's default border-radius
-              }}
-            />
+            {/* 如果有选择文件，则显示预览图片 */}
+            {previewUrl && (
+              <Avatar
+                src={previewUrl}
+                sx={{
+                  height: 80,
+                  mb: 7,
+                  width: 80,
+                  justifyContent: 'center',
+                }}
+              />
+            )}
+            {/* ... 其他用户信息 ... */}
           </Box>
         </CardContent>
         <Divider />
         <CardActions>
-          {/* File input for uploading picture */}
-          <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} id="upload-avatar" />
-          <label htmlFor="upload-avatar">
-            <Button
-              fullWidth
-              variant="text"
-              component="span"
-            >
-              Upload picture
-            </Button>
-          </label>
+          <input type="file" onChange={handleFileChange} />
+          <Button
+            fullWidth
+            variant="text"
+            onClick={handleUpload}
+          >
+            上传图片
+          </Button>
         </CardActions>
       </Card>
-      <br></br>
+      {/* ... */}
     </div>
   );
 };
