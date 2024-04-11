@@ -83,49 +83,50 @@ export const ManagePlayer = ({ teamInfo }) => {
         console.log('Add player dialog closed'); // 打印对话框关闭信息
     };
     
-    const handleAddPlayer = (teamInfo) => {
+    const handleAddPlayer = async (teamInfo) => {
         try {
-            // 构造更新后的球员对象
-            const updatedPlayers = {
-                ...teamInfo.players,
-                [newPlayerName]: {
-                    position: newPlayerPosition,
-                    habit: newPlayerHabit,
-                    PNum: newPlayerNumber
-                }
-            };
-    
-            // 更新选定的球队信息，包括新的球员列表
-            const updatedTeamInfo = { ...teamInfo, players: updatedPlayers };
-            setSelectedTeamInfo(updatedTeamInfo); // 更新选定的球队信息
-    
-            // 打印更新后的球队信息
-            console.log('Updated Team Info:', updatedTeamInfo);
-    
-            // 重置输入框的值
-            setNewPlayerName('');
-            setNewPlayerNumber('');
-            setNewPlayerPosition('');
-            setNewPlayerHabit('');
-    
-            // 关闭对话框
-            handleCloseAddPlayerDialog();
-    
-            // 打印球员成功添加的信息
-            console.log('Player added successfully');
-    
+          const teamRef = doc(firestore, 'team', teamInfo.id);
+          
+          // 構造要添加的新球員數據
+          const newPlayerData = {
+            PNum: newPlayerNumber,
+            habit: newPlayerHabit,
+            position: newPlayerPosition
+          };
+          
+          // 將新球員數據添加到球隊集合中的 players 欄位
+          await setDoc(teamRef, { players: { ...teamInfo.players, [newPlayerName]: newPlayerData } }, { merge: true });
+          
+          // 更新選定的球隊信息
+          const updatedPlayers = {
+            ...teamInfo.players,
+            [newPlayerName]: newPlayerData
+          };
+          const updatedTeamInfo = { ...teamInfo, players: updatedPlayers };
+          setSelectedTeamInfo(updatedTeamInfo);
+          
+          // 重置輸入框的值
+          setNewPlayerName('');
+          setNewPlayerNumber('');
+          setNewPlayerPosition('');
+          setNewPlayerHabit('');
+          
+          // 關閉對話框
+          handleCloseAddPlayerDialog();
+          
+          console.log('Player added successfully');
         } catch (error) {
-            console.error('Error adding player:', error);
-    
-            // 打印球员数据
-            console.log('Player data:', {
-                PName: newPlayerName,
-                PNum: newPlayerNumber,
-                position: newPlayerPosition,
-                habit: newPlayerHabit
-            });
-        }      
-    };
+          console.error('Error adding player:', error);
+          
+          console.log('Player data:', {
+            PName: newPlayerName,
+            PNum: newPlayerNumber,
+            position: newPlayerPosition,
+            habit: newPlayerHabit
+          });
+        }
+      };
+      
     
 
     const isLargeScreen = useMediaQuery('(min-width:600px)');
