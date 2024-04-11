@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // 导入getStorage
 
 const firebaseConfig = {
     apiKey: "AIzaSyCCKNU9obvHvR8dh82qPT7qBmSs0icpZBw",
@@ -16,13 +17,16 @@ const firebaseConfig = {
 let app;
 let analytics;
 let firestore;
+let storage; // 声明storage变量
 
 if (typeof window !== 'undefined') {
     // Initialize Firebase
     app = initializeApp(firebaseConfig);
     analytics = getAnalytics(app);
     firestore = getFirestore(app);
+    storage = getStorage(app); // 初始化storage
+
 }
 
 // Initialize Firebase
-export { firestore };
+export { firestore, storage }; // 导出storage

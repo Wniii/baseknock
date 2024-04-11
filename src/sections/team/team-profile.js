@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Avatar,
   Box,
@@ -5,80 +6,83 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   Divider,
-  Typography,
-  TextField,
-  Unstable_Grid2 as Grid
+  Typography
 } from '@mui/material';
+import { ref, uploadBytes } from 'firebase/storage';
+import { storage } from 'src/pages/firebase'; // 导入您的Firebase配置
 
+export const TeamProfile = () => {
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null); // 用于预览图片
 
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result); // 设置预览图片
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
 
+  const handleUpload = async () => {
+    if (!file) return;
 
-const user = {
-  // avatar: '/assets/avatars/avatar-anika-visser.png',
-  // city: 'Los Angeles',
-  // country: 'USA',
-  // jobTitle: 'Senior Developer',
-  // name: 'Anika Visser',
-  // timezone: 'GTM-7'
-};
+    try {
+      const storageRef = ref(storage, `profileImages/${file.name}`);
+      await uploadBytes(storageRef, file);
+      alert('图片上传成功');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('上传失败');
+    }
+  };
 
-
-
-export const TeamProfile = () => (
-  <div>
-    <Card>
-      <CardContent>
-        <Box
-          sx={{
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <Avatar
-            src={user.avatar}
+  return (
+    <div>
+      <Card>
+        <CardContent>
+          <Box
             sx={{
-              height: 80,
-              mb: 7,
-              width: 80,
-              justifyContent: 'center',
+              alignItems: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              width: 120,
+              height: 120,
             }}
-          />
-          <Typography
-            gutterBottom
-            variant="h5"
           >
-            {user.name}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            variant="body2"
+            {/* 如果有选择文件，则显示预览图片 */}
+            {previewUrl && (
+              <Avatar
+                src={previewUrl}
+                sx={{
+                  height: 120,
+                  mb: 120,
+                  width: 80,
+                  md: 2,
+                  borderRadius: 0,
+                }}
+              />
+            )}
+            {/* ... 其他用户信息 ... */}
+          </Box>
+        </CardContent>
+        <Divider />
+        <CardActions>
+          <input type="file" onChange={handleFileChange} />
+          <Button
+            fullWidth
+            variant="text"
+            onClick={handleUpload}
           >
-            {user.city} {user.country}
-          </Typography>
-          <Typography
-            color="text.secondary"
-            variant="body2"
-          >
-            {user.timezone}
-          </Typography>
-        </Box>
-      </CardContent>
-      <Divider />
-      <CardActions>
-        <Button
-          fullWidth
-          variant="text"
-        >
-          Upload picture
-        </Button>
-      </CardActions>
-    </Card>
-    <br></br>
-
-
-  </div>
-);
-
+            上传图片
+          </Button>
+        </CardActions>
+      </Card>
+      {/* ... */}
+    </div>
+  );
+};
