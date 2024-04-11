@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState,useEffect } from 'react';
 import {
   Box,
   Button,
@@ -31,40 +31,30 @@ const addSx = {
 
 
 
-export const ManageProfileDetails = () => {
+export const ManageProfileDetails = ({ teamInfo }) => {
   const [values, setValues] = useState({
     Name: '',
     codeName: '',
-    introduction: '',
-    PName:'',
-    PNum:'',
-   
+    introduction: ''
   });
 
-  const handleChange = useCallback(
-    (event) => {
-      setValues((prevState) => ({
-        ...prevState,
-        [event.target.name]: event.target.value
-      }));
-    },
-    []
-  );
+  useEffect(() => {
+    if (teamInfo) {
+      setValues(teamInfo);
+    }
+  }, [teamInfo]);
 
-  const handleSubmit = useCallback(
-    (event) => {
-      event.preventDefault();
-    },
-    []
-  );
-
+  
+  
+  useEffect(() => {
+    console.log('Received teamInfo:', teamInfo); // 打印来查看实际接收到的teamInfo内容
+    if (teamInfo) {
+      setValues(teamInfo);
+    }
+  }, [teamInfo]);
   return (
     
-    <form
-      autoComplete="off"
-      noValidate
-      onSubmit={handleSubmit}
-    >
+    <form>
       <div>
       <Card>
         <CardHeader
@@ -81,14 +71,13 @@ export const ManageProfileDetails = () => {
                 xs={24}
                 md={12}
               >
-                <TextField
-                  fullWidth
-                  label="球隊名稱"
-                  name="Name"
-                  onChange={handleChange}
-                  required
-                  value={values.firstName}
-                />
+                 <TextField
+                fullWidth
+                label="球隊名稱"
+                name="Name"
+                value={values.Name}
+                required
+              />
               </Grid>
               <Grid
                 xs={24}
@@ -98,9 +87,8 @@ export const ManageProfileDetails = () => {
                   fullWidth
                   label="球隊代號"
                   name="codeName"
-                  onChange={handleChange}
+                  value={values.codeName}
                   required
-                  value={values.lastName}
                 />
               </Grid>
               <Grid
@@ -111,9 +99,9 @@ export const ManageProfileDetails = () => {
                   fullWidth
                   label="球隊簡介"
                   name="introduction"
-                  onChange={handleChange}
+                  value={values.introduction}
+
                 //   required
-                  value={values.email}
                 />
               </Grid>
             </Grid>

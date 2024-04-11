@@ -1,3 +1,4 @@
+import React from 'react';
 import {
     Avatar,
     Box,
@@ -13,23 +14,11 @@ import {
     List,
     ListItem,
     ListItemIcon,
-
 } from '@mui/material';
 
 
-
-const user = {
-    // avatar: '/assets/avatars/avatar-anika-visser.png',
-    // city: 'Los Angeles',
-    // country: 'USA',
-    // jobTitle: 'Senior Developer',
-    // name: 'Anika Visser',
-    // timezone: 'GTM-7'
-};
-
-
-
-export const ManageProfile = () => (
+// 现在，ManageProfile 接收一个名为 selectedIcon 的 prop
+export const ManageProfile = ({ selectedIcon }) => (
     <div>
         <Card>
             <Box
@@ -42,7 +31,6 @@ export const ManageProfile = () => (
                 <Grid
                     container
                     spacing={3}
-                    
                 >
                     <Grid
                         xs={12}
@@ -51,7 +39,12 @@ export const ManageProfile = () => (
                     >
                         <List>
                             <ListItem>
-                                <img src="https://upload.wikimedia.org/wikipedia/zh/thumb/d/da/Fu_Jen_Catholic_University_logo.svg/640px-Fu_Jen_Catholic_University_logo.svg.png" alt="icon" style={{ height: '200px', width: '200px' }} />
+                                {/* 动态渲染图标，如果 selectedIcon 存在，则显示 */}
+                                <img 
+                                    src={selectedIcon || '默认图标的URL'} 
+                                    alt="icon" 
+                                    style={{ height: '200px', width: '200px' }} 
+                                />
                             </ListItem>
                         </List>
                     </Grid>
@@ -67,8 +60,7 @@ export const ManageProfile = () => (
             </Box>
         </Card>
         <br></br>
-
-
     </div>
 );
 
+export default ManageProfile;
