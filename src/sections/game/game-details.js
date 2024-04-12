@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState } from "react";
 import {
   Box,
   Button,
@@ -11,93 +11,105 @@ import {
   Select,
   TextField,
   Typography,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { firestore } from "src/pages/firebase"; 
-import { setDoc, doc, collection } from "firebase/firestore"; 
+} from "@mui/material";
+import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
+import { firestore } from "src/pages/firebase";
+import { setDoc, doc, collection } from "firebase/firestore";
+import { query, where, getDocs, orderBy } from "firebase/firestore";
+import { format } from "date-fns";
+import { getDoc } from "firebase/firestore";
 
 
 const hometeam = [
-  { value: 'fju', label: '輔仁大學' },
-  { value: 'kpbl', label: '卡皮巴拉' }
+  { value: "fju", label: "輔仁大學" },
+  { value: "kpbl", label: "卡皮巴拉" },
 ];
 
 const awayteam = [
-  { value: 'fju', label: '輔仁大學' },
-  { value: 'kpbl', label: '卡皮巴拉' }
+  { value: "fju", label: "輔仁大學" },
+  { value: "kpbl", label: "卡皮巴拉" },
 ];
 
 const gName = [
-  { value: 'friendly', label: '友誼賽' },
-  { value: 'ubl', label: '大專盃' },
-  { value: 'mei', label: '梅花旗' }
+  { value: "friendly", label: "友誼賽" },
+  { value: "ubl", label: "大專盃" },
+  { value: "mei", label: "梅花旗" },
 ];
 
 const labelOptions = [
-  { value: 'top8', label: '八強賽' },
-  { value: 'top4', label: '四強賽' },
-  { value: 'champ', label: '冠亞賽' },
-  { value: 'others', label: '其他' }
+  { value: "top8", label: "八強賽" },
+  { value: "top4", label: "四強賽" },
+  { value: "champ", label: "冠亞賽" },
+  { value: "others", label: "其他" },
 ];
 
 export const AddGame = () => {
   const [values, setValues] = useState({
     GDate: null,
     GTime: null,
-    hometeam: '',
-    awayteam: '',
-    gName: '',
-    coach: '',
-    recorder: '',
-    label: '',
-    remark: '',
+    hometeam: "",
+    awayteam: "",
+    gName: "",
+    coach: "",
+    recorder: "",
+    label: "",
+    remark: "",
   });
 
   const AddGameSx = {
-    backgroundColor: '#d3d3d3',
-    padding: '8px',
-    height: 'auto',
-    width: 'auto',
-    margin: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    textAlign: 'center',
+    backgroundColor: "#d3d3d3",
+    padding: "8px",
+    height: "auto",
+    width: "auto",
+    margin: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    textAlign: "center",
   };
 
   const handleChange = useCallback((event) => {
     if (event.target && event.target.name) {
       const { name, value } = event.target;
-      console.log('Name:', name);
-      console.log('Value:', value);
+      console.log("Name:", name);
+      console.log("Value:", value);
       setValues((prevState) => ({
         ...prevState,
-        [name]: value
+        [name]: value,
       }));
     }
   }, []);
 
-  const generateRandomId = () => {
-    // 生成一個隨機的 g_id
-    return Math.random().toString(36).substr(2, 9);
+  const generateGameId = async () => {
+    try {
+      // 获取当前时间的毫秒级时间戳
+      const timestamp = new Date().getTime();
+
+      // 生成随机数（取值范围为0到9999）
+      const random = Math.floor(Math.random() * 10000);
+
+      // 构建新的游戏 ID
+      const newGameId = `${timestamp}-${random}`;
+      return newGameId;
+    } catch (error) {
+      console.error("Error generating game ID:", error);
+      alert("An error occurred while generating game ID.");
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const g_id = generateRandomId(); // 生成隨機的 g_id
+      const g_id = await generateGameId();
       const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
-      const formattedDate = GDate.toISOString().split('T')[0]; // 格式化日期
-      const formattedTime = `${GTime.getHours()}:${GTime.getMinutes()}:${GTime.getSeconds()}`; // 格式化时间
 
       // 在 "games" 集合中添加一个新文档，文档 ID 为 g_id
-      const docRef = doc(collection(firestore, "games"), g_id);
-      await setDoc(docRef, {
+      const gameDocRef = doc(firestore, "team", "111", "games", g_id);
+      await setDoc(gameDocRef, {
         g_id: g_id, // 将 g_id 作为文档的一个字段
-        GDate: formattedDate, // 仅存储日期部分
-        GTime: formattedTime,
+        GDate: values.GDate, // 仅存储日期部分
+        GTime: values.GTime,
         hometeam: values.hometeam,
         awayteam: values.awayteam,
         gName: values.gName,
@@ -107,19 +119,18 @@ export const AddGame = () => {
         remark: values.remark,
       });
 
-      console.log("Document written with ID: ", g_id);
-      alert(JSON.stringify({
-        g_id: g_id,
-        GDate: formattedDate,
-        GTime: formattedTime,
-        hometeam: values.hometeam,
-        awayteam: values.awayteam,
-        gName: values.gName,
-        coach: values.coach,
-        recorder: values.recorder,
-        label: values.label,
-        remark: values.remark,
-      })); // 顯示每筆資料內容
+      // 在 "team" 集合中更新团队文档，添加一个名为 games 的字段，其值为一个对象，包含 g_id 和 GDate
+      const teamDocRef = doc(firestore, "team", "111");
+      const teamDocSnapshot = await getDoc(teamDocRef);
+      if (teamDocSnapshot.exists()) {
+        const teamData = teamDocSnapshot.data();
+        const gamesData = teamData.games || {}; // 如果 games 字段不存在，则初始化为空对象
+        gamesData[g_id] = values.GDate; // 将新游戏的 g_id 和 GDate 添加到 games 字段中
+        await setDoc(teamDocRef, { games: gamesData }, { merge: true }); // 使用 { merge: true } 选项将新数据合并到现有文档中
+      }
+      
+      // 提示新增成功
+      alert("新增成功！");
     } catch (error) {
       console.error("Error creating game document:", error);
       alert("An error occurred while creating game document.");
@@ -132,41 +143,22 @@ export const AddGame = () => {
         <Card>
           <CardContent>
             <Grid container spacing={4}>
-              <DatePicker
+              <MobileDateTimePicker
                 defaultValue={values.GDate}
                 label="比賽日期"
                 name="GDate"
                 onChange={(date) => {
-                  console.log('Selected date:', date);
-                  handleChange({ target: { name: 'GDate', value: date } });
+                  console.log("Selected date:", date);
+                  handleChange({ target: { name: "GDate", value: date } });
                 }}
                 required
                 value={values.GDate}
                 fullWidth
               />
               <Grid item xs={12} md={5}>
-                <TimePicker
-                  defaultValue={values.GTime}
-                  label="比賽時間"
-                  name="GTime"
-                  onChange={(time) => {
-                    console.log('Selected time:', time);
-                    handleChange({ target: { name: 'GTime', value: time } });
-                  }}
-                  required
-                  value={values.GTime}
-                  ampm={false}
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={12} md={5}>
                 <FormControl fullWidth required>
                   <InputLabel>主隊</InputLabel>
-                  <Select
-                    value={values.hometeam}
-                    onChange={handleChange}
-                    name="hometeam"
-                  >
+                  <Select value={values.hometeam} onChange={handleChange} name="hometeam">
                     {hometeam.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
@@ -176,7 +168,9 @@ export const AddGame = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={2} align="center">
-                <Typography variant="body1" component="div" sx={{ paddingTop: '15px' }}>V.S</Typography>
+                <Typography variant="body1" component="div" sx={{ paddingTop: "15px" }}>
+                  V.S
+                </Typography>
               </Grid>
               <Grid item xs={12} md={5}>
                 <TextField
@@ -237,11 +231,7 @@ export const AddGame = () => {
               <Grid item xs={12} md={12}>
                 <FormControl fullWidth required>
                   <InputLabel>標籤</InputLabel>
-                  <Select
-                    value={values.label}
-                    onChange={handleChange}
-                    name="label"
-                  >
+                  <Select value={values.label} onChange={handleChange} name="label">
                     {labelOptions.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
                         {option.label}
