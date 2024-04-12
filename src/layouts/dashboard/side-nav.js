@@ -42,20 +42,31 @@ export const SideNav = (props) => {
           height: '100%'
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Box
-            component={NextLink}
-            href="/"
-            sx={{
-              display: 'inline-flex',
-              height: 32,
-              width: 32
-            }}
-          >
-            <Logo />
+        <div>
+          <Box sx={{ p: 3, display: 'flex', alignItems: 'center' }}>
+            <Box
+
+              component={NextLink}
+              href="/"
+              sx={{
+                display: 'inline-flex',
+                height: 32,
+                width: 32
+              }}
+            >
+              <Logo />
+            </Box>
+            <Typography
+              color={'#ffffff'}
+              marginLeft='20px'
+              variant='h5'
+              fontWeight='bold'
+
+            >
+              BaseKnock</Typography>
           </Box>
-          
-        </Box>
+        </div>
+
         <Divider sx={{ borderColor: 'neutral.700' }} />
         <Box
           component="nav"
