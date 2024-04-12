@@ -60,10 +60,17 @@ export const Bdata = (props) => {
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
                     <TableCell>
-                      {customer.address.city}, {customer.address.state}, {customer.address.country}
+                      {customer.address.city}
                     </TableCell>
                     <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{createdAt}</TableCell>
+                    <TableCell>{customer.totalbase}</TableCell>
+                    <TableCell>{customer.base}</TableCell>
+                    <TableCell>{customer.score}</TableCell>
+                    <TableCell>{customer.rbi}</TableCell>
+                    <TableCell>{customer.firstb}</TableCell>
+                    <TableCell>{customer.secondb}</TableCell>
+                    <TableCell>{customer.thirdb}</TableCell>
+                    <TableCell>{customer.hr}</TableCell>
                   </TableRow>
                 );
               })}

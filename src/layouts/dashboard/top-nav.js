@@ -40,13 +40,16 @@ export const TopNav = (props) => {
           width: {
             lg: `calc(100% - ${SIDE_NAV_WIDTH}px)`
           },
-          zIndex: (theme) => theme.zIndex.appBar
+          zIndex: (theme) => theme.zIndex.appBar,
+          display: 'flex',
+          alignItems: 'center', // Align items vertically center
+          justifyContent: 'space-between', // Spacing between items
+          px: 2
         }}
       >
         <Stack
           alignItems="center"
           direction="row"
-          justifyContent="space-between"
           spacing={2}
           sx={{
             minHeight: TOP_NAV_HEIGHT,
@@ -58,56 +61,19 @@ export const TopNav = (props) => {
             direction="row"
             spacing={2}
           >
-            {!lgUp && (
-              <IconButton onClick={onNavOpen}>
-                <SvgIcon fontSize="small">
-                  <Bars3Icon />
-                </SvgIcon>
-              </IconButton>
-            )}
-            <Tooltip title="Search">
-              <IconButton>
-                <SvgIcon fontSize="small">
-                  <MagnifyingGlassIcon />
-                </SvgIcon>
-              </IconButton>
-            </Tooltip>
-          </Stack>
-          <Stack
-            alignItems="center"
-            direction="row"
-            spacing={2}
-          >
-            <Tooltip title="Contacts">
-              <IconButton>
-                <SvgIcon fontSize="small">
-                  <UsersIcon />
-                </SvgIcon>
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Notifications">
-              <IconButton>
-                <Badge
-                  badgeContent={4}
-                  color="success"
-                  variant="dot"
-                >
-                  <SvgIcon fontSize="small">
-                    <BellIcon />
-                  </SvgIcon>
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            <Avatar
-              onClick={accountPopover.handleOpen}
-              ref={accountPopover.anchorRef}
-              sx={{
-                cursor: 'pointer',
-                height: 40,
-                width: 40
-              }}
-              src="/assets/avatars/avatar-anika-visser.png"
-            />
+                        
+          <Avatar
+            onClick={accountPopover.handleOpen}
+            ref={accountPopover.anchorRef}
+            sx={{
+              cursor: 'pointer',
+              height: 40,
+              width: 40,
+              position: 'absolute', // Position the Avatar absolutely
+              right: 20 // Push Avatar to the right
+            }}
+            src="/assets/avatars/avatar-anika-visser.png"
+          />
           </Stack>
         </Stack>
       </Box>
