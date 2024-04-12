@@ -6,7 +6,7 @@ export default function CreateUserDocumentButton() {
     const [userId, setUserId] = useState(""); // 用户ID
     const [password, setPassword] = useState(""); // 密码
     const [email, setEmail] = useState(""); // 电子邮件
-    const [playerId, setPlayerId] = useState(""); // 球员ID
+    //const [playerId, setPlayerId] = useState(""); // 球员ID
     const [userName, setUserName] = useState(""); 
     const [checkpsw, setCheckpsw] = useState(""); 
 
@@ -19,7 +19,7 @@ export default function CreateUserDocumentButton() {
                 u_id: userId,
                 u_password: password,
                 u_email: email,
-                p_id: playerId,
+                //p_id: playerId,
                 u_name: userName,
                 u_checkpsw: checkpsw,
             });
@@ -51,12 +51,12 @@ export default function CreateUserDocumentButton() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <label>Player ID:</label>
+                {/* <label>Player ID:</label>
                 <input
                     type="text"
                     value={playerId}
                     onChange={(e) => setPlayerId(e.target.value)}
-                />
+                /> */}
                 <button type="submit">Create User Document</button>
             </form>
         </div>

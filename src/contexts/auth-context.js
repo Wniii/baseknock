@@ -163,7 +163,7 @@ export const AuthProvider = (props) => {
 
   const signUp = async (userId, password, email, userName, checkpsw ) => {
     try {
-      
+      const userId = uuidv4();
       await auth.signUp(values.u_id, values.u_password,values.u_checkpsw, values.u_name, values.u_email);
       await setDoc(doc(firestore, "users", userId), {
         u_id: userId,
