@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { firestore } from "../pages/firebase";
-import { query, collection, where, getDocs } from "firebase/firestore";
+import { query, collection, where, getDocs, doc, setDoc } from "firebase/firestore";
+
 
 
 const HANDLERS = {
@@ -160,8 +161,27 @@ export const AuthProvider = (props) => {
   };
   
 
-  const signUp = async (email, name, password) => {
-    throw new Error('Sign up is not implemented');
+  const signUp = async (userId, password, email, userName, checkpsw ) => {
+    try {
+      
+      await auth.signUp(values.u_id, values.u_password,values.u_checkpsw, values.u_name, values.u_email);
+      await setDoc(doc(firestore, "users", userId), {
+        u_id: userId,
+        u_password: password,
+        u_email: email,
+        //p_id: playerId,
+        u_name: userName,
+        u_checkpsw: checkpsw,
+      });
+      router.push('/');
+      alert("User document created successfully!");
+    } 
+    catch (error) {
+      console.error("Error creating user document:", error);
+      
+      //throw new Error('Sign up is not implemented');
+    }
+    
   };
 
   const signOut = () => {
