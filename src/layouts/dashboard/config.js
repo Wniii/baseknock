@@ -29,11 +29,11 @@ export const items = [
     )
   },
   {
-    title: '新增比赛',
+    title: '新增比賽',
     path: '/game',
     icon: (
       <SvgIcon fontSize="small">
-        <UserIcon />
+        <AddIcon />
       </SvgIcon>
     )
   },
@@ -51,7 +51,7 @@ export const items = [
     path: '/schedule',
     icon: (
       <SvgIcon fontSize="small">
-        <UserIcon />
+        <ChartBarIcon />
       </SvgIcon>
     )
   },
@@ -118,6 +118,15 @@ export const items = [
         <ChartBarIcon />
       </SvgIcon>
     ),
+  },
+  {
+    title: '個人頁面',
+    path: '/personal',
+    icon: (
+      <SvgIcon fontSize="small">
+        <UserIcon />
+      </SvgIcon>
+    )
   },
   {
     title: '登入',
