@@ -20,37 +20,68 @@ const ALLPlayerPage = () => {
   const [players, setPlayers] = useState([]);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [g_id, setGId] = useState(null); // 添加状态变量来存储g_id
-
-  // 生成随机的 glist_id
-  const generateRandomBlistId = () => {
-    // 生成一个随机的字符串作为 glist_id，可以根据您的需求自定义长度和字符集
-    return Math.random().toString(36).substr(2, 9);
-  };
-
-  const [blist_id, setBlistId] = useState(generateRandomBlistId()); // 添加状态变量来存储blist_id
+  const { timestamp } = router.query;
 
   useEffect(() => {
-    const fetchPlayers = async () => {
+    console.log('Timestamp:', timestamp);
+    // 在这里执行与timestamp参数相关的任何操作
+  }, [timestamp]);
+  // 生成随机的 glist_id
+
+  useEffect(() => {
+    const fetchTeamGames = async () => {
       try {
-        const playerCollection = collection(firestore, 'player');
-        const playerSnapshot = await getDocs(playerCollection);
-        const playerData = playerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPlayers(playerData);
+        const teamCollection = collection(firestore, 'team');
+        const teamSnapshot = await getDocs(teamCollection);
+        
+        for (const doc of teamSnapshot.docs) {
+          const teamData = doc.data();
+          console.log('Team data:', teamData); // 输出当前文档的数据
+  
+          // 检查当前文档是否包含 games 字段
+          if (teamData.games) {
+            console.log('Games field found in document:', doc.id); // 输出找到 games 字段的文档 ID
+  
+            // 检查当前文档的 games 字段是否包含与传递的 timestamp 匹配的键名
+            if (teamData.games[timestamp]) {
+              console.log('Timestamp key found in games field:', timestamp); // 输出找到的 timestamp 键名
+  
+              // 如果找到匹配的键名，则获取该键名对应的文档
+              const gameDoc = teamData;
+              console.log('team document:', gameDoc); // 输出找到的游戏文档
+  
+              // 检查文档是否包含 players 字段
+              if (teamData.players) {
+                console.log('Players field found in game document:', teamData.players); // 输出找到 players 字段的值
+                // 在这里执行与 players 字段相关的任何操作
+                // 停止搜索，因为找到了 players 数组
+                setPlayers(teamData.players);
+                console.log(teamData.players)
+                return;
+              } else {
+                console.log('No players field found in game document:', gameDoc); // 输出未找到 players 字段的信息
+              }
+            } else {
+              console.log('Timestamp key not found in games field:', timestamp); // 输出未找到 timestamp 键名的信息
+            }
+          } else {
+            console.log('No games field found in document:', doc.id); // 输出未找到 games 字段的文档 ID
+          }
+        }
       } catch (error) {
-        console.error('Error fetching players:', error);
+        console.error('Error fetching team games:', error);
       }
     };
+  
+    fetchTeamGames();
+  }, [timestamp]);
+  
+  
+  
+  
+  
 
-    fetchPlayers();
-  }, []);
 
-  useEffect(() => {
-    // 从路由参数中获取g_id
-    const { query } = router;
-    if (query && query.g_id) {
-      setGId(query.g_id);
-    }
-  }, [router.query]);
 
   const addPlayerToFirestore = async () => {
     try {
@@ -91,10 +122,22 @@ const ALLPlayerPage = () => {
     e.dataTransfer.setData('playerId', player.id);
   };
 
-  const handleAddToSelectedPlayers = (player) => {
-    setSelectedPlayers([...selectedPlayers, player]);
-    setPlayers(players.filter(p => p.id !== player.id));
+  // 修改 handleAddToSelectedPlayers 函数，将选定的球员从所有球员列表移动到先发球员列表
+  const handleAddToSelectedPlayers = (playerKey) => {
+    // 从所有球员列表中移除选定的球员
+    const selectedPlayer = players[playerKey];
+    const updatedPlayers = { ...players };
+    delete updatedPlayers[playerKey];
+    setPlayers(updatedPlayers);
+    
+    // 将选定的球员添加到先发球员列表
+    setSelectedPlayers([...selectedPlayers, selectedPlayer]);
+
+    // 打印更新后的 players 和 selectedPlayers
+    console.log('Updated Players:', updatedPlayers);
+    console.log('Selected Players:', selectedPlayers);
   };
+// 添加拖拽事件处理函数，允许用户拖动球员到先发球员列表
 
   // 生成随机的 glist_id
   
@@ -222,39 +265,39 @@ const ALLPlayerPage = () => {
           <Grid container spacing={2} style={{ flexWrap: 'nowrap' }}>
             {/* 左侧所有球员列表 */}
             <Grid item xs={4}>
-  <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-    <CardHeader title="所有球员" />
-    <CardActions>
-      <Button variant="contained" onClick={addPlayerToFirestore}>
-        新增球员
-      </Button>
-    </CardActions>
-    <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
-      <List>
-        {players.map(player => (
-          <ListItem key={player.id} divider onClick={() => handleAddToSelectedPlayers(player)}>
-            <ListItemAvatar>
-              <Box
-                component="img"
-                src={player.image}
-                sx={{
-                  borderRadius: 1,
-                  height: 48,
-                  width: 48
-                }}
-              />
-            </ListItemAvatar>
-            <ListItemText
-              primary={player.p_name}
-              primaryTypographyProps={{ variant: 'subtitle1' }}
-              secondary={player.updatedAt ? `Updated ${formatDistanceToNow(player.updatedAt)} ago` : 'Updated time unknown'}
-              secondaryTypographyProps={{ variant: 'body2' }}
-            />
-          </ListItem>
-        ))}
-      </List>
-    </div>
-  </Card>
+            <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+  <CardHeader title="所有球员" />
+  <CardActions>
+    <Button variant="contained" onClick={addPlayerToFirestore}>
+      新增球员
+    </Button>
+  </CardActions>
+  <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+  <List>
+  {Object.keys(players).map(playerKey => ( 
+    <ListItem key={playerKey} divider onClick={() => handleAddToSelectedPlayers(players[playerKey])}>
+      <ListItemAvatar>
+        <Box
+          component="img"
+          src={players[playerKey].image}
+          sx={{
+            borderRadius: 1,
+            height: 48,
+            width: 48
+          }}
+        />
+      </ListItemAvatar>
+      <ListItemText
+         primary={`Name: ${playerKey}`} // 使用子对象名称作为主要文本
+         primaryTypographyProps={{ variant: 'body2' }}
+      />
+    </ListItem>
+  ))}
+</List>
+
+
+  </div>
+</Card>
 </Grid>
 
             {/* 中间的按钮 */}
@@ -295,7 +338,7 @@ const ALLPlayerPage = () => {
                       <ListItemAvatar>
                         <Box
                           component="img"
-                          src={player.image}
+                          src=''
                           sx={{
                             borderRadius: 1,
                             height: 48,
@@ -304,9 +347,8 @@ const ALLPlayerPage = () => {
                         />
                       </ListItemAvatar>
                       <ListItemText
-                        primary={player.p_name}
+                        primary=''
                         primaryTypographyProps={{ variant: 'subtitle1' }}
-                        secondary={player.updatedAt ? `Updated ${formatDistanceToNow(player.updatedAt)} ago` : 'Updated time unknown'}
                        
                       />
                     </ListItem>

@@ -24,7 +24,7 @@ const localizer = momentLocalizer(moment);
 
 const SchedulePage = () => {
   const [games, setGames] = useState([]);
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [selectedGame, setSelectedGame] = useState(null); // 修改这里
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter(); // 使用路由器
 
@@ -78,21 +78,22 @@ const SchedulePage = () => {
   };
 
   // Handle actions
-  const handleAction = (action) => {
+  const playerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
     router.push({
       pathname: "/playershow",
-      query: { g_id: selectedGame.g_id },
+      query: { timestamp: selectedGame.timestamp },
     });
-  };
+};
+  
 
   const handleEditGame = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
     router.push({
       pathname: "/edit-game",
-      query: { g_id: selectedGame.g_id },
+      query: {  },
     });          
   };
 
@@ -139,16 +140,16 @@ const SchedulePage = () => {
       </Box>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogActions>
-          <Button onClick={() => handleAction("記錄防守")} color="primary" autoFocus>
+          <Button onClick={() => recorddefence("記錄防守")} color="primary" autoFocus>
             記錄防守
           </Button>
-          <Button onClick={() => handleAction("記錄打擊")} color="primary">
+          <Button onClick={() => recordattack("記錄打擊")} color="primary">
             記錄打擊
           </Button>
-          <Button onClick={() => handleAction("排打擊棒次")} color="primary">
+          <Button onClick={() => playerattack("排打擊棒次")} color="primary">
             排打擊棒次
           </Button>
-          <Button onClick={() => handleAction("排守備位置")} color="primary">
+          <Button onClick={() => playerdefence("排守備位置")} color="primary">
             排守備位置
           </Button>
           <Button onClick={() => handleEditGame("編輯比賽資訊")} color="primary">
@@ -165,4 +166,3 @@ SchedulePage.getLayout = (page) => (
   </DashboardLayout>
 );
 export default SchedulePage;
-
