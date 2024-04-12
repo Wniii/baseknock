@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { firestore } from 'src/pages/firebase'; // 确保路径正确
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, deleteDoc, updateDoc, deleteField, setDoc } from 'firebase/firestore';
 import {
   useMediaQuery,
   Dialog,
@@ -133,22 +133,25 @@ export const ManagePlayer = ({ teamInfo }) => {
     const isMediumScreen = useMediaQuery('(min-width:400px)');
     let cols = isLargeScreen ? 8 : (isMediumScreen ? 3 : 2);
 
-    // 删除球员逻辑
     const handleDelete = (key) => {
-        // 刪除 Firebase 中對應的資料
-        const playerDocRef = doc(firestore, `teams/${teamInfo.id}/players/${key}`);
-        deleteDoc(playerDocRef)
-                .then(() => {
-                // 刪除成功後更新前端狀態
+        const teamRef = doc(firestore, `team/${teamInfo.id}`);
+    
+        // Prepare the update object to remove the player key using deleteField
+        const updates = {};
+        updates[`players.${key}`] = deleteField();
+    
+        updateDoc(teamRef, updates)
+            .then(() => {
+                console.log(`Player with key ${key} successfully deleted from the document.`);
+                // 更新本地状态以反映更改
                 const updatedKeys = playerKeys.filter(k => k !== key);
                 setPlayerKeys(updatedKeys);
             })
             .catch(error => {
-                console.error('Error removing document: ', error);
+                console.error('Error removing player: ', error);
             });
     };
-
-
+    
     // 根据获取的 player 键名生成 itemData
     const itemData = playerKeys.map(key => ({
         img: 'https://images.unsplash.com/photo-1549388604-817d15aa0110',
