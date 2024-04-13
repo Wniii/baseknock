@@ -99,11 +99,11 @@ export const AddGame = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     try {
       const g_id = await generateGameId();
       const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
-
+  
       // 在 "games" 集合中添加一个新文档，文档 ID 为 g_id
       const gameDocRef = doc(firestore, "team", "111", "games", g_id);
       await setDoc(gameDocRef, {
@@ -118,7 +118,7 @@ export const AddGame = () => {
         label: values.label,
         remark: values.remark,
       });
-
+  
       // 在 "team" 集合中更新团队文档，添加一个名为 games 的字段，其值为一个对象，包含 g_id 和 GDate
       const teamDocRef = doc(firestore, "team", "111");
       const teamDocSnapshot = await getDoc(teamDocRef);
@@ -127,8 +127,25 @@ export const AddGame = () => {
         const gamesData = teamData.games || {}; // 如果 games 字段不存在，则初始化为空对象
         gamesData[g_id] = values.GDate; // 将新游戏的 g_id 和 GDate 添加到 games 字段中
         await setDoc(teamDocRef, { games: gamesData }, { merge: true }); // 使用 { merge: true } 选项将新数据合并到现有文档中
+  
+        // 打印结果
+        console.log("Team document exists. Games data updated:", gamesData);
+      } else {
+        console.log("Team document not found or does not exist.");
       }
-      
+      console.log("New game document created with g_id:", g_id);
+      console.log("Game details:", {
+        g_id: g_id,
+        GDate: values.GDate,
+        GTime: values.GTime,
+        hometeam: values.hometeam,
+        awayteam: values.awayteam,
+        gName: values.gName,
+        coach: values.coach,
+        recorder: values.recorder,
+        label: values.label,
+        remark: values.remark,
+      });
       // 提示新增成功
       alert("新增成功！");
     } catch (error) {
@@ -137,6 +154,7 @@ export const AddGame = () => {
     }
   };
 
+  
   return (
     <div>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
