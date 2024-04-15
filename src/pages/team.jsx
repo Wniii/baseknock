@@ -2,69 +2,26 @@ import React, { useRef } from 'react';
 import Head from 'next/head';
 import { Box, Button, Container, Stack, Typography, Grid, Divider } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { TeamProfile } from 'src/sections/team/team-profile';
-import CreateTeamDocumentButton from 'src/sections/team/team-profile-details';
-import { AddTeam } from 'src/sections/team/addTeam'; // 修改这一行
-
-const buttonSx = {
-  backgroundColor: 'd3d3d3',
-  display: 'flex',
-  justifyContent: 'center',
-  padding: '8px',
-};
-
-const sectionSx = {
-  p: 2, // 添加白边
-  display: 'flex', // 添加flex布局
-  justifyContent: 'flex-start', // 左对齐
-  alignItems: 'flex-start', // 上对齐
-};
+import TeamManagement from 'src/sections/team/team-profile-details.jsx'; // 修改這一行，确保路徑正確
 
 const Page = () => {
-  const createTeamDocumentButtonRef = useRef();
-  const handleSubmitRef = useRef();
-
-  const handleFormSubmit = () => {
-    if (createTeamDocumentButtonRef.current) {
-      createTeamDocumentButtonRef.current.handleSubmit();
-    }
-    if (handleSubmitRef.current) {
-      handleSubmitRef.current.handleSubmit();
-    }
-  
-  };
-  
   return (
     <>
       <Head>
         <title>新增球隊</title>
       </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          py: 0
-        }}
-      >
+      <Box component="main" sx={{ flexGrow: 1, py: 0 }}>
         <Container maxWidth="lg">
           <Stack spacing={3}>
-            <div>
-              <Typography variant="h4">新增球隊</Typography>
-            </div>
+            <Typography variant="h4" sx={{ mb: 2 }}>新增球隊</Typography>
             <Divider />
-            <div>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6} lg={4}>
-                  <TeamProfile />
-                </Grid>
-                <Grid item xs={12} md={6} lg={8} sx={sectionSx}>
-                  <CreateTeamDocumentButton ref={createTeamDocumentButtonRef} />
-                </Grid>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TeamManagement /> 
               </Grid>
-            </div>
+            </Grid>
           </Stack>
         </Container>
-        
       </Box>
     </>
   );

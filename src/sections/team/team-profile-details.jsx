@@ -1,8 +1,21 @@
-import React, { useState, useRef, useCallback } from "react";
-import { Box, Card, CardContent, CardHeader, TextField, Grid, Button, Typography } from '@mui/material'; // Import Typography
-import { collection, addDoc } from "firebase/firestore";
-import { firestore } from "../../pages/firebase";
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useRef } from 'react';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Divider,
+  Grid,
+  TextField,
+  Typography,
+  Container
+} from '@mui/material';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { firestore, storage } from 'src/pages/firebase';
 
 const position = [
   { value: '', label: '' },
@@ -25,30 +38,37 @@ const habit = [
   { value: 'RL', label: '右投/左打' }
 ];
 
-const AddPlayerSx = {
-  backgroundColor: '#d3d3d3',
-  padding: '8px',
-  height: 'auto',
-  width: 'auto',
-  margin: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  textAlign: 'center',
-};
-
-export const AddTeam = () => {
+export const TeamManagement = () => {
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
   const [values, setValues] = useState({
     Name: '',
     codeName: '',
     introduction: '',
-    players: Array.from({ length: 2 }, (_, index) => ({
+    players: Array.from({ length: 9 }, (_, index) => ({
       PName: '',
       PNum: '',
       position: '',
       habit: ''
     }))
   });
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
 
   const handlePlayerChange = (index, event) => {
     const { name, value } = event.target;
@@ -64,14 +84,27 @@ export const AddTeam = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    let photoURL = '';
+
+    if (file) {
+      try {
+        const storageRef = ref(storage, `profileImages/${file.name}`);
+        await uploadBytes(storageRef, file);
+        photoURL = await getDownloadURL(storageRef);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        alert('图片上传失败');
+        return; // Stop the submission if the upload fails
+      }
+    }
+
     try {
-      // 获取团队集合的引用
       const teamCollectionRef = collection(firestore, 'team');
-      // 向团队集合添加新文档，Firestore 会生成一个唯一的文档 ID
       const newTeamDocRef = await addDoc(teamCollectionRef, {
         Name: values.Name,
         codeName: values.codeName,
         introduction: values.introduction,
+        photo: photoURL, // Storing the photo URL in the document
         players: values.players.reduce((acc, player) => {
           acc[player.PName] = {
             PNum: player.PNum,
@@ -82,7 +115,6 @@ export const AddTeam = () => {
         }, {})
       });
       console.log('Team document added successfully with ID:', newTeamDocRef.id);
-      // 清空表单
       setValues({
         Name: '',
         codeName: '',
@@ -94,134 +126,200 @@ export const AddTeam = () => {
           habit: ''
         }))
       });
+      setPreviewUrl(null); // Clear the preview after successful upload
+      setFile(null); // Clear the file state
     } catch (error) {
       console.error('Error adding team document:', error);
     }
   };
 
+  const handleAddPlayer = () => {
+    setValues((prevState) => ({
+      ...prevState,
+      players: [
+        ...prevState.players,
+        {
+          PName: '',
+          PNum: '',
+          position: '',
+          habit: ''
+        }
+      ]
+    }));
+  };
+
   return (
     <div>
-
-      <Card sx={{ p: 0 }}>
-        <CardHeader />
-        <CardContent sx={{ pt: 0 }}>
-          <Box sx={{ m: -1.5 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="球隊名稱"
-                  name="name"
-                  type="text"
-                  onChange={(e) => setValues({ ...values, Name: e.target.value })}
-                  required
-                  value={values.Name}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="球隊代號"
-                  name="codeName"
-                  onChange={(e) => setValues({ ...values, codeName: e.target.value })}
-                  required
-                  value={values.codeName}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="球隊簡介"
-                  name="introduction"
-                  type="text"
-                  onChange={(e) => setValues({ ...values, introduction: e.target.value })}
-                  required
-                  value={values.introduction}
-                />
-              </Grid>
+      <Container maxWidth="lg" sx={{ my: 4, mx: 'auto' }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <Grid container spacing={2} justifyContent="center">
+            <Grid item xs={12} sm={6} md={4}>
+              <Card>
+                <CardContent>
+                  <Box sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: 120,
+                    height: 120,
+                  }}>
+                    {previewUrl && (
+                      <Avatar
+                        src={previewUrl}
+                        sx={{ height: 120, mb: 80, width: 120, md: 2, borderRadius: 0 }}
+                      />
+                    )}
+                  </Box>
+                </CardContent>
+                <Divider />
+                <CardActions>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                    ref={fileInputRef}
+                  />
+                  <Button fullWidth variant="text" onClick={handleButtonClick}>
+                    Upload photo
+                  </Button>
+                </CardActions>
+              </Card>
             </Grid>
-          </Box>
-        </CardContent>
-      </Card>
-      <div style={{ position: 'absolute', bottom: 0, left: '82%', transform: 'translateX(-80%)', width: '70%', zIndex: 999 }}>
-        <form autoComplete="off" noValidate onSubmit={handleSubmit}>
-          <div style={{ textAlign: 'left', padding: '8px' }}>
-            <Typography variant="h6">球員名單</Typography>
+            <Grid item xs={12} sm={6} md={8}>
+              <Card sx={{ p: 0 }}>
+                <CardHeader />
+                <CardContent sx={{ pt: 0 }}>
+                  <Box sx={{ m: -1.5 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="球隊名稱"
+                          name="name"
+                          type="text"
+                          onChange={(e) => setValues({ ...values, Name: e.target.value })}
+                          required
+                          value={values.Name}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="球隊代號"
+                          name="codeName"
+                          onChange={(e) => setValues({ ...values, codeName: e.target.value })}
+                          required
+                          value={values.codeName}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="球隊簡介"
+                          name="introduction"
+                          type="text"
+                          onChange={(e) => setValues({ ...values, introduction: e.target.value })}
+                          required
+                          value={values.introduction}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+          <div style={{ marginTop: '16px' }}>
+            <form autoComplete="off" noValidate onSubmit={handleSubmit}>
+              <div style={{ textAlign: 'left', padding: '8px' }}>
+                <Typography variant="h6">球員名單</Typography>
+              </div>
+              <Card sx={{
+                backgroundColor: '#d3d3d3',
+                padding: '8px',
+                height: 'auto',
+                width: 'auto',
+                margin: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                textAlign: 'center',
+              }}>
+                <CardContent sx={{ pt: 3 }}>
+                  <Box sx={{ m: -1.5 }}>
+                    {values.players.map((player, index) => (
+                      <Grid key={index} container spacing={2}>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="姓名"
+                            name="PName"
+                            onChange={(e) => handlePlayerChange(index, e)}
+                            required
+                            value={player.PName}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="背號"
+                            name="PNum"
+                            onChange={(e) => handlePlayerChange(index, e)}
+                            required
+                            value={player.PNum}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="守備位置"
+                            name="position"
+                            onChange={(e) => handlePlayerChange(index, e)}
+                            required
+                            select
+                            SelectProps={{ native: true }}
+                            value={player.position}
+                          >
+                            {position.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </TextField>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            fullWidth
+                            label="投打習慣"
+                            name="habit"
+                            onChange={(e) => handlePlayerChange(index, e)}
+                            required
+                            select
+                            SelectProps={{ native: true }}
+                            value={player.habit}
+                          >
+                            {habit.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </TextField>
+                        </Grid>
+                      </Grid>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <Button onClick={handleAddPlayer} variant="contained">新增球員</Button>
+                <Button type="submit" variant="contained">確認新增</Button>
+              </div>
+            </form>
           </div>
-          <Card sx={AddPlayerSx}>
-            <CardContent sx={{ pt: 3 }}>
-              <Box sx={{ m: -1.5 }}>
-                {values.players.map((player, index) => (
-                  <Grid key={index} container spacing={2}>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="姓名"
-                        name="PName"
-                        onChange={(e) => handlePlayerChange(index, e)}
-                        required
-                        value={player.PName}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="背號"
-                        name="PNum"
-                        onChange={(e) => handlePlayerChange(index, e)}
-                        required
-                        value={player.PNum}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="守備位置"
-                        name="position"
-                        onChange={(e) => handlePlayerChange(index, e)}
-                        required
-                        select
-                        SelectProps={{ native: true }}
-                        value={player.position}
-                      >
-                        {position.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </TextField>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="投打習慣"
-                        name="habit"
-                        onChange={(e) => handlePlayerChange(index, e)}
-                        required
-                        select
-                        SelectProps={{ native: true }}
-                        value={player.habit}
-                      >
-                        {habit.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </TextField>
-                    </Grid>
-                  </Grid>
-                ))}
-              </Box>
-            </CardContent>
-          </Card>
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <Button type="submit" variant="contained">確認新增</Button>
-          </div>
-        </form>
-      </div>
+        </Box>
+      </Container>
     </div>
-    
   );
 };
 
-export default AddTeam;
+export default TeamManagement;
