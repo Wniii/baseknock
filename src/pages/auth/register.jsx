@@ -8,8 +8,10 @@ import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import React, { useState } from "react";
 import { firestore } from "../firebase"; // 正确的导入路径
-import { addDoc, collection, doc, setDoc, query, where, getDocs } from "firebase/firestore";
+import { addDoc, collection, doc, setDoc, query, where, getDocs, getDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
+import { collection as teamCollection, doc as teamDoc } from 'firebase/firestore';
+
 
 const Page = () => {
   const router = useRouter();
@@ -21,6 +23,7 @@ const Page = () => {
   const [password, setPassword] = useState("");
   const [checkpsw, setCheckpsw] = useState("");
   const [userName, setUserName] = useState("");
+  const [userTeam, setUserTeam] = useState("");
 
   const [emailExistsError, setEmailExistsError] = useState("");
 
@@ -31,6 +34,7 @@ const Page = () => {
       u_password: '',
       u_checkpsw: '',
       u_name: '',
+      u_team: '',
       submit: null
     },
     validationSchema: Yup.object({
@@ -58,14 +62,34 @@ const Page = () => {
           return;
         }
 
+
         const userId = uuidv4();
         await auth.signUp(values.u_id, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
+
+        const userTeamArray = values.u_team.split(",").map(teamId => teamId.trim());
+        for (const teamId of userTeamArray) {
+          const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
+          if (!teamSnapshot.exists()) {
+            alert("The team with the provided ID does not exist.");
+            return;
+          }
+        }
+
+        if (values.t_id) {
+          const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), values.t_id));
+          if (!teamSnapshot.exists()) {
+            alert("The team with the provided ID does not exist.");
+            return;
+          }
+        }
+
         await setDoc(doc(firestore, "users", userId), {
           u_id: userId,
           u_email: email,
           u_password: password,
           u_checkpsw: checkpsw,
           u_name: userName,
+          u_team: userTeamArray,
           //p_id: playerId,
         });
         router.push('/');
@@ -76,6 +100,8 @@ const Page = () => {
         helpers.setErrors({ submit: error.message });
         helpers.setSubmitting(false);
       }
+
+
     }
   });
 
@@ -136,6 +162,7 @@ const Page = () => {
                   label="email"
                   name="u_email"
                   onBlur={formik.handleBlur}
+                  required
                   //onChange={(e) => setEmail(e.target.value)}
                   //onChange={formik.handleChange}
                   onChange={(e) => {
@@ -177,6 +204,7 @@ const Page = () => {
                   label="confirm password"
                   name="u_checkpsw"
                   onBlur={formik.handleBlur}
+                  required
                   //onChange={(e) => setCheckpsw(e.target.value)}
                   //onChange={formik.handleChange}
 
@@ -200,6 +228,7 @@ const Page = () => {
                   label="name"
                   name="u_name"
                   onBlur={formik.handleBlur}
+                  required
                   //onChange={(e) => setUserName(e.target.value)}
                   //onChange={formik.handleChange}
                   onChange={(e) => {
@@ -213,20 +242,23 @@ const Page = () => {
 
               <Stack spacing={1}>
                 <br></br>
-                {/* <div style={{ textAlign: 'left', padding: '4px' }}>
+                <div style={{ textAlign: 'left', padding: '4px' }}>
                   <Typography variant="h8">加入球隊？</Typography>
                 </div>
                 <TextField
                   fullWidth
-                  label="team ID" // 添加球队ID的输入字段
-                  name="team_id"
+                  label="team ID"
+                  name="u_team" // 修改为 u_team
                   onBlur={formik.handleBlur}
-                  onChange={(e) => setTeamId(e.target.value)}
+                  onChange={(e) => {
+                    setUserTeam(e.target.value);
+                    formik.handleChange(e);
+                  }}
                   type="text"
-                  value={teamId}
-                /> */}
-                </Stack>
-                
+                  value={formik.values.u_team} // 修改为 formik.values.u_team
+                />
+              </Stack>
+
 
 
               {formik.errors.submit && (

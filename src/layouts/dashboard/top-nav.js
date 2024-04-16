@@ -13,6 +13,7 @@ import {
   Tooltip,
   useMediaQuery
 } from '@mui/material';
+import UserIcon from '@heroicons/react/24/solid/UserIcon';
 import { alpha } from '@mui/material/styles';
 import { usePopover } from 'src/hooks/use-popover';
 import { AccountPopover } from './account-popover';
@@ -72,7 +73,8 @@ export const TopNav = (props) => {
               position: 'absolute', // Position the Avatar absolutely
               right: 20 // Push Avatar to the right
             }}
-            src="/assets/avatars/avatar-anika-visser.png"
+            // src="/assets/avatars/avatar-anika-visser.png"
+            UserIcon
           />
           </Stack>
         </Stack>

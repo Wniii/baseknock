@@ -157,9 +157,11 @@ export const OverviewLatestOrders = () => {
         </List>
         <Box>
           {/* <NextLink href="/add" passHref> */}
+          <Link href="/game" >
           <Fab sx={addSx} align='right' size="small" aria-label="add">
             <AddIcon />
           </Fab>
+          </Link>
           {/* </NextLink> */}
         </Box>
       </Card>
@@ -215,7 +217,7 @@ export const OverviewLatestOrders = () => {
           }}
           onClick={preventDefault}
         >
-          <Link href="/schedule" >
+          <Link href="/schedule.js" >
             <Button
               color="inherit"
               endIcon={(
