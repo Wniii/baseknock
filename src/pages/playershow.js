@@ -145,7 +145,7 @@ const navigatetodefence = (gameId) => {
                         <ListItemAvatar>
                           <Box
                             component="img"
-                            src={players[playerKey].image}
+                            src=''
                             sx={{
                               borderRadius: 1,
                               height: 48,
@@ -211,8 +211,10 @@ const navigatetodefence = (gameId) => {
                 <CardHeader title="先发球员" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
-                    {selectedPlayers.map((playerKey) => (
+                    {selectedPlayers.map((playerKey, index) => (
                       <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{ marginRight: '16px' }}>{index + 1}</div> {/* 显示序列 */}
                         <ListItemAvatar>
                           <Box
                             component="img"
@@ -228,7 +230,8 @@ const navigatetodefence = (gameId) => {
                           primary={`Name: ${playerKey}`}
                           primaryTypographyProps={{ variant: 'body2' }}
                         />
-                      </ListItem>
+                      </div>
+                    </ListItem>
                     ))}
                   </List>
                 </div>
