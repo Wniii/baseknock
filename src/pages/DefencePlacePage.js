@@ -4,7 +4,6 @@ import { collection, doc, getDoc,updateDoc } from 'firebase/firestore';
 import { Box, Grid, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Typography, Container, Button, Paper } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { firestore } from './firebase';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import UserIcon from '@heroicons/react/24/solid/UserIcon';
 
 const DefencePlacePage = () => {
