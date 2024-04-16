@@ -35,7 +35,7 @@ const SchedulePage = () => {
       try {
         const teamCollection = collection(firestore, "team");
         const teamSnapshot = await getDocs(teamCollection);
-  
+
         const gamesData = [];
         teamSnapshot.forEach((doc) => {
           const teamData = doc.data();
@@ -44,7 +44,7 @@ const SchedulePage = () => {
             Object.keys(teamGames).forEach((timestamp) => {
               const gameData = {
                 id: timestamp,
-                title:timestamp,
+                title: timestamp,
                 start: moment(teamGames[timestamp].toDate()).format('YYYY-MM-DD HH:mm:ss'),
                 end: moment(teamGames[timestamp].toDate()).format('YYYY-MM-DD HH:mm:ss'),
                 timestamp: timestamp, // 新增 timestamp 屬性
@@ -56,13 +56,13 @@ const SchedulePage = () => {
             });
           }
         });
-  
+
         setGames(gamesData);
       } catch (error) {
         console.error("Error fetching games:", error);
       }
     };
-  
+
     fetchGames();
   }, []);
 
@@ -85,8 +85,17 @@ const SchedulePage = () => {
       pathname: "/playershow",
       query: { timestamp: selectedGame.timestamp },
     });
-};
-  
+  };
+
+  const recordattack = (action) => {
+    console.log(`Action "${action}" selected for game:`, selectedGame);
+    setDialogOpen(false); // Close the dialog after action
+    router.push({
+      pathname: "/test",
+      query: { timestamp: selectedGame.timestamp },
+    });
+  };
+
 
   const handleEditGame = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
@@ -94,7 +103,7 @@ const SchedulePage = () => {
     router.push({
       pathname: "/edit-game",
       query: { g_id: selectedGame.timestamp },
-    });          
+    });
   };
 
   return (
