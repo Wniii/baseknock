@@ -12,7 +12,7 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>Account | Devias Kit</title>
+        <title>編輯比賽</title>
       </Head>
       <Box
         component="main"

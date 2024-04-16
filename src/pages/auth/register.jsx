@@ -26,8 +26,11 @@ const Page = () => {
   const [userTeam, setUserTeam] = useState("");
 
   const [emailExistsError, setEmailExistsError] = useState("");
+  const [teamId, setTeamId] = useState(""); 
 
   const formik = useFormik({
+
+    
     initialValues: {
       u_id: '',
       u_email: '',
@@ -66,10 +69,13 @@ const Page = () => {
         const userId = uuidv4();
         await auth.signUp(values.u_id, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
 
-        const userTeamArray = values.u_team.split(",").map(teamId => teamId.trim());
-        for (const teamId of userTeamArray) {
+        const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
+        const teamNames = [];
+        for (const teamId of teamIds) {
           const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
-          if (!teamSnapshot.exists()) {
+          if (teamSnapshot.exists()) {
+            teamNames.push(teamSnapshot.data().Name);
+          } else {
             alert("The team with the provided ID does not exist.");
             return;
           }
@@ -89,7 +95,7 @@ const Page = () => {
           u_password: password,
           u_checkpsw: checkpsw,
           u_name: userName,
-          u_team: userTeamArray,
+          u_team: teamNames,
           //p_id: playerId,
         });
         router.push('/');

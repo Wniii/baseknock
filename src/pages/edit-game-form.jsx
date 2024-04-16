@@ -174,7 +174,7 @@ export const EditGame = ({ g_id }) => {
           <CardContent>
             <Grid container spacing={2}>
               <Grid container spacing={4}>
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth required>
                     <MobileDateTimePicker
                       label="比賽日期"
@@ -185,7 +185,7 @@ export const EditGame = ({ g_id }) => {
                     />
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth required>
                     <InputLabel>主隊</InputLabel>
                     <Select value={values.hometeam} onChange={handleChange} name="hometeam">
@@ -197,12 +197,12 @@ export const EditGame = ({ g_id }) => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={2} align="center">
+                {/* <Grid item xs={12} md={2} align="center">
                   <Typography variant="body1" component="div" sx={{ paddingTop: "15px" }}>
                     V.S
                   </Typography>
-                </Grid>
-                <Grid item xs={12} md={5}>
+                </Grid> */}
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth required>
                     <InputLabel>客隊</InputLabel>
                     <Select value={values.awayteam} onChange={handleChange} name="awayteam">
@@ -214,7 +214,8 @@ export const EditGame = ({ g_id }) => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={5}>
+                
+                <Grid item xs={12} md={12}>
                   <FormControl fullWidth required>
                     <InputLabel>比賽性質</InputLabel>
                     <Select value={values.gName} onChange={handleChange} name="gName">
@@ -269,22 +270,26 @@ export const EditGame = ({ g_id }) => {
             </Grid>
           </CardContent>
         </Card>
-        <Button type="submit" variant="contained" color="primary">
-          確認編輯
-        </Button>
-        <Button
-          type="button"
-          sx={{
-            color: "white",
-            backgroundColor: "red",
-            "&:hover": {
-              backgroundColor: "#b2102f", // 深红色
-            },
-          }}
-          onClick={handleClickOpen}
-        >
-          刪除比賽
-        </Button>
+        &nbsp;
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <Button type="submit" variant="contained" color="primary">
+            確認編輯
+          </Button>
+          <Button
+            type="button"
+            sx={{
+              color: 'white',
+              backgroundColor: 'red',
+              '&:hover': {
+                backgroundColor: '#b2102f', // 深红色
+              },
+            }}
+            onClick={handleClickOpen}
+          >
+            刪除比賽
+          </Button>
+        </div>
+
         <Dialog
           open={open}
           onClose={handleClose}
