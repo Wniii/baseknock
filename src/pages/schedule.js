@@ -93,7 +93,7 @@ const SchedulePage = () => {
     setDialogOpen(false); // Close the dialog after action
     router.push({
       pathname: "/edit-game",
-      query: {  },
+      query: { g_id: selectedGame.timestamp },
     });          
   };
 

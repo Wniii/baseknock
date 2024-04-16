@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
   Button,
   Card,
   CardContent,
@@ -11,12 +10,19 @@ import {
   Select,
   TextField,
   Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
 import { firestore } from "./firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
-import { parseISO } from "date-fns";
+import { deleteDoc } from "firebase/firestore";
+import { CircularProgress } from "@mui/material";
+import { runTransaction } from "firebase/firestore";
 
 const hometeamOptions = [
   { value: "fju", label: "輔仁大學" },
@@ -41,24 +47,6 @@ const labelOptions = [
   { value: "others", label: "其他" },
 ];
 
-const parseCustomDate = (dateStr) => {
-  const regex = /(\d{4})年(\d{1,2})月(\d{1,2})日 UTC\+8 (\d{2}):(\d{2}):(\d{2})/;
-  const match = dateStr.match(regex);
-  if (match) {
-    const year = match[1];
-    const month = match[2] - 1; // 月份从0开始计数
-    const day = match[3];
-    const hours = match[4];
-    const minutes = match[5];
-    const seconds = match[6];
-    // 创建一个Date对象，注意月份字段需要减1因为JavaScript中月份是从0开始的
-    return new Date(Date.UTC(year, month, day, hours - 8, minutes, seconds)); // 轉換為 UTC 時間
-  } else {
-    return null;
-  }
-};
-
-
 export const EditGame = ({ g_id }) => {
   const router = useRouter();
   const [values, setValues] = useState({
@@ -73,17 +61,29 @@ export const EditGame = ({ g_id }) => {
     remark: "",
   });
 
+  const [loading, setLoading] = useState(true);
+
+  const [open, setOpen] = useState(false); // 控制对话框显示
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const docRef = doc(firestore, "games", g_id);
+        const docRef = doc(firestore, "team", "111", "games", g_id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const gameData = docSnap.data();
-          setValues((prevState) => ({
-            ...prevState,
-            GDate: gameData.GDate ? parseCustomDate(gameData.GDate) : null, // 使用自定义函数转换日期
-            GTime: gameData.GTime, // 确保这里的时间格式也是正确处理的
+          setValues({
+            GDate: gameData.GDate ? gameData.GDate.toDate() : null,
+            GTime: gameData.GTime,
             hometeam: gameData.hometeam || "",
             awayteam: gameData.awayteam || "",
             gName: gameData.gName || "",
@@ -91,18 +91,19 @@ export const EditGame = ({ g_id }) => {
             recorder: gameData.recorder || "",
             label: gameData.label || "",
             remark: gameData.remark || "",
-          }));
+          });
         } else {
           console.log("No such document!");
         }
       } catch (error) {
         console.error("Error fetching document:", error);
+      } finally {
+        setLoading(false);
       }
     };
-  
+
     fetchData();
   }, [g_id]);
-  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -119,26 +120,50 @@ export const EditGame = ({ g_id }) => {
     }));
   };
 
-  const handleTimeChange = (time) => {
-    const hours = time.getHours().toString().padStart(2, "0");
-    const minutes = time.getMinutes().toString().padStart(2, "0");
-    const seconds = time.getSeconds().toString().padStart(2, "0");
-    const formattedTime = `${hours}:${minutes}:${seconds}`;
-    setValues((prevState) => ({
-      ...prevState,
-      GTime: formattedTime || new Date().toLocaleTimeString("en-US"), // 如果 formattedTime 为空则默认为当前时间
-    }));
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      await updateDoc(doc(firestore, "games", g_id), values);
+      await updateDoc(doc(firestore, "team", "111", "games", g_id), values);
+      router.push("/schedule");
       alert("Game information updated successfully!");
     } catch (error) {
       console.error("Error updating game information:", error);
       alert("An error occurred while updating game information.");
+    }
+  };
+
+  const handleDelete = async () => {
+    handleClose(); // 关闭对话框
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        const gameDocRef = doc(firestore, "team", "111", "games", g_id);
+        const teamDocRef = doc(firestore, "team", "111");
+
+        // 先读取 team 文档
+        const teamDoc = await transaction.get(teamDocRef);
+        if (!teamDoc.exists()) {
+          throw new Error("Document does not exist!");
+        }
+
+        // 处理 team 文档数据
+        const teamData = teamDoc.data();
+        const gamesData = teamData.games || {};
+        if (gamesData[g_id]) {
+          delete gamesData[g_id];
+          // 在所有读取之后进行写入操作
+          transaction.update(teamDocRef, { games: gamesData });
+        }
+
+        // 删除游戏记录
+        transaction.delete(gameDocRef);
+      });
+
+      router.push("/schedule");
+      alert("比賽已刪除!");
+    } catch (error) {
+      console.error("發生錯誤:", error);
+      alert("刪除失敗!");
     }
   };
 
@@ -159,12 +184,6 @@ export const EditGame = ({ g_id }) => {
                       fullWidth
                     />
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} md={12}>
-                  <Typography variant="body1" gutterBottom>
-                    比赛日期:{" "}
-                    {values.GDate ? new Date(values.GDate).toLocaleDateString() : "未设置"}
-                  </Typography>
                 </Grid>
                 <Grid item xs={12} md={5}>
                   <FormControl fullWidth required>
@@ -253,6 +272,40 @@ export const EditGame = ({ g_id }) => {
         <Button type="submit" variant="contained" color="primary">
           確認編輯
         </Button>
+        <Button
+          type="button"
+          sx={{
+            color: "white",
+            backgroundColor: "red",
+            "&:hover": {
+              backgroundColor: "#b2102f", // 深红色
+            },
+          }}
+          onClick={handleClickOpen}
+        >
+          刪除比賽
+        </Button>
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">{"確認刪除"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              確認要刪除這場比賽嗎?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="primary">
+              取消
+            </Button>
+            <Button onClick={handleDelete} color="primary" autoFocus>
+              確認
+            </Button>
+          </DialogActions>
+        </Dialog>
       </form>
     </div>
   );
