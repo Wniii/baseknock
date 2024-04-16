@@ -14,8 +14,13 @@ import {
   Container
 } from '@mui/material';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { firestore, storage } from 'src/pages/firebase';
+
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+import { v4 as uuidv4 } from 'uuid';
 
 const position = [
   { value: '', label: '' },
@@ -46,12 +51,7 @@ export const TeamManagement = () => {
     Name: '',
     codeName: '',
     introduction: '',
-    players: Array.from({ length: 9 }, (_, index) => ({
-      PName: '',
-      PNum: '',
-      position: '',
-      habit: ''
-    }))
+    players: new Map([...Array(9)].map((_, i) => [uuidv4(), { PName: '', PNum: '', position: '', habit: '' }]))
   });
 
   const handleFileChange = (event) => {
@@ -66,26 +66,29 @@ export const TeamManagement = () => {
     }
   };
 
+
   const handleButtonClick = () => {
     fileInputRef.current.click();
   };
 
-  const handlePlayerChange = (index, event) => {
-    const { name, value } = event.target;
-    setValues((prevState) => {
-      const updatedPlayers = [...prevState.players];
-      updatedPlayers[index][name] = value;
-      return {
-        ...prevState,
-        players: updatedPlayers
-      };
-    });
+  const handlePlayerChange = (key, field, event) => {
+    if (event && event.target) {
+      const { value } = event.target;
+      setValues(prevState => {
+        const playerToUpdate = prevState.players.get(key);
+        const updatedPlayer = { ...playerToUpdate, [field]: value };
+        const updatedPlayers = new Map(prevState.players).set(key, updatedPlayer);
+        return {
+          ...prevState,
+          players: updatedPlayers
+        };
+      });
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     let photoURL = '';
-
     if (file) {
       try {
         const storageRef = ref(storage, `profileImages/${file.name}`);
@@ -94,60 +97,59 @@ export const TeamManagement = () => {
       } catch (error) {
         console.error('Error uploading file:', error);
         alert('图片上传失败');
-        return; // Stop the submission if the upload fails
+        return;
       }
     }
-
     try {
+      const playersObject = {};
+      // 使用玩家的姓名作为键
+      Array.from(values.players.entries()).forEach(([key, player]) => {
+        playersObject[player.PName] = player;
+      });
       const teamCollectionRef = collection(firestore, 'team');
       const newTeamDocRef = await addDoc(teamCollectionRef, {
         Name: values.Name,
         codeName: values.codeName,
         introduction: values.introduction,
-        photo: photoURL, // Storing the photo URL in the document
-        players: values.players.reduce((acc, player) => {
-          acc[player.PName] = {
-            PNum: player.PNum,
-            position: player.position,
-            habit: player.habit
-          };
-          return acc;
-        }, {})
+        photo: photoURL,
+        players: playersObject
       });
       console.log('Team document added successfully with ID:', newTeamDocRef.id);
       setValues({
         Name: '',
         codeName: '',
         introduction: '',
-        players: Array.from({ length: 2 }, (_, index) => ({
-          PName: '',
-          PNum: '',
-          position: '',
-          habit: ''
-        }))
+        players: new Map([...Array(9)].map((_, i) => [uuidv4(), { PName: '', PNum: '', position: '', habit: '' }]))
       });
-      setPreviewUrl(null); // Clear the preview after successful upload
-      setFile(null); // Clear the file state
+      setPreviewUrl(null);
+      setFile(null);
     } catch (error) {
       console.error('Error adding team document:', error);
     }
   };
-
   const handleAddPlayer = () => {
-    setValues((prevState) => ({
-      ...prevState,
-      players: [
-        ...prevState.players,
-        {
-          PName: '',
-          PNum: '',
-          position: '',
-          habit: ''
-        }
-      ]
-    }));
+    setValues(prevState => {
+      const newKey = uuidv4();
+      const updatedPlayers = new Map(prevState.players);
+      updatedPlayers.set(newKey, { PName: '', PNum: '', position: '', habit: '' });
+      return {
+        ...prevState,
+        players: updatedPlayers
+      };
+    });
   };
 
+  const handleDeletePlayer = (key) => {
+    setValues(prevState => {
+      const updatedPlayers = new Map(prevState.players);
+      updatedPlayers.delete(key);
+      return {
+        ...prevState,
+        players: updatedPlayers
+      };
+    });
+  };
+  
   return (
     <div>
       <Container maxWidth="lg" sx={{ my: 4, mx: 'auto' }}>
@@ -167,8 +169,8 @@ export const TeamManagement = () => {
                       <Avatar
                         src={previewUrl}
                         sx={{ height: 120, mb: 80, width: 120, md: 2, borderRadius: 0 }}
-                      />
-                    )}
+                      />)
+                    }
                   </Box>
                 </CardContent>
                 <Divider />
@@ -234,84 +236,89 @@ export const TeamManagement = () => {
               <div style={{ textAlign: 'left', padding: '8px' }}>
                 <Typography variant="h6">球員名單</Typography>
               </div>
-              <Card sx={{
-                backgroundColor: '#d3d3d3',
-                padding: '8px',
-                height: 'auto',
-                width: 'auto',
-                margin: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                textAlign: 'center',
-              }}>
+               <Card sx={{
+          backgroundColor: '#d3d3d3',
+          padding: '8px',
+          height: 'auto',
+          width: 'auto',
+          margin: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          textAlign: 'center',
+        }}>
                 <CardContent sx={{ pt: 3 }}>
                   <Box sx={{ m: -1.5 }}>
-                    {values.players.map((player, index) => (
-                      <Grid key={index} container spacing={2}>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            fullWidth
-                            label="姓名"
-                            name="PName"
-                            onChange={(e) => handlePlayerChange(index, e)}
-                            required
-                            value={player.PName}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            fullWidth
-                            label="背號"
-                            name="PNum"
-                            onChange={(e) => handlePlayerChange(index, e)}
-                            required
-                            value={player.PNum}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            fullWidth
-                            label="守備位置"
-                            name="position"
-                            onChange={(e) => handlePlayerChange(index, e)}
-                            required
-                            select
-                            SelectProps={{ native: true }}
-                            value={player.position}
-                          >
-                            {position.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </TextField>
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            fullWidth
-                            label="投打習慣"
-                            name="habit"
-                            onChange={(e) => handlePlayerChange(index, e)}
-                            required
-                            select
-                            SelectProps={{ native: true }}
-                            value={player.habit}
-                          >
-                            {habit.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </TextField>
-                        </Grid>
+                  {Array.from(values.players.entries()).map(([key, player]) => (
+                       <Grid key={key} container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={3}>
+                      <TextField
+  fullWidth
+  label="姓名"
+  name="PName"
+  onChange={(e) => handlePlayerChange(key, 'PName', e)} // 传入 'PName' 作为要更新的字段名称
+  required
+  value={player.PName}
+/>
                       </Grid>
+                      <Grid item xs={12} md={3}>
+                      <TextField
+  fullWidth
+  label="背號"
+  name="PNum"
+  onChange={(e) => handlePlayerChange(key, 'PNum', e)} // 传入 'PNum' 作为要更新的字段名称
+  required
+  value={player.PNum}
+/>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                      <TextField
+  fullWidth
+  label="守備位置"
+  name="position"
+  onChange={(e) => handlePlayerChange(key, 'position', e)} // 传入 'position' 作为要更新的字段名称
+  required
+  select
+  SelectProps={{ native: true }}
+  value={player.position}
+>
+  {position.map((option) => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
+</TextField>
+                      </Grid>
+                      <Grid item xs={12} md={2}>
+                      <TextField
+  fullWidth
+  label="投打習慣"
+  name="habit"
+  onChange={(e) => handlePlayerChange(key, 'habit', e)} // 传入 'habit' 作为要更新的字段名称
+  required
+  select
+  SelectProps={{ native: true }}
+  value={player.habit}
+>
+  {habit.map((option) => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
+</TextField>
+                      </Grid>
+                      {values.players.size > 9 && (
+      <IconButton size="small" onClick={() => handleDeletePlayer(key)}>
+        <DeleteIcon fontSize="small" />
+      </IconButton>
+    )}
+                    </Grid>
                     ))}
                   </Box>
                 </CardContent>
               </Card>
               <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                <Button onClick={handleAddPlayer} variant="contained">新增球員</Button>
+                <Button onClick={handleAddPlayer} variant="contained">新增</Button>
                 <Button type="submit" variant="contained">確認新增</Button>
               </div>
             </form>
