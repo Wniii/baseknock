@@ -5,6 +5,7 @@ import { Box, Grid, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemTe
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { firestore } from './firebase';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import UserIcon from '@heroicons/react/24/solid/UserIcon';
 
 const DefencePlacePage = () => {
   const router = useRouter();
@@ -142,21 +143,21 @@ const DefencePlacePage = () => {
 
                 // 確認遊戲文檔存在
                 if (gameIdDocSnapshot.exists()) {
-                  // 初始化所有守備位置
-                  const positionData = {};
-                  Object.values(positionNames).forEach(positionName => {
-                      positionData[positionName] = ''; // 初始值設為空
-                  });
-              
-                  // 更新有玩家的守備位置
-                  Object.entries(positions).forEach(([position, playerId]) => {
-                      const positionName = positionNames[position] || 'Unknown Position';
-                      if (playerId && playerId in players) {
-                          const playerName = playerId || 'Unknown Player';
-                          positionData[positionName] = playerName;
-                      }
-                  });
-              
+                    // 初始化所有守備位置
+                    const positionData = {};
+                    Object.values(positionNames).forEach(positionName => {
+                        positionData[positionName] = ''; // 初始值設為空
+                    });
+
+                    // 更新有玩家的守備位置
+                    Object.entries(positions).forEach(([position, playerId]) => {
+                        const positionName = positionNames[position] || 'Unknown Position';
+                        if (playerId && playerId in players) {
+                            const playerName = playerId || 'Unknown Player';
+                            positionData[positionName] = playerName;
+                        }
+                    });
+
                     console.log('positionData:', positionData);
 
                     // 更新資料庫中的位置信息
@@ -174,6 +175,7 @@ const DefencePlacePage = () => {
     } catch (error) {
         console.error('保存位置信息時出錯:', error);
     }
+    console.log('無法保存位置信息，導航到 /schedule 頁面');
     router.push('/schedule');
 };
 
