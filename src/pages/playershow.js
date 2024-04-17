@@ -13,17 +13,18 @@ const ALLPlayerPage = () => {
   const [players, setPlayers] = useState({});
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const { timestamp } = router.query;
+  const { codeName } = router.query;
 
   useEffect(() => {
     const fetchTeamGames = async () => {
       try {
         const teamCollection = collection(firestore, 'team');
         const teamSnapshot = await getDocs(teamCollection);
-
+  
         for (const doc of teamSnapshot.docs) {
           const teamData = doc.data();
-
-          if (teamData.games && teamData.games[timestamp]) {
+  
+          if (teamData.codeName === codeName && teamData.games && teamData.games[timestamp]) {
             setPlayers(teamData.players || {});
             return;
           }
@@ -32,9 +33,10 @@ const ALLPlayerPage = () => {
         console.error('Error fetching team games:', error);
       }
     };
-
+  
     fetchTeamGames();
-  }, [timestamp]);
+  }, [codeName, timestamp]);
+  
 
   const handleAddToSelectedPlayers = (playerKey) => {
     const updatedPlayers = { ...players };
@@ -55,53 +57,81 @@ const ALLPlayerPage = () => {
   const handleReturnClick = () => {
     router.push('/your-other-page');
   };
-
-  const handleSaveAndNavigate = async (teamId) => {
-    console.log('handleSaveAndNavigate function called'); // 检查函数是否被调用
+  console.log(codeName)
+  const handleSaveAndNavigate = async (codeName) => {
+    console.log('handleSaveAndNavigate function called');
 
     try {
-        const timestamp = router.query.timestamp;
-        console.log('timestamp', timestamp); // 检查时间戳是否正确获取
+        console.log('timestamp', timestamp);
+        console.log('codeName',codeName)
+        // 查找匹配的团队文档
+        const teamCollection = collection(firestore, 'team');
+        const querySnapshot = await getDocs(teamCollection);
 
-        // 获取 teams 集合中指定团队的 games 子集合的引用
-        const gamesCollectionRef = collection(firestore, 'team','4DllBDaCXJOxbZRaRPCM', 'games');
-        console.log('gamesCollectionRef', gamesCollectionRef); // 检查 gamesCollectionRef 是否正确创建
+        let gamesCollectionRef;
 
-        // 获取 games 子集合中的所有文档
-        const querySnapshot = await getDocs(gamesCollectionRef);
-        console.log('querySnapshot', querySnapshot); // 检查获取的文档快照
+        for (const doc of querySnapshot.docs) {
+            const teamData = doc.data();
+          console.log('teamData.codeName',teamData.codeName)
+            if (teamData.codeName === codeName) {
+                console.log('Match found for codeName:', codeName);
+                gamesCollectionRef = collection(doc.ref, 'games');
+                // 找到匹配的团队后就停止遍歷
+                break;
+            }
+        }
 
+        if (!gamesCollectionRef) {
+            console.error('No team found with codeName:', codeName);
+            return;
+        }
+
+        console.log('gamesCollectionRef:', gamesCollectionRef);
+
+        // 在這裡處理 timestamp 的文檔
         const promises = [];
 
         querySnapshot.forEach((doc) => {
             const gameId = doc.id;
-            console.log('gameId', gameId); // 检查获取的游戏ID
 
-            // 检查当前文档的ID是否与给定的时间戳相匹配
             if (gameId === timestamp) {
+                console.log('Match found for timestamp:', timestamp);
                 const updatedAttackList = [...selectedPlayers];
-                console.log('updatedAttackList', updatedAttackList); // 检查更新后的攻击列表
-
-                // 设置文档中的攻击列表
+                console.log('updatedAttackList:', updatedAttackList);
                 const promise = setDoc(doc.ref, { attacklist: updatedAttackList });
                 promises.push(promise);
-                navigatetodefence(gameId);
+
+                navigatetodefence(gameId, codeName);
             }
         });
 
-        // 等待所有更新操作完成
-        // 清空选定的球员列表
+        console.log('Promises:', promises);
+
+        await Promise.all(promises);
+        console.log('All promises resolved');
+
+        navigatetodefence(timestamp, codeName);
+        console.log('Navigated to defence');
+
         setSelectedPlayers([]);
+        console.log('Selected players cleared');
     } catch (error) {
         console.error('Error adding selected players to game document:', error);
     }
 };
-const navigatetodefence = (gameId) => {
-  router.push({
-    pathname: "/DefencePlacePage",
-    query: { gameId: gameId },
-  });
-};
+
+
+  
+  const navigatetodefence = (gameId, codeName) => {
+    console.log("adadad",codeName)
+    router.push({
+      pathname: "/DefencePlacePage",
+      query: { 
+        gameId: gameId,
+        codeName: codeName // 将codeName作为查询参数传递
+      }
+    });
+  };
 
 
   
@@ -191,16 +221,13 @@ const navigatetodefence = (gameId) => {
                   返回
                 </Button>
                 <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    handleSaveAndNavigate();
-                    navigatetodefence();
-                  }}
-                  style={{ width: '100px', height: '50px' }}
-                >
-                  储存
-                </Button>
+                variant="contained"
+                color="primary"
+                onClick={() => handleSaveAndNavigate(codeName)}
+                style={{ width: '100px', height: '50px' }}
+              >
+                储存
+              </Button>
 
               </div>
             </Grid>

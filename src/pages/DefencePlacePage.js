@@ -4,7 +4,6 @@ import { collection, doc, getDoc,updateDoc } from 'firebase/firestore';
 import { Box, Grid, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Typography, Container, Button, Paper } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { firestore } from './firebase';
-import UserIcon from '@heroicons/react/24/solid/UserIcon';
 
 const DefencePlacePage = () => {
   const router = useRouter();
@@ -17,6 +16,7 @@ const DefencePlacePage = () => {
   const [initialIndexes, setInitialIndexes] = useState({});
   const [showPlayerList, setShowPlayerList] = useState(true);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const { codeName } = router.query;
   const [positions, setPositions] = useState({
     1: null, 2: null, 3: null,
     4: null, 5: null, 6: null,
@@ -38,9 +38,9 @@ const DefencePlacePage = () => {
   useEffect(() => {
     const fetchAttackList = async () => {
       try {
-        if (!gameId) return;
+        if (!gameId || !codeName) return;
 
-        const gamesCollectionRef = collection(firestore, 'team', '4DllBDaCXJOxbZRaRPCM', 'games');
+        const gamesCollectionRef = collection(firestore, 'team', codeName, 'games');
         const gameDocRef = doc(gamesCollectionRef, gameId);
         const gameDocSnapshot = await getDoc(gameDocRef);
 
@@ -49,7 +49,7 @@ const DefencePlacePage = () => {
           const attackList = gameData.attacklist;
           setAttackList(attackList);
 
-          const teamDocRef = doc(firestore, 'team', '4DllBDaCXJOxbZRaRPCM');
+          const teamDocRef = doc(firestore, 'team', codeName);
           const teamDocSnapshot = await getDoc(teamDocRef);
 
           if (teamDocSnapshot.exists()) {
@@ -92,8 +92,8 @@ const DefencePlacePage = () => {
 
     console.log('觸發 useEffect');
     fetchAttackList();
-  }, [gameId]);
-  
+  }, [gameId, codeName]);
+
   const handlePositionClick = (position) => {
     setSelectedPosition(position);
   };
