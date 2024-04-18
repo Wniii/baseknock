@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { collection, getDocs, doc, getDoc, query } from "firebase/firestore";
-import { Avatar, Box, Button, Card, Checkbox, Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, Typography } from '@mui/material';
+import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
+import { Box, Button, Card, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, Typographyㄋ } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
-import { getInitials } from 'src/utils/get-initials';
 import AddIcon from '@mui/icons-material/Add';
 import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
@@ -12,50 +10,95 @@ import { useRouter } from 'next/router';
 export const CustomersTable = (props) => {
   const {
     count = 0,
-    items = [],
-    onDeselectAll,
-    onDeselectOne,
     onPageChange = () => { },
     onRowsPerPageChange,
-    onSelectAll,
-    onSelectOne,
     page = 0,
     rowsPerPage = 0,
-    selected = []
   } = props;
-
   const [attackListData, setAttackListData] = useState([]);
   const [gameID, setGameID] = useState('');
+  const { codeName, timestamp } = props; // 从props中获取路由参数
+  const router = useRouter(); // 初始化router
 
   useEffect(() => {
-    const fetchGames = async () => {
-      const gamesCollectionRef = collection(firestore, "team", "4DllBDaCXJOxbZRaRPCM", "games");
-      const querySnapshot = await getDocs(gamesCollectionRef);
-      querySnapshot.forEach((doc) => {
-        console.log('gameId', doc.id);
-      });
-
-      const gameId = "12221";
-      const gameDocRef = doc(gamesCollectionRef, gameId);
-      const gameDocSnapshot = await getDoc(gameDocRef);
-      if (gameDocSnapshot.exists()) {
-        console.log(gameId, " => ", gameDocSnapshot.data());
-        setGameID(gameId);
-        setAttackListData(gameDocSnapshot.data().attacklist || []);
-      } else {
-        console.log("No matching document with ID:", gameId);
-      }
-    };
-
     fetchGames();
-  }, []);
+  }, [codeName]); // 当codeName发生变化时重新获取数据
+
+  const fetchGames = async () => {
+    if (!codeName) {
+      return; // 如果 codeName 不存在，直接返回
+    }
+  
+    console.log('Fetching games...');
+  
+    try {
+      const teamQuerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", codeName))
+      );
+  
+      // 检查是否存在符合条件的文档
+      if (!teamQuerySnapshot.empty) {
+        // 获取第一个匹配的文档
+        const teamDocSnapshot = teamQuerySnapshot.docs[0];
+        console.log("Team document ID:", teamDocSnapshot.id);
+  
+        // 获取文档中的 "games" 子集合的引用
+        const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
+  
+        // 获取 "games" 子集合中的所有文档
+        const gamesQuerySnapshot = await getDocs(gamesCollectionRef);
+  
+        console.log('Games found:', gamesQuerySnapshot.size);
+  
+        // 遍历游戏文档快照列表，输出游戏数据和进行进一步操作
+        gamesQuerySnapshot.forEach((gameDoc) => {
+          const gameId = gameDoc.id;
+          const gameData = gameDoc.data();
+  
+          console.log("Game ID:", gameId);
+          console.log("Game data:", gameData);
+  
+          // 获取传递过来的时间戳
+          console.log("Passed timestamp:", timestamp);
+  
+          // 如果游戏文档的ID和传递过来的时间戳匹配成功，则继续执行后续代码
+          if (gameId === timestamp) {
+            console.log("Match found for timestamp:", timestamp);
+  
+            // 如果游戏文档存在，则更新状态
+            if (gameDoc.exists()) {
+              console.log('Game exists:', gameId);
+              console.log('Game data:', gameDoc.data());
+  
+              // 更新状态
+              setGameID(gameId);
+              setAttackListData(gameDoc.data().attacklist || []);
+            } else {
+              console.log("No matching document with ID:", gameId);
+            }
+          } else {
+            console.log("No match for timestamp:", timestamp);
+          }
+        });
+      } else {
+        console.log("No team document found with codeName:", codeName);
+      }
+    } catch (error) {
+      console.error("Error fetching games:", error);
+    }
+  };
+      
+   // 传递 codeName 作为 useEffect 的依赖项
+  
 
 
-  const router = useRouter();
-  const handleClick = (attack) => {
+
+   const handleClick = (attack) => {
     router.push({
       pathname: '/attackrecord',
-      query: { attack: attack }
+      query: { attack: attack,
+        timestamp: timestamp,
+        codeName: codeName }
     });
   };
 

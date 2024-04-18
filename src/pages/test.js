@@ -1,15 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import Head from 'next/head';
 import { subDays, subHours } from 'date-fns';
-
+import { useRouter } from 'next/router';
 import { Box, Container, Stack, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { CustomersTable } from 'src/sections/customer/customers-table';
 import { applyPagination } from 'src/utils/apply-pagination';
 import { Score } from 'src/sections/gamerecord/Score';
-
-
 const now = new Date();
 
 const data = [
@@ -48,12 +46,16 @@ const useCustomerIds = (customers) => {
 };
 
 const Page = () => {
+  const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const customers = useCustomers(page, rowsPerPage);
   const customersIds = useCustomerIds(customers);
   const customersSelection = useSelection(customersIds);
-
+  const { codeName } = router.query; // 从路由参数获取值
+  const { timestamp } = router.query;
+console.log("code111",codeName)
+console.log("111",timestamp)
   const handlePageChange = useCallback(
     (event, value) => {
       setPage(value);
@@ -170,6 +172,8 @@ const Page = () => {
             </div>
             <Score />
             <CustomersTable
+              timestamp={timestamp}
+              codeName={codeName} // 将 codeName 传递给子组件
               count={data.length}
               items={customers}
               onDeselectAll={customersSelection.handleDeselectAll}
