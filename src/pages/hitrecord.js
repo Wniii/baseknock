@@ -1,9 +1,8 @@
-// Page.js
+// src/pages/hitrecord.js
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Head from 'next/head';
-import { subDays, subHours } from 'date-fns';
-import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { Box, Container, Stack, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { HitrecordTable } from 'src/sections/hitrecord/hitrecord-table';
@@ -11,45 +10,67 @@ import { HitrecordSearch } from 'src/sections/hitrecord/hitrecord-search';
 import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from 'src/pages/firebase';
 import { applyPagination } from 'src/utils/apply-pagination';
+import Manage from 'src/sections/hitrecord/hitrecord-detail'; // 引入 Manage 组件
+
+import {  query, where } from 'firebase/firestore';
+
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [playersData, setPlayersData] = useState([]);
-  const [selectedColumns, setSelectedColumns] = useState([]); // 将 setSelectedColumns 添加到 Page 组件中
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [teamPlayers, setTeamPlayers] = useState([]);
 
-  const player = useMemo(() => applyPagination(playersData, page, rowsPerPage), [playersData, page, rowsPerPage]);
-  const playerId = useMemo(() => player.map(player => player.id), [player]);
-  const playerSelection = useSelection(playerId);
-
-  const handlePageChange = useCallback((event, value) => {
-    setPage(value);
-  }, []);
-
-  const handleRowsPerPageChange = useCallback((event) => {
-    setRowsPerPage(event.target.value);
-  }, []);
+  const playerSelection = useSelection(playersData.map(player => player.id));
 
   useEffect(() => {
     const fetchPlayersData = async () => {
-      const playersCollection = collection(firestore, 'player');
+      const playersCollection = collection(firestore, 'players');
       const querySnapshot = await getDocs(playersCollection);
-      const data = [];
-      querySnapshot.forEach((doc) => {
-        data.push({
-          p_id: doc.id,
-          p_name: doc.data().p_name
-        });
-      });
-
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log('Players Data:', data);
       setPlayersData(data);
     };
+
     fetchPlayersData();
   }, []);
 
+  useEffect(() => {
+    const fetchTeamPlayers = async () => {
+      if (selectedTeam) {
+        const playersCollection = collection(firestore, 'players');
+        const q = query(playersCollection, where('teamId', '==', selectedTeam.id));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTeamPlayers(data);
+      }
+    };
+  
+    fetchTeamPlayers();
+  }, [selectedTeam]);
+
+  const handleTeamSelect = (team) => {
+    console.log("Team selected:", team);
+    setSelectedTeam(team);
+  };
+
   const handleSearchConfirm = useCallback((columns) => {
     setSelectedColumns(columns);
-  }, []); // 将 setSelectedColumns 添加到 useCallback 依赖项中
+  }, []);
+  useEffect(() => {
+    const paginatedPlayers = applyPagination(selectedTeam ? teamPlayers : playersData, page, rowsPerPage);
+  
+    console.log('Paginated Players:', paginatedPlayers);
+  }, []); // 这里传递一个空数组作为依赖项
+  
 
   return (
     <>
@@ -62,35 +83,19 @@ const Page = () => {
           flexGrow: 1,
           py: 8
         }}
-      >  
+      >
         <Container maxWidth="xl">
           <Stack spacing={3}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              spacing={4}
-            >
-              <Stack spacing={1}>
-                <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
-                  打擊數據
-                </Typography>
-              </Stack>
-            </Stack>
-            {/* 将 ParentComponent 替换为 HitrecordTable 的子组件 */}
+            <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
+              打擊數據
+            </Typography>
+            {/* 添加 Manage 组件，并传递 handleTeamSelect 方法 */}
+            <Manage onTeamSelect={handleTeamSelect} />
             <HitrecordSearch onConfirm={handleSearchConfirm} />
             <HitrecordTable
-              count={playersData.length}
-              items={player}
-              onDeselectAll={playerSelection.handleDeselectAll}
-              onDeselectOne={playerSelection.handleDeselectOne}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              onSelectAll={playerSelection.handleSelectAll}
-              onSelectOne={playerSelection.handleSelectOne}
-              page={page}
-              rowsPerPage={rowsPerPage}
+              items={paginatedPlayers} // 使用分页后的数据
+              selectedColumns={selectedColumns}
               selected={playerSelection.selected}
-              selectedColumns={selectedColumns} // 将 selectedColumns 传递给 HitrecordTable 组件
             />
           </Stack>
         </Container>

@@ -14,6 +14,7 @@ const ALLPlayerPage = () => {
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const { timestamp } = router.query;
   const { codeName } = router.query;
+  const { teamId } = router.query;
 
   useEffect(() => {
     const fetchTeamGames = async () => {
@@ -122,16 +123,18 @@ const ALLPlayerPage = () => {
 
 
   
-  const navigatetodefence = (gameId, codeName) => {
-    console.log("adadad",codeName)
-    router.push({
-      pathname: "/DefencePlacePage",
-      query: { 
-        gameId: gameId,
-        codeName: codeName // 将codeName作为查询参数传递
-      }
-    });
-  };
+const navigatetodefence = (gameId, codeName) => {
+  console.log("adadad", codeName);
+  router.push({
+    pathname: "/DefencePlacePage",
+    query: { 
+      gameId: gameId,
+      codeName: codeName, // 将codeName作为查询参数传递
+      teamId: teamId // 将teamId作为查询参数传递
+    }
+  });
+};
+
 
 
   
