@@ -24,13 +24,19 @@ const Page = () => {
   const [checkpsw, setCheckpsw] = useState("");
   const [userName, setUserName] = useState("");
   const [userTeam, setUserTeam] = useState("");
-
   const [emailExistsError, setEmailExistsError] = useState("");
   const [teamId, setTeamId] = useState(""); 
 
-  const formik = useFormik({
 
-    
+  function onSubmit(){
+    firebase
+    .auth()
+    .createUserWithEmailAndPassword(email, password) 
+  }
+
+
+
+  const formik = useFormik({ 
     initialValues: {
       u_id: '',
       u_email: '',
@@ -41,40 +47,31 @@ const Page = () => {
       submit: null
     },
     validationSchema: Yup.object({
-      //u_id: Yup.string().max(255).required('Account is required'),
       u_email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
       u_password: Yup.string().max(255).required('Password is required'),
       u_checkpsw: Yup.string().oneOf([Yup.ref('u_password'), null], 'Passwords must match').required('Please confirm your password'),
       u_name: Yup.string().max(255).required('Name is required'),
     }),
-    onSubmit: async (values, helpers) => {
-      // try {
-      //   await auth.signUp(values.u_id, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
-      //   await handleCreateUserDocument();
-      //   router.push('/');
-      // } catch (err) {
-      //   helpers.setStatus({ success: false });
-      //   helpers.setErrors({ submit: err.message });
-      //   helpers.setSubmitting(false);
-      // }
-      try {
 
+
+    onSubmit: async (values, helpers) => {
+      try {
         const emailExists = await checkEmailExists(values.u_email);
         if (emailExists) {
           setEmailExistsError("This email is already registered.");
           return;
         }
 
-
         const userId = uuidv4();
         await auth.signUp(values.u_id, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
 
+
         const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
-        const teamNames = [];
+        const teamCodeName = [];
         for (const teamId of teamIds) {
           const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
           if (teamSnapshot.exists()) {
-            teamNames.push(teamSnapshot.data().Name);
+            teamCodeName.push(teamSnapshot.data().codeName);
           } else {
             alert("The team with the provided ID does not exist.");
             return;
@@ -95,8 +92,7 @@ const Page = () => {
           u_password: password,
           u_checkpsw: checkpsw,
           u_name: userName,
-          u_team: teamNames,
-          //p_id: playerId,
+          u_team: teamCodeName ,
         });
         router.push('/');
         alert("User document created successfully!");
@@ -122,6 +118,7 @@ const Page = () => {
     }
   };
 
+ 
 
   return (
     <>

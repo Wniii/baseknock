@@ -25,7 +25,7 @@ import {
   ImageListItemBar
 } from '@mui/material';
 import { useAuth } from 'src/hooks/use-auth';
-import { firestore } from "/Applications/XAMPP/xamppfiles/htdocs/dashboard/baseknock/src/pages/firebase";
+import { firestore } from "src/pages/firebase";
 import { doc, updateDoc, getDocs, query, collection, where } from "firebase/firestore";
 
 
