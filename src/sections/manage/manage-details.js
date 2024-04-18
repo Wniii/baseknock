@@ -39,7 +39,9 @@ export const Manage = ({ onTeamSelect }) => {
     const [teamId, setTeamId] = useState('');
     const [message, setMessage] = useState('');
     const [currentUserId, setCurrentUserId] = useState('');
+
     const [userData, setUserData] = useState(null);
+
     const auth = useAuth();
 
     useEffect(() => {
@@ -53,25 +55,6 @@ export const Manage = ({ onTeamSelect }) => {
         };
 
         fetchTeams();
-
-
-        const getCurrentUserId = async () => {
-            const auth = getAuth();
-            let currentUserId = null;
-
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    // User is signed in.
-                    currentUserId = user.uid;
-                } else {
-                    // User is signed out.
-                    currentUserId = null;
-                }
-            });
-
-            return currentUserId;
-        };
-        getCurrentUserId();
     }, []);
 
     //加入球隊欄位
@@ -81,30 +64,26 @@ export const Manage = ({ onTeamSelect }) => {
                 alert('無效的使用者ID');
                 return;
             }
-            const userRef = collection(firestore, "users");
-            const q = query(userRef, where('u_id', '==', auth.user.id));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const userDoc = querySnapshot.docs[0];
-                const teamRef = doc(firestore, "team", teamId);
-                const teamDoc = await getDoc(teamRef);
-                if (teamDoc.exists()) {
-                    await updateDoc(userDoc.ref, {
-                        u_team: firebase.firestore.FieldValue.arrayUnion(teamDoc.data().codeName)
-                    });
-                    alert('成功將球隊添加到使用者');
-                } else {
-                    alert('找不到該球隊');
-                }
-            } else {
-                alert('找不到該用戶');
+            const teamRef = doc(firestore, "team", teamId);
+            const teamDoc = await getDocs(teamRef);
+            if (!teamDoc.exists()) {
+                alert('找不到該球隊');
+                return;
             }
-        } catch (error) {
+            const userRef = query(collection(firestore, "users"), where('u_id', '==', auth.user.id));
+            await updateDoc(userRef, {
+                u_team: firebase.firestore.FieldValue.arrayUnion(teamDoc.data().codeName)
+            });
+            alert('成功將球隊添加到使用者');
+        }
+        catch (error) {
+            console.log(auth.user.id);
             console.error('Error adding team to user:', error);
+            
+
             alert('添加球隊時出錯');
         }
     };
-
 
     useEffect(() => {
         const checkLocalStorage = () => {
@@ -145,6 +124,18 @@ export const Manage = ({ onTeamSelect }) => {
 
         fetchUserData();
     }, [auth.user]);
+
+
+
+    // const fetchCurrentUserId = async () => {
+    //     // 假設有一個方法可以獲取當前用戶ID
+    //     const userId = await getCurrentUserId(); // 這個方法要根據你的具體情況來實現
+    //     setCurrentUserId(userId); // 設置當前用戶ID
+    // };
+
+    // useEffect(() => {
+    //     fetchCurrentUserId(); // 獲取當前用戶ID
+    // }, []);
 
 
 
@@ -194,4 +185,23 @@ export const Manage = ({ onTeamSelect }) => {
             </form>
         </div>
     );
+};
+
+
+
+const getCurrentUserId = async () => {
+    const auth = getAuth();
+    let currentUserId = null;
+
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            // User is signed in.
+            currentUserId = user.uid;
+        } else {
+            // User is signed out.
+            currentUserId = null;
+        }
+    });
+
+    return currentUserId;
 };
