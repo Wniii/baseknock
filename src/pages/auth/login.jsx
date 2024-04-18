@@ -3,7 +3,7 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/router'; // 注意这里的变更
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Link, Stack, TextField, Typography} from '@mui/material';
 import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import React, { useState } from "react";
@@ -13,9 +13,6 @@ import { getDocs, query, collection, where } from "firebase/firestore";
 const LoginPage = () => {
   const router = useRouter(); // 注意这里的变更
   const auth = useAuth();
-
-
-
   const formik = useFormik({
     initialValues: {
       u_email: '',
@@ -47,6 +44,8 @@ const LoginPage = () => {
       }
     }
   });
+
+
 
   return (
     <>

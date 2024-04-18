@@ -25,18 +25,12 @@ const Page = () => {
   const [userName, setUserName] = useState("");
   const [userTeam, setUserTeam] = useState("");
   const [emailExistsError, setEmailExistsError] = useState("");
-  const [teamId, setTeamId] = useState(""); 
-
-
-  function onSubmit(){
-    firebase
-    .auth()
-    .createUserWithEmailAndPassword(email, password) 
-  }
+  const [teamId, setTeamId] = useState("");
 
 
 
-  const formik = useFormik({ 
+
+  const formik = useFormik({
     initialValues: {
       u_id: '',
       u_email: '',
@@ -68,6 +62,15 @@ const Page = () => {
 
         const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
         const teamCodeName = [];
+
+        if (values.t_id) {
+          const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), values.t_id));
+          if (!teamSnapshot.exists()) {
+            alert("The team with the provided ID does not exist.");
+            return;
+          }
+        }
+
         for (const teamId of teamIds) {
           const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
           if (teamSnapshot.exists()) {
@@ -78,13 +81,6 @@ const Page = () => {
           }
         }
 
-        if (values.t_id) {
-          const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), values.t_id));
-          if (!teamSnapshot.exists()) {
-            alert("The team with the provided ID does not exist.");
-            return;
-          }
-        }
 
         await setDoc(doc(firestore, "users", userId), {
           u_id: userId,
@@ -92,7 +88,7 @@ const Page = () => {
           u_password: password,
           u_checkpsw: checkpsw,
           u_name: userName,
-          u_team: teamCodeName ,
+          u_team: teamCodeName,
         });
         router.push('/');
         alert("User document created successfully!");
@@ -118,7 +114,7 @@ const Page = () => {
     }
   };
 
- 
+
 
   return (
     <>

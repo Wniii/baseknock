@@ -89,7 +89,7 @@ export const AuthProvider = (props) => {
           const user = {
             id: querySnapshot.docs[0].id,
             email: querySnapshot.docs[0].data().u_email,
-            team: querySnapshot.docs[0].data().u_team,
+            //team: querySnapshot.docs[0].data().u_team,
           };
   
           dispatch({
@@ -168,26 +168,27 @@ export const AuthProvider = (props) => {
   };
   
 
-  const signUp = async (userId, password, email, userName, checkpsw ) => {
+  const signUp = async (password, email, userName, checkpsw ) => {
     try {
-      const userId = uuidv4();
+      const userId = uuidv4(); // 創建用戶唯一ID
       
-      await auth.signUp(values.u_id, values.u_password,values.u_checkpsw, values.u_name, values.u_email);
-      await setDoc(doc(firestore, "users", userId), {
+      await auth.signUp(userId, password, checkpsw, userName, email); // 傳遞用戶相關信息進行註冊
+      await setDoc(doc(firestore, "users", userId), { // 將用戶信息保存到 Firestore 中
         u_id: userId,
         u_password: password,
         u_email: email,
         u_name: userName,
         u_checkpsw: checkpsw,
+        u_team: teamCodeName,
       });
-      router.push('/');
-      alert("User document created successfully!");
+      router.push('/'); // 成功註冊後，跳轉到首頁
+      alert("User document created successfully!"); // 提示用戶註冊成功
     } 
     catch (error) {
-      console.error("Error creating user document:", error);
+      console.error("Error creating user document:", error); // 處理錯誤
     }
-    
-  };
+};
+
 
   const signOut = () => {
     dispatch({
