@@ -1,4 +1,6 @@
-import { useCallback, useState,useEffect } from 'react';
+// manage-profile-details.js
+
+import { useCallback, useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -12,111 +14,117 @@ import {
 } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
-
-const addSx = {
-  backgroundColor: '#ffffff',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center', // 垂直置中
-  textAlign: 'right', // 文字水平置中
-  ml:'auto',
-  position:'absolute',
-  bottom: 0, // 定位在父元素的底部
-  right: 0, // 定位在父元素的右側
-  marginRight: '20px', // 可以添加一些額外的右邊距
-  marginBottom: '20px', // 可以添加一些額外的下邊距
-};
-
-
-
-
+import { firestore } from "src/pages/firebase"; // 检查这个导入语句
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 
 export const ManageProfileDetails = ({ teamInfo }) => {
   const [values, setValues] = useState({
+    id: '',
     Name: '',
     codeName: '',
     introduction: ''
   });
 
   useEffect(() => {
+    console.log('Received teamInfo:', teamInfo);
     if (teamInfo) {
-      setValues(teamInfo);
+      console.log('Team ID:', teamInfo.id);
+      setValues({ ...teamInfo });
     }
   }, [teamInfo]);
 
+  const handleNameChange = (event) => {
+    setValues({ ...values, Name: event.target.value });
+  };
+
+  const handleIntroductionChange = (event) => {
+    setValues({ ...values, introduction: event.target.value });
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
   
+    try {
+      // 使用团队信息中的ID构建文档路径
+      const teamDocRef = doc(firestore, "team", values.id);
+      console.log(teamDocRef)
+      // 更新团队信息
+      await updateDoc(teamDocRef, {
+        Name: values.Name,
+        introduction: values.introduction
+      });
   
-  useEffect(() => {
-    console.log('Received teamInfo:', teamInfo); // 打印来查看实际接收到的teamInfo内容
-    if (teamInfo) {
-      setValues(teamInfo);
+      // 显示成功更新的提示框
+      alert("Team information updated successfully!");
+    } catch (error) {
+      // 如果出现错误，将错误信息记录到控制台并显示错误提示框
+      console.error("Error updating team information:", error);
+      alert("An error occurred while updating team information.");
     }
-  }, [teamInfo]);
+  };
+
+
   return (
-    
     <form>
       <div>
-      <Card>
-        <CardHeader
-          // subheader="The information can be edited"
-          // title="Profile"
-        />
-        <CardContent sx={{ pt: 0 }}>
-          <Box sx={{ m: -1.5 }}>
-            <Grid
-              container
-              spacing={2}
-            >
-              <Grid
-                xs={24}
-                md={12}
-              >
-                 <TextField
-                fullWidth
-                label="球隊名稱"
-                name="Name"
-                value={values.Name}
-                required
-              />
+        <Card>
+          <CardHeader />
+          <CardContent sx={{ pt: 0 }}>
+            <Box sx={{ m: -1.5 }}>
+              <Grid container spacing={2}>
+                <Grid xs={24} md={12}>
+                  <TextField
+                    fullWidth
+                    label="球隊ID"
+                    name="id"
+                    value={values.id}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                    required
+                  />
+                </Grid>
+                <Grid xs={24} md={12}>
+                  <TextField
+                    fullWidth
+                    label="球隊名稱"
+                    name="Name"
+                    value={values.Name}
+                    onChange={handleNameChange}
+                    required
+                  />
+                </Grid>
+                <Grid xs={24} md={12}>
+                  <TextField
+                    fullWidth
+                    label="球隊代號"
+                    name="codeName"
+                    value={values.codeName}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                    required
+                  />
+                </Grid>
+                <Grid xs={24} md={12}>
+                  <TextField
+                    fullWidth
+                    label="球隊簡介"
+                    name="introduction"
+                    value={values.introduction}
+                    onChange={handleIntroductionChange}
+                  />
+                </Grid>
               </Grid>
-              <Grid
-                xs={24}
-                md={12}
-              >
-                <TextField
-                  fullWidth
-                  label="球隊代號"
-                  name="codeName"
-                  value={values.codeName}
-                  required
-                />
-              </Grid>
-              <Grid
-                xs={24}
-                md={12}
-              >
-                <TextField
-                  fullWidth
-                  label="球隊簡介"
-                  name="introduction"
-                  value={values.introduction}
-
-                //   required
-                />
-              </Grid>
-            </Grid>
-            
-          </Box>
-        </CardContent>
-        
-      </Card>
-      
-      
-                
-                
-                
-  </div>
+            </Box>
+          </CardContent>
+          <CardActions>
+            <Button onClick={handleSave}>保存</Button>
+          </CardActions>
+        </Card>
+      </div>
     </form>
-    
   );
 };
