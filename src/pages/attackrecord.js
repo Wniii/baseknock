@@ -22,7 +22,8 @@ import { useCallback } from 'react';
 const Page = () => {
   const router = useRouter();
   const attackData = router.query.attack;
-  const { codeName, timestamp } = router.query;
+  const { codeName, timestamp, teamId } = router.query;
+  
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
@@ -57,9 +58,7 @@ const Page = () => {
 
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
-  const [outs, setOuts] = useState([]);
-
-
+  const [outs, setOuts] = useState([0]); // 初始化为含一個空陣列的陣列
 
   const handleBallTypeChange = (index, type) => {
     if (type === 'ball') {
@@ -93,9 +92,10 @@ const Page = () => {
             setGameDocIds(gameIds);
             console.log('Game document IDs found:', gameIds);
 
-            const gameRef = doc(firestore, 'team', teamId, 'games', '12221'); // 使用具體的遊戲 ID
+            const gameRef = doc(firestore, 'team', teamId, 'games', timestamp); // 使用具體的遊戲 ID
             const gameSnap = await getDoc(gameRef);
             if (gameSnap.exists()) {
+              console.log("2222", gameSnap)
               const gameData = gameSnap.data();
               if (gameData.pitcher) {
                 setInitialBalls(gameData.pitcher.ball || 0); // 確保沒有數據時返回 0
@@ -103,23 +103,15 @@ const Page = () => {
                 console.log('Initial balls:', gameData.pitcher.ball || 0);
                 console.log('Initial strikes:', gameData.pitcher.strike || 0);
               }
-              if (gameData.outs) {
-                // 使用動態方式更新 outs 狀態
-                const newOuts = [...outs]; // 先複製原有的 outs 狀態
+              if (gameData.outs && Array.isArray(gameData.outs)) {
+                const maxIndex = gameData.outs.length - 1; // 获取数组中最大的索引值
+                const maxOuts = gameData.outs[maxIndex]; // 获取数组中最大索引处的值
+                setOuts([maxOuts]); // 设置最大索引处的值作为 outs 状态
+                console.log([maxOuts]);
 
-                gameData.outs.forEach((outIndex) => {
-                  // 檢查是否需要擴展 outs 陣列的長度
-                  if (outIndex >= newOuts.length) {
-                    // 如果 outIndex 超出了目前 outs 陣列的長度，則擴展陣列長度
-                    const additionalLength = outIndex - newOuts.length + 1;
-                    newOuts.push(...Array(additionalLength).fill(false));
-                  }
 
-                  // 根據 outIndex 標記出局
-                  newOuts[outIndex] = true;
-                });
-
-                setOuts(newOuts);
+              } else {
+                console.log('No outs data available or not in expected format:', gameData.latestOuts);
               }
             }
           } else {
@@ -168,8 +160,7 @@ const Page = () => {
       .join(', ');
 
     let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
-    const gameRef = doc(firestore, 'team', '4DllBDaCXJOxbZRaRPCM', 'games', '12221');
-
+    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
     const outIndexes = outs.reduce((acc, currentValue, index) => {
       if (currentValue) {
         acc.push(index);
@@ -191,7 +182,7 @@ const Page = () => {
           ball: initialBalls + balls.filter(Boolean).length, // 更新球数为当前球数加上新选择的球数
           strike: initialStrikes + strikes.filter(Boolean).length // 更新好球数为当前好球数加上新选择的好球数
         },
-        'outs': outs
+        'outs': outs // 使用数组 outs，不再转换为字符串
 
       });
       console.log('Document successfully updated!');
@@ -201,6 +192,7 @@ const Page = () => {
         query: {
           timestamp: timestamp,
           codeName: codeName,
+          teamId: teamId
         },
       });
     } catch (error) {
@@ -221,20 +213,64 @@ const Page = () => {
   };
 
 
-  const handleOutsChange = (index) => {
-    const newOuts = [...outs];
-    const selectedIndex = newOuts.indexOf(index); // 檢查索引是否已經存在於陣列中
-    if (selectedIndex === -1) {
-      newOuts.push(index); // 如果索引不存在，則將其添加到陣列中
-    } else {
-      newOuts.splice(selectedIndex, 1); // 如果索引已存在，則從陣列中移除
-    }
-    setOuts(newOuts);
+  const handleOutsChange = () => {
+    setOuts((prevOuts) => {
+      if (prevOuts.length === 0) {
+        prevOuts = [0];  // 如果原始陣列是空的，初始化它
+      }
+      const newOuts = [...prevOuts];
+      const currentInningIndex = newOuts.length - 1;
+      if (newOuts[currentInningIndex] < 3) {
+        newOuts[currentInningIndex] += 1;
+      } else {
+        newOuts.push(1);
+      }
+      return newOuts;
+    });
+};
+
+
+  const handleStrikeout = (hitType) => {
+    setOuts((prevOuts) => {
+      const newOuts = [...prevOuts];
+      const currentInningIndex = newOuts.length - 1;
+  
+      // 增加指定出局類型的出局數
+      if (newOuts[currentInningIndex] < 3) {
+        newOuts[currentInningIndex] += 1;
+      } else {
+        // 如果當前局數已有三個出局，則新增一個空的局數並將出局數初始化為 1
+        newOuts.push(1);
+      }
+  
+      // 在此處將 checkbox 的值傳遞到資料庫
+  
+      return newOuts;
+    });
+  
+    // 在此處將 checkbox 的值傳遞到資料庫，這裡的 `outs` 已經是最新的狀態
   };
 
+  const renderOutsCheckboxes = () => {
+    const lastInningOuts = outs[outs.length - 1]; // 获取最新一局的出局数
+    return [...Array(3)].map((_, index) => (
+      <FormControlLabel
+        key={index}
+        control={
+          <Checkbox
+            checked={index < lastInningOuts}
+            onChange={handleOutsChange}
+            color="primary"
+            readOnly
+          />
+        }
+        label=""
+      />
+    ));
+  };
 
-
-
+  
+  
 
 
   return (
@@ -327,18 +363,7 @@ const Page = () => {
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '250px' }}>
                             <Typography variant='h5'>O</Typography>
-                            <div style={{ marginLeft: '18px' }}>
-                              <FormControlLabel
-                                control={<Checkbox checked={outs.includes(0)} onChange={() => handleOutsChange(0)} />}
-                                label=""
-                              />
-                            </div>
-                            <div style={{ marginLeft: '5px' }}>
-                              <FormControlLabel
-                                control={<Checkbox checked={outs.includes(1)} onChange={() => handleOutsChange(1)} />}
-                                label=""
-                              />
-                            </div>
+                            {renderOutsCheckboxes()}
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
@@ -449,7 +474,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('三振')}
+                              onClick={() => {
+                                handleCheckboxChange('三振');
+                                handleStrikeout();
+                              }
+                            }
                             >
                               三振
                             </Button>
@@ -460,7 +489,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('飛球')}
+                              onClick={() => {
+                                handleCheckboxChange('飛球')
+                                handleStrikeout();
+                              }
+                              }
                             >
                               飛球
                             </Button>
@@ -471,7 +504,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('滾地')}
+                              onClick={() => {
+                                handleCheckboxChange('滾地')
+                                handleStrikeout();
+                              }
+                              }
                             >
                               滾地
                             </Button>
@@ -505,7 +542,10 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('野選')}
+                              onClick={() => handleCheckboxChange('野選')
+                                             
+                            
+                            }
                             >
                               野選
                             </Button>

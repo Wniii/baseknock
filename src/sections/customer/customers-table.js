@@ -17,7 +17,7 @@ export const CustomersTable = (props) => {
   } = props;
   const [attackListData, setAttackListData] = useState([]);
   const [gameID, setGameID] = useState('');
-  const { codeName, timestamp } = props; // 从props中获取路由参数
+  const { codeName, timestamp,teamId } = props; // 从props中获取路由参数
   const router = useRouter(); // 初始化router
 
   useEffect(() => {
@@ -96,11 +96,15 @@ export const CustomersTable = (props) => {
    const handleClick = (attack) => {
     router.push({
       pathname: '/attackrecord',
-      query: { attack: attack,
+      query: {
+        attack: attack,
         timestamp: timestamp,
-        codeName: codeName }
+        codeName: codeName,
+        teamId: teamId // Added the missing comma here
+      }
     });
   };
+  
 
   return (
     <Card>

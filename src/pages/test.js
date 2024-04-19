@@ -54,6 +54,8 @@ const Page = () => {
   const customersSelection = useSelection(customersIds);
   const { codeName } = router.query; // 从路由参数获取值
   const { timestamp } = router.query;
+  const { teamId } = router.query;
+
 console.log("code111",codeName)
 console.log("111",timestamp)
   const handlePageChange = useCallback(
@@ -172,6 +174,7 @@ console.log("111",timestamp)
             </div>
             <Score />
             <CustomersTable
+              teamId={teamId}
               timestamp={timestamp}
               codeName={codeName} // 将 codeName 传递给子组件
               count={data.length}
