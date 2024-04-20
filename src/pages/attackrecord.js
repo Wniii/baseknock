@@ -59,6 +59,8 @@ const Page = () => {
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
   const [outs, setOuts] = useState(0);
+  const [currentInning, setCurrentInning] = useState('');
+  const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
 
   const handleBallTypeChange = (index, type) => {
     if (type === 'ball') {
@@ -107,6 +109,18 @@ const Page = () => {
                 setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
                 console.log('Initial Outs:', gameData.outs || 0);
               }
+              if (gameSnap.exists()) {
+                console.log("Game data:", gameSnap.data())
+                const gameData = gameSnap.data();
+                // 假設 gameData.ordermain 是一個包含打擊數據的數組
+                setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
+                // 計算局數和上下半局
+                const outs = gameData.outs || 0;
+                const innings = Math.floor(outs / 3) + 1;
+                const isTop = (outs % 3) === 0 ? '下半' : '上半';
+                setCurrentInning(`${innings}${isTop}`);
+              }
+
             }
           } else {
             console.log('No game documents found for team:', teamId);
@@ -157,12 +171,16 @@ const Page = () => {
     const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
 
     const inningsCompleted = Math.floor((outs - 1) / 3) + 1;
-    // 計算是否為半局（outs除以3的餘數來判斷）
     const halfInning = ((outs - 1) % 3 + 1) <= 3 && ((outs - 1) % 3 + 1) > 0 ? '上半' : '下半';
-    // 生成局數描述，例如 "1上半"
     const currentInning = `${inningsCompleted}${halfInning}`;
     console.log('Inning:', currentInning);
 
+    // Calculate RBIs from selected run scoring hits
+    let rbiCount = 0;
+    if (selectedHits['一分']) rbiCount += 1;
+    if (selectedHits['兩分']) rbiCount += 2;
+    if (selectedHits['三分']) rbiCount += 3;
+    if (selectedHits['四分']) rbiCount += 4;
 
     try {
       await updateDoc(gameRef, {
@@ -171,15 +189,13 @@ const Page = () => {
           'inn': currentInning,
           'onbase': bases,
           'p_name': attackData,
-          'plate': '',
-          'rbi': '',
+          'rbi': rbiCount,
         }),
         pitcher: {
-          ball: initialBalls + balls.filter(Boolean).length, // 更新球数为当前球数加上新选择的球数
-          strike: initialStrikes + strikes.filter(Boolean).length // 更新好球数为当前好球数加上新选择的好球数
+          ball: initialBalls + balls.filter(Boolean).length,
+          strike: initialStrikes + strikes.filter(Boolean).length
         },
         'outs': outs
-
       });
       console.log('Document successfully updated!');
       alert('Document successfully updated!');
@@ -196,6 +212,7 @@ const Page = () => {
       alert('Error updating document: ' + error.message);
     }
   };
+
 
   const handleCloseSnackbar = () => {
     setAlertInfo({ ...alertInfo, open: false });
@@ -345,17 +362,20 @@ const Page = () => {
 
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
                             <Typography variant='body1'>
-                              1
+                              {currentInning}
                             </Typography>
                             <ArrowDropUpIcon />
+
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown:'50px'}}>
                             <Typography variant='body1'>
-                              輪到第＿棒
+                              第{currentBattingOrder}棒次
                             </Typography>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px', marginLeft: '20px' }}>
-                            <Typography variant='body1'>
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+                            {/* <Typography variant='body1'>
                               P:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pitches
-                            </Typography>
+                            </Typography> */}
                           </div>
                         </div>
                       </CardContent>
