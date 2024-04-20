@@ -23,7 +23,7 @@ const Page = () => {
   const router = useRouter();
   const attackData = router.query.attack;
   const { codeName, timestamp, teamId } = router.query;
-  
+
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
@@ -58,7 +58,7 @@ const Page = () => {
 
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
-  const [outs, setOuts] = useState([0]); // 初始化为含一個空陣列的陣列
+  const [outs, setOuts] = useState(0);
 
   const handleBallTypeChange = (index, type) => {
     if (type === 'ball') {
@@ -103,15 +103,9 @@ const Page = () => {
                 console.log('Initial balls:', gameData.pitcher.ball || 0);
                 console.log('Initial strikes:', gameData.pitcher.strike || 0);
               }
-              if (gameData.outs && Array.isArray(gameData.outs)) {
-                const maxIndex = gameData.outs.length - 1; // 获取数组中最大的索引值
-                const maxOuts = gameData.outs[maxIndex]; // 获取数组中最大索引处的值
-                setOuts([maxOuts]); // 设置最大索引处的值作为 outs 状态
-                console.log([maxOuts]);
-
-
-              } else {
-                console.log('No outs data available or not in expected format:', gameData.latestOuts);
+              if (gameData.outs) {
+                setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
+                console.log('Initial Outs:', gameData.outs || 0);
               }
             }
           } else {
@@ -161,18 +155,20 @@ const Page = () => {
 
     let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
     const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
-    const outIndexes = outs.reduce((acc, currentValue, index) => {
-      if (currentValue) {
-        acc.push(index);
-      }
-      return acc;
-    }, []);
+
+    const inningsCompleted = Math.floor((outs - 1) / 3) + 1;
+    // 計算是否為半局（outs除以3的餘數來判斷）
+    const halfInning = ((outs - 1) % 3 + 1) <= 3 && ((outs - 1) % 3 + 1) > 0 ? '上半' : '下半';
+    // 生成局數描述，例如 "1上半"
+    const currentInning = `${inningsCompleted}${halfInning}`;
+    console.log('Inning:', currentInning);
+
 
     try {
       await updateDoc(gameRef, {
         'ordermain': arrayUnion({
           'content': selectedContent,
-          'inn': '',
+          'inn': currentInning,
           'onbase': bases,
           'p_name': attackData,
           'plate': '',
@@ -182,7 +178,7 @@ const Page = () => {
           ball: initialBalls + balls.filter(Boolean).length, // 更新球数为当前球数加上新选择的球数
           strike: initialStrikes + strikes.filter(Boolean).length // 更新好球数为当前好球数加上新选择的好球数
         },
-        'outs': outs // 使用数组 outs，不再转换为字符串
+        'outs': outs
 
       });
       console.log('Document successfully updated!');
@@ -213,64 +209,45 @@ const Page = () => {
   };
 
 
-  const handleOutsChange = () => {
-    setOuts((prevOuts) => {
-      if (prevOuts.length === 0) {
-        prevOuts = [0];  // 如果原始陣列是空的，初始化它
-      }
-      const newOuts = [...prevOuts];
-      const currentInningIndex = newOuts.length - 1;
-      if (newOuts[currentInningIndex] < 3) {
-        newOuts[currentInningIndex] += 1;
-      } else {
-        newOuts.push(1);
-      }
+  const handleOutChange = (hitType = null) => {
+    let additionalOuts = 1; // 預設增加一個出局
+    if (hitType === "雙殺") {
+      additionalOuts = 2; // 如果是雙殺，增加兩個出局
+    }
+    setOuts(prevOuts => {
+      console.log('Current outs before update:', prevOuts); // 正確的位置
+      const newOuts = prevOuts + additionalOuts;
+      console.log('Updating outs to:', newOuts);
       return newOuts;
     });
-};
-
-
-  const handleStrikeout = (hitType) => {
-    setOuts((prevOuts) => {
-      const newOuts = [...prevOuts];
-      const currentInningIndex = newOuts.length - 1;
-  
-      // 增加指定出局類型的出局數
-      if (newOuts[currentInningIndex] < 3) {
-        newOuts[currentInningIndex] += 1;
-      } else {
-        // 如果當前局數已有三個出局，則新增一個空的局數並將出局數初始化為 1
-        newOuts.push(1);
-      }
-  
-      // 在此處將 checkbox 的值傳遞到資料庫
-  
-      return newOuts;
-    });
-  
-    // 在此處將 checkbox 的值傳遞到資料庫，這裡的 `outs` 已經是最新的狀態
   };
 
+
+
+
+
+
   const renderOutsCheckboxes = () => {
-    const lastInningOuts = outs[outs.length - 1]; // 获取最新一局的出局数
+    const remainder = outs % 3; // 計算 outs 除以 3 的餘數
     return [...Array(3)].map((_, index) => (
       <FormControlLabel
         key={index}
         control={
           <Checkbox
-            checked={index < lastInningOuts}
-            onChange={handleOutsChange}
+            checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
             color="primary"
-            readOnly
+            readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
           />
         }
-        label=""
+        label="" // 沒有標籤
       />
     ));
   };
 
-  
-  
+
+
+
+
 
 
   return (
@@ -476,9 +453,9 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleCheckboxChange('三振');
-                                handleStrikeout();
+                                handleOutChange('三振');
                               }
-                            }
+                              }
                             >
                               三振
                             </Button>
@@ -491,7 +468,7 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleCheckboxChange('飛球')
-                                handleStrikeout();
+                                handleOutChange('飛球');
                               }
                               }
                             >
@@ -506,7 +483,7 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleCheckboxChange('滾地')
-                                handleStrikeout();
+                                handleOutChange('滾地');
                               }
                               }
                             >
@@ -543,9 +520,9 @@ const Page = () => {
                               padding={1}
                               color='error'
                               onClick={() => handleCheckboxChange('野選')
-                                             
-                            
-                            }
+
+
+                              }
                             >
                               野選
                             </Button>
@@ -556,7 +533,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('雙殺')}
+                              onClick={() => {
+                                handleCheckboxChange('雙殺')
+                                handleOutChange('雙殺');
+                              }
+                              }
                             >
                               雙殺
                             </Button>
@@ -613,7 +594,10 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => handleCheckboxChange('犧飛')}
+                              onClick={() => {
+                                handleCheckboxChange('犧飛')
+                                handleOutChange('犧飛');
+                              }}
                             >
                               犧飛
                             </Button>
@@ -624,7 +608,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => handleCheckboxChange('犧觸')}
+                              onClick={() => {
+                                handleCheckboxChange('犧觸')
+                                handleOutChange('犧觸');
+                              }
+                              }
                             >
                               犧觸
                             </Button>
