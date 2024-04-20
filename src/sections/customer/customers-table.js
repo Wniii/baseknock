@@ -16,78 +16,60 @@ export const CustomersTable = (props) => {
     rowsPerPage = 0,
   } = props;
   const [attackListData, setAttackListData] = useState([]);
+  const [ordermain, setordermain] = useState([]);
   const [gameID, setGameID] = useState('');
-  const { codeName, timestamp,teamId } = props; // 从props中获取路由参数
+  const { codeName, timestamp,teamId, } = props; // 从props中获取路由参数
   const router = useRouter(); // 初始化router
 
+
+
+
+  
   useEffect(() => {
     fetchGames();
-  }, [codeName]); // 当codeName发生变化时重新获取数据
+  }, [codeName,timestamp,teamId]); // 当codeName发生变化时重新获取数据
 
   const fetchGames = async () => {
-    if (!codeName) {
-      return; // 如果 codeName 不存在，直接返回
+    if (!teamId || !timestamp) {
+      return; // 如果没有提供团队文档ID或游戏文档ID，直接返回
     }
-  
+    
     console.log('Fetching games...');
   
     try {
-      const teamQuerySnapshot = await getDocs(
-        query(collection(firestore, "team"), where("codeName", "==", codeName))
-      );
+      // 获取指定团队文档
+      const teamDocSnapshot = await getDoc(doc(firestore, "team", teamId));
   
-      // 检查是否存在符合条件的文档
-      if (!teamQuerySnapshot.empty) {
-        // 获取第一个匹配的文档
-        const teamDocSnapshot = teamQuerySnapshot.docs[0];
-        console.log("Team document ID:", teamDocSnapshot.id);
+      if (teamDocSnapshot.exists()) {
+        console.log("Team document ID:", teamId);
   
-        // 获取文档中的 "games" 子集合的引用
+        // 获取指定团队文档中的游戏子集合
         const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
   
-        // 获取 "games" 子集合中的所有文档
-        const gamesQuerySnapshot = await getDocs(gamesCollectionRef);
+        // 获取指定游戏文档
+        const gameDocSnapshot = await getDoc(doc(gamesCollectionRef, timestamp));
   
-        console.log('Games found:', gamesQuerySnapshot.size);
-  
-        // 遍历游戏文档快照列表，输出游戏数据和进行进一步操作
-        gamesQuerySnapshot.forEach((gameDoc) => {
-          const gameId = gameDoc.id;
-          const gameData = gameDoc.data();
-  
-          console.log("Game ID:", gameId);
-          console.log("Game data:", gameData);
-  
-          // 获取传递过来的时间戳
-          console.log("Passed timestamp:", timestamp);
-  
-          // 如果游戏文档的ID和传递过来的时间戳匹配成功，则继续执行后续代码
-          if (gameId === timestamp) {
-            console.log("Match found for timestamp:", timestamp);
-  
-            // 如果游戏文档存在，则更新状态
-            if (gameDoc.exists()) {
-              console.log('Game exists:', gameId);
-              console.log('Game data:', gameDoc.data());
-  
-              // 更新状态
-              setGameID(gameId);
-              setAttackListData(gameDoc.data().attacklist || []);
-            } else {
-              console.log("No matching document with ID:", gameId);
-            }
-          } else {
-            console.log("No match for timestamp:", timestamp);
-          }
-        });
+        if (gameDocSnapshot.exists()) {
+          console.log("Game document ID:", timestamp);
+          console.log("Game data:", gameDocSnapshot.data());
+          
+          // 更新状态
+          setGameID(timestamp);
+          setAttackListData(gameDocSnapshot.data().attacklist || []);
+          setordermain(gameDocSnapshot.data().ordermain || []);
+          console.log("wwew",ordermain)
+        } else {
+          console.log("No matching game document with ID:", timestamp);
+        }
       } else {
-        console.log("No team document found with codeName:", codeName);
+        console.log("No team document found with ID:", teamId);
       }
     } catch (error) {
       console.error("Error fetching games:", error);
     }
   };
-      
+  
+  
    // 传递 codeName 作为 useEffect 的依赖项
   
 
@@ -114,7 +96,6 @@ export const CustomersTable = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell>打者</TableCell>
-                <TableCell>E</TableCell>
                 <TableCell>1</TableCell>
                 <TableCell>2</TableCell>
                 <TableCell>3</TableCell>
@@ -127,35 +108,43 @@ export const CustomersTable = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {attackListData.length > 0 ? attackListData.map((attack, index) => (
-                <TableRow hover key={index}>
-                  <TableCell>{attack}</TableCell>
-                  <TableCell />
-                  <TableCell align="left"> {/* 將 align 改為 "left" 以達到左對齊 */}
-                    <Button
-                      variant="outlined"
-                      color="inherit"
-                      sx={{ height: '30px', padding: 0 }}
-                      type="button"
-                      onClick={() => handleClick(attack)} // 傳遞該行的 `attack` 數據
-                    >
-                      <AddIcon />
-                    </Button>
-                  </TableCell>
-                  <TableCell />
-                  <TableCell />
-                  <TableCell />
-                  <TableCell />
-                  <TableCell />
-                  <TableCell />
-                  <TableCell />
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={11}>No Data Available</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+                {attackListData.length > 0 ? attackListData.map((attack, index) => (
+                  <TableRow hover key={index}>
+                    {/* 攻击者信息 */}
+                    <TableCell>{attack}</TableCell>
+                    
+                    {/* 在第一行显示按钮 */}
+                    {index === 0 && gameID && (
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          color="inherit"
+                          sx={{ height: '30px', padding: 0 }}
+                          type="button"
+                          onClick={() => handleClick(attack)}
+                        >
+                          <AddIcon />
+                        </Button>
+                      </TableCell>
+                    )}
+                    
+                    {/* 空单元格 */}
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                    <TableCell />
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={11}>No Data Available</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+
           </Table>
         </Box>
       </Scrollbar>
