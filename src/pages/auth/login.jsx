@@ -3,22 +3,48 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/router'; // 注意这里的变更
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Box, Button, Link, Stack, TextField, Typography} from '@mui/material';
+import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { firestore } from "../firebase"; // 正确的导入路径
 import { getDocs, query, collection, where } from "firebase/firestore";
 
 const LoginPage = () => {
   const router = useRouter(); // 注意这里的变更
   const auth = useAuth();
+  const [userId, setUserId] = useState("");
+
+  
+
+  useEffect(() => {
+  //   // 在组件加载时，从 sessionStorage 中获取用户ID
+  //   const userIdFromStorage = window.sessionStorage.getItem('userId');
+  //   if (userIdFromStorage) {
+  //     setUserId(userIdFromStorage);
+  //   }
+  // }, []);
+
+  const userIdFromStorage = window.localStorage.getItem('userId');
+    if (userIdFromStorage) {
+      setUserId(userIdFromStorage);
+    }
+  }, []);
+  const storeUserIdInLocalStorage = (userId) => {
+    window.localStorage.setItem('userId', userId);
+  };
+
+  const storeUserEmailInLocalStorage = (userEmail) => {
+    localStorage.setItem('userEmail', userEmail);
+  };
+
   const formik = useFormik({
     initialValues: {
       u_email: '',
       u_password: '',
-      submit: null
+      submit: '',
     },
+
     validationSchema: Yup.object({
       u_email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
       u_password: Yup.string().max(255).required('Password is required')
@@ -32,11 +58,49 @@ const LoginPage = () => {
           // 用户不存在
           throw new Error('Invalid email or password');
         }
+
+        const sendUserIdToServer = async (userId) => {
+          try {
+            console.log('Sending user ID to server:', auth.user.id);
+            const response = await fetch('/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/localstorage'
+              },
+              body: JSON.stringify({ userId })
+            });
+        
+            if (!response.ok) {
+              throw new Error('Failed to send user ID to server');
+            }
+            console.log('User ID sent successfully to server');
+          } catch (error) {
+            console.error('Error sending user ID to server:', error);
+          }
+        };
+
+        
+
+
         
 
         // 用户存在，尝试进行登录
         await auth.signIn(values.u_email, values.u_password);
-        router.push('/'); // 登录成功后重定向到首页或其他目标页面
+        const user = auth.currentUser; // Get the currently signed-in user
+        if (user) {
+          // Set the user ID in state
+          setUserId(user.uid);
+          // Send the user ID to the server
+          await sendUserIdToServer(auth.user.id);
+          storeUserIdInLocalStorage(auth.user.id);
+
+          storeUserEmailInLocalStorage(values.u_email);
+          // Redirect to home page with userId query parameter
+          router.push(`/?userId=${auth.user.id}`);
+        } else {
+          throw new Error('User not found');
+        }
+
       } catch (err) {
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: err.message });

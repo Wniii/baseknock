@@ -12,8 +12,10 @@ const HANDLERS = {
 const initialState = {
   isAuthenticated: false,
   isLoading: true,
-  currentUser: null
+  currentUser: null,
+  userId: null // Add userId field
 };
+
 
 const handlers = {
   [HANDLERS.INITIALIZE]: (state, action) => {
@@ -36,14 +38,15 @@ const handlers = {
     };
   },
   [HANDLERS.SIGN_IN]: (state, action) => {
-    const user = action.payload;
-
+    const { user, userId } = action.payload; // Destructure user and userId
     return {
       ...state,
       isAuthenticated: true,
-      user
+      user,
+      userId // Set userId in the state
     };
   },
+  
   [HANDLERS.SIGN_OUT]: (state) => {
     return {
       ...state,
@@ -71,16 +74,16 @@ export const AuthProvider = (props) => {
     if (initialized.current) {
       return;
     }
-  
+
     initialized.current = true;
     let isAuthenticated = false;
-  
+
     try {
-      isAuthenticated = window.sessionStorage.getItem('authenticated') === 'true';
+      isAuthenticated = window.localStorage.getItem('authenticated') === 'true';
     } catch (err) {
       console.error(err);
     }
-  
+
     if (isAuthenticated) {
       try {
         const q = query(collection(firestore, "users")); // Query all users or your specific logic to get user data
@@ -91,7 +94,7 @@ export const AuthProvider = (props) => {
             email: querySnapshot.docs[0].data().u_email,
             //team: querySnapshot.docs[0].data().u_team,
           };
-  
+
           dispatch({
             type: HANDLERS.INITIALIZE,
             payload: user
@@ -112,7 +115,7 @@ export const AuthProvider = (props) => {
       });
     }
   };
-  
+
 
 
   useEffect(
@@ -124,7 +127,7 @@ export const AuthProvider = (props) => {
 
   const skip = () => {
     try {
-      window.sessionStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('authenticated', 'true');
     } catch (err) {
       console.error(err);
     }
@@ -141,25 +144,26 @@ export const AuthProvider = (props) => {
 
   const signIn = async (u_email, u_password) => {
     try {
-      // 檢查是否存在
+      // Check if user exists
       const q = query(collection(firestore, "users"), where('u_email', '==', u_email), where('u_password', '==', u_password));
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
-        // 用戶不存在或密碼錯誤
+        // User does not exist or incorrect password
         throw new Error('Please check your email and password');
       }
   
       const user = {
-        id: querySnapshot.docs[0].id, // 獲取用戶ID
-        email: querySnapshot.docs[0].data().u_email, //獲取用戶email
-        team: querySnapshot.docs[0].data().u_team, //獲取用戶team
+        id: querySnapshot.docs[0].id, // Get user ID
+        email: querySnapshot.docs[0].data().u_email, // Get user email
+        team: querySnapshot.docs[0].data().u_team // Get user team
       };
   
-      window.sessionStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('userId', user.uid); // Save user ID to localStorage
   
       dispatch({
         type: HANDLERS.SIGN_IN,
-        payload: user
+        payload: { user, userId: user.uid } // Include userId in payload
       });
     } catch (err) {
       console.error(err);
@@ -168,10 +172,10 @@ export const AuthProvider = (props) => {
   };
   
 
-  const signUp = async (password, email, userName, checkpsw ) => {
+  const signUp = async (password, email, userName, checkpsw) => {
     try {
       const userId = uuidv4(); // 創建用戶唯一ID
-      
+
       await auth.signUp(userId, password, checkpsw, userName, email); // 傳遞用戶相關信息進行註冊
       await setDoc(doc(firestore, "users", userId), { // 將用戶信息保存到 Firestore 中
         u_id: userId,
@@ -183,11 +187,11 @@ export const AuthProvider = (props) => {
       });
       router.push('/'); // 成功註冊後，跳轉到首頁
       alert("User document created successfully!"); // 提示用戶註冊成功
-    } 
+    }
     catch (error) {
       console.error("Error creating user document:", error); // 處理錯誤
     }
-};
+  };
 
 
   const signOut = () => {
