@@ -78,44 +78,73 @@ export const Manage = ({ onTeamSelect }) => {
         });
         return () => unsubscribe();
     }, []);
-
-
+console.log()
 
     //加入球隊欄位
     const handleAddTeam = async () => {
+        console.log("Starting handleAddTeam...");
+    
         const userId = localStorage.getItem('userId');
+        console.log("userId:", userId);
+    
         try {
             if (!userId) {
                 alert('無效的使用者ID');
                 return;
             }
-            // 获取用户输入的球队 ID
-            const teamIdTrimmed = teamId.trim(); // 删除可能存在的空格
+    
+            const teamIdTrimmed = teamId.trim(); // 刪除可能存在的空格
+            console.log("teamIdTrimmed:", teamIdTrimmed);
+    
             if (!teamIdTrimmed) {
                 alert('請輸入球隊ID');
                 return;
             }
-            // 檢查球隊是否存在於資料庫中
+    
             const teamRef = doc(firestore, "team", teamIdTrimmed);
+            console.log("teamRef:", teamRef);
+    
             const teamDoc = await getDoc(teamRef);
+            console.log("teamDoc:", teamDoc);
+    
             if (!teamDoc.exists()) {
                 alert('找不到該球隊');
                 return;
             }
-            // 獲取球隊名稱
+    
             const teamcodeName = teamDoc.data().codeName;
-            // 更新用戶文檔中的 u_team 欄位，將球隊名稱添加到數組中
+            console.log("teamcodeName:", teamcodeName);
+    
             const userRef = doc(firestore, "users", userId);
+            console.log("userRef:", userRef);
+    
+            // 獲取當前用戶的文檔
+            const userDoc = await getDoc(userRef);
+            let userDocData = userDoc.data();
+    
+            // 如果用戶文檔不存在或者 u_team 欄位不存在，初始化為一個空陣列
+            if (!userDoc.exists() || !userDocData.u_team) {
+                userDocData.u_team = [];
+            }
+    
+            // 使用 push 方法將新的值添加到陣列的末尾
+            userDocData.u_team.push(teamcodeName);
+    
+            // 更新用戶文檔中的 u_team 欄位為新的陣列
             await updateDoc(userRef, {
-                u_team: firebase.firestore.FieldValue.arrayUnion(teamcodeName)
+                u_team: userDocData.u_team
             }, { merge: true });
+    
+            console.log("Team added to user successfully.");
+    
             alert('成功將球隊添加到使用者');
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Error adding team to user:', error);
             alert('添加球隊時出錯');
         }
     };
+    
+    
 
     return (
         <div>
