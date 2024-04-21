@@ -14,6 +14,7 @@ const LoginPage = () => {
   const router = useRouter(); // 注意这里的变更
   const auth = useAuth();
   const [userId, setUserId] = useState("");
+  const [userteam, setUserTeam] = useState("");
 
   
 
@@ -34,8 +35,24 @@ const LoginPage = () => {
     window.localStorage.setItem('userId', userId);
   };
 
+
   const storeUserEmailInLocalStorage = (userEmail) => {
     localStorage.setItem('userEmail', userEmail);
+  };
+
+  const fetchUserTeam = async (userId) => {
+    try {
+      const userRef = collection(firestore, "users");
+      const q = query(userRef, where('u_id', '==', userId));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(doc => {
+        setUserTeam(doc.data().u_team);
+        // 存储团队信息到本地存储
+        window.localStorage.setItem('userTeam', doc.data().u_team);
+      });
+    } catch (error) {
+      console.error('Error fetching user team:', error);
+    }
   };
 
   const formik = useFormik({
@@ -91,7 +108,9 @@ const LoginPage = () => {
           // Set the user ID in state
           setUserId(user.uid);
           // Send the user ID to the server
-          await sendUserIdToServer(auth.user.id);
+          await 
+          fetchUserTeam(auth.user.id);
+          sendUserIdToServer(auth.user.id);
           storeUserIdInLocalStorage(auth.user.id);
 
           storeUserEmailInLocalStorage(values.u_email);

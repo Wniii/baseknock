@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -22,15 +22,15 @@ import { getDoc } from "firebase/firestore";
 
 
 
-const hometeam = [
-  { value: "fju", label: "輔仁大學" },
-  { value: "kpbl", label: "卡皮巴拉" },
-];
+// const hometeam = [
+//   { value: "fju", label: "輔仁大學" },
+//   { value: "kpbl", label: "卡皮巴拉" },
+// ];
 
-const awayteam = [
-  { value: "fju", label: "輔仁大學" },
-  { value: "kpbl", label: "卡皮巴拉" },
-];
+// const awayteam = [
+//   { value: "fju", label: "輔仁大學" },
+//   { value: "kpbl", label: "卡皮巴拉" },
+// ];
 
 const gName = [
   { value: "friendly", label: "友誼賽" },
@@ -57,6 +57,23 @@ export const AddGame = () => {
     label: "",
     remark: "",
   });
+
+  useEffect(() => {
+    // Retrieve userTeam from localStorage
+    const userTeamsString = localStorage.getItem("userTeam");
+    if (userTeamsString) {
+      // Split the string to get individual userTeams
+      const userTeams = userTeamsString.split(",");
+      // Update the label options for hometeam and awayteam
+      setHometeamOptions(userTeams.map((team) => ({ value: team, label: team })));
+      setAwayteamOptions(userTeams.map((team) => ({ value: team, label: team })));
+    }
+  }, []);
+
+  // State variables for label options of hometeam and awayteam
+  const [hometeamOptions, setHometeamOptions] = useState([]);
+  const [awayteamOptions, setAwayteamOptions] = useState([]);
+
 
   const AddGameSx = {
     backgroundColor: "#d3d3d3",
@@ -105,6 +122,9 @@ export const AddGame = () => {
     try {
       const g_id = await generateGameId();
       const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
+
+      const homeTeamCollectionRef = collection(firestore, "team", values.hometeam, "games");
+      const awayTeamCollectionRef = collection(firestore, "team", values.awayteam, "games");
 
       // 在 "games" 集合中添加一个新文档，文档 ID 为 g_id
       const gameDocRef = doc(firestore, "team", "111", "games", g_id);
@@ -184,7 +204,7 @@ export const AddGame = () => {
                   <FormControl fullWidth required>
                     <InputLabel>主隊</InputLabel>
                     <Select value={values.hometeam} onChange={handleChange} name="hometeam">
-                      {hometeam.map((option) => (
+                      {hometeamOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
                         </MenuItem>
@@ -218,7 +238,7 @@ export const AddGame = () => {
                   <FormControl fullWidth required>
                     <InputLabel>客隊</InputLabel>
                     <Select value={values.awayteam} onChange={handleChange} name="awayteam">
-                      {awayteam.map((option) => (
+                      {awayteamOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
                         </MenuItem>
