@@ -59,7 +59,7 @@ const Page = () => {
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
   const [outs, setOuts] = useState(0);
-  const [currentInning, setCurrentInning] = useState('');
+  const [currentInning, setCurrentInning] = useState(0);
   const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
 
   const handleBallTypeChange = (index, type) => {
@@ -89,6 +89,8 @@ const Page = () => {
           const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
           const gamesQuerySnapshot = await getDocs(gamesCollectionRef);
 
+
+
           if (!gamesQuerySnapshot.empty) {
             const gameIds = gamesQuerySnapshot.docs.map(doc => doc.id);
             setGameDocIds(gameIds);
@@ -116,9 +118,9 @@ const Page = () => {
                 setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
                 // 計算局數和上下半局
                 const outs = gameData.outs || 0;
-                const innings = Math.floor(outs / 3) + 1;
-                const isTop = (outs % 3) === 0 ? '下半' : '上半';
-                setCurrentInning(`${innings}${isTop}`);
+                const inningsCompleted = Math.floor(outs / 3) + 1;
+                setCurrentInning(inningsCompleted);
+
               }
 
             }
@@ -137,19 +139,11 @@ const Page = () => {
     };
 
     fetchGameDocument();
-  }, [codeName, timestamp, firestore]);
+  }, [codeName, timestamp, firestore, outs]);
 
 
 
-  const handleSave = () => {
-    router.push({
-      pathname: '/test',
-      query: {
-        timestamp: timestamp,
-        codeName: codeName,
-      },
-    });
-  };
+
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -170,10 +164,9 @@ const Page = () => {
     let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
     const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
 
-    const inningsCompleted = Math.floor((outs - 1) / 3) + 1;
-    const halfInning = ((outs - 1) % 3 + 1) <= 3 && ((outs - 1) % 3 + 1) > 0 ? '上半' : '下半';
-    const currentInning = `${inningsCompleted}${halfInning}`;
-    console.log('Inning:', currentInning);
+    // const inningsCompleted = Math.floor(outs / 3) + 1;
+    // setCurrentInning(inningsCompleted);
+
 
     // Calculate RBIs from selected run scoring hits
     let rbiCount = 0;
@@ -367,7 +360,7 @@ const Page = () => {
                             <ArrowDropUpIcon />
 
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown:'50px'}}>
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
                             <Typography variant='body1'>
                               第{currentBattingOrder}棒次
                             </Typography>
