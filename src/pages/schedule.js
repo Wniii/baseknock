@@ -27,7 +27,8 @@ const SchedulePage = () => {
   const [selectedGame, setSelectedGame] = useState(null); // 修改这里
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter(); // 使用路由器
-
+  const [codeName, setcodeName] = useState(null); // 修改这里
+  const [teamId, setteamId] = useState(null); // 修改这里
   const timeZone = "Asia/Taipei";
 
   useEffect(() => {
@@ -35,36 +36,46 @@ const SchedulePage = () => {
       try {
         const teamCollection = collection(firestore, "team");
         const teamSnapshot = await getDocs(teamCollection);
-
+    
         const gamesData = [];
         teamSnapshot.forEach((doc) => {
           const teamData = doc.data();
-          const teamGames = teamData.games; // Assuming `games` field exists in each team document
+          const teamId = doc.id; // 获取文档ID作为团队的唯一标识符
+          const teamGames = teamData.games;
+          const teamCodeName = teamData.codeName;
+          console.log(teamId); // 打印团队ID
+          console.log(teamCodeName);
           if (teamGames) {
             Object.keys(teamGames).forEach((timestamp) => {
               const gameData = {
                 id: timestamp,
-                title: timestamp,
+                title: teamCodeName,
                 start: moment(teamGames[timestamp].toDate()).format('YYYY-MM-DD HH:mm:ss'),
                 end: moment(teamGames[timestamp].toDate()).format('YYYY-MM-DD HH:mm:ss'),
-                timestamp: timestamp, // 新增 timestamp 屬性
+                timestamp: timestamp,
+                teamId: teamId // 将团队ID添加到游戏数据中
               };
               gamesData.push(gameData);
-              console.log("Timestamp:", timestamp);
-              console.log("Date and Time:", moment(teamGames[timestamp].toDate()).format('YYYY-MM-DD HH:mm:ss'));
-              console.log("獲取的賽事資料:", gamesData);
             });
           }
         });
-
+    
         setGames(gamesData);
+    
+        // 设置codeName状态值
+        const firstTeamCodeName = teamSnapshot.docs[0]?.data()?.codeName; // 从第一个团队中获取codeName
+        if(firstTeamCodeName) {
+          setcodeName(firstTeamCodeName);
+        }
       } catch (error) {
         console.error("Error fetching games:", error);
       }
     };
-
+    
+  
     fetchGames();
   }, []);
+  
 
   // Handle click on a game event
   const handleGameClick = (game) => {
@@ -81,21 +92,55 @@ const SchedulePage = () => {
   const playerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
+        
+    // 获取选定游戏的团队数据
+    const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
+    
+    // 从团队数据中提取codeName
+    const codeName = selectedGameData ? selectedGameData.title : null;
+    
+    // 获取选定游戏的团队ID
+    const teamId = selectedGameData ? selectedGameData.teamId : null;
+    
+    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/playershow",
-      query: { timestamp: selectedGame.timestamp },
+      query: { 
+        timestamp: selectedGame.timestamp,
+        codeName: codeName, // Add codeName to the query
+        teamId: teamId // Add teamId to the query
+      }
     });
   };
-
+  
+  
   const recordattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
+    
+    // 获取选定游戏的团队数据
+    const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
+      
+    // 从团队数据中提取codeName
+    const codeName = selectedGameData ? selectedGameData.title : null;
+
+    const teamId = selectedGameData ? selectedGameData.teamId : null;
+
+    
+    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/test",
-      query: { timestamp: selectedGame.timestamp },
+      query: { 
+        timestamp: selectedGame.timestamp,
+        codeName: codeName, // Add codeName to the query
+        teamId: teamId // Add teamId to the query
+      }
     });
   };
+  
 
+
+  
 
   const handleEditGame = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
@@ -103,7 +148,7 @@ const SchedulePage = () => {
     router.push({
       pathname: "/edit-game",
       query: { g_id: selectedGame.timestamp },
-    });
+    });          
   };
 
   return (
@@ -175,3 +220,4 @@ SchedulePage.getLayout = (page) => (
   </DashboardLayout>
 );
 export default SchedulePage;
+

@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import { firestore } from "../pages/firebase";
 import { query, collection, where, getDocs, doc, setDoc } from "firebase/firestore";
 
-
-
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE',
   SIGN_IN: 'SIGN_IN',
@@ -14,8 +12,10 @@ const HANDLERS = {
 const initialState = {
   isAuthenticated: false,
   isLoading: true,
-  user: null
+  currentUser: null,
+  userId: null // Add userId field
 };
+
 
 const handlers = {
   [HANDLERS.INITIALIZE]: (state, action) => {
@@ -29,7 +29,7 @@ const handlers = {
           ? ({
             isAuthenticated: true,
             isLoading: false,
-            user
+            currentUser: user
           })
           : ({
             isLoading: false
@@ -38,14 +38,15 @@ const handlers = {
     };
   },
   [HANDLERS.SIGN_IN]: (state, action) => {
-    const user = action.payload;
-
+    const { user, userId } = action.payload; // Destructure user and userId
     return {
       ...state,
       isAuthenticated: true,
-      user
+      user,
+      userId // Set userId in the state
     };
   },
+  
   [HANDLERS.SIGN_OUT]: (state) => {
     return {
       ...state,
@@ -75,27 +76,39 @@ export const AuthProvider = (props) => {
     }
 
     initialized.current = true;
-
     let isAuthenticated = false;
 
     try {
-      isAuthenticated = window.sessionStorage.getItem('authenticated') === 'true';
+      isAuthenticated = window.localStorage.getItem('authenticated') === 'true';
     } catch (err) {
       console.error(err);
     }
 
     if (isAuthenticated) {
-      const user = {
-        id: '5e86809283e28b96d2d38537',
-        avatar: '/assets/avatars/avatar-anika-visser.png',
-        name: 'Anika Visser',
-        email: 'anika.visser@devias.io'
-      };
+      try {
+        const q = query(collection(firestore, "users")); // Query all users or your specific logic to get user data
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const user = {
+            id: querySnapshot.docs[0].id,
+            email: querySnapshot.docs[0].data().u_email,
+            //team: querySnapshot.docs[0].data().u_team,
+          };
 
-      dispatch({
-        type: HANDLERS.INITIALIZE,
-        payload: user
-      });
+          dispatch({
+            type: HANDLERS.INITIALIZE,
+            payload: user
+          });
+        } else {
+          // No user found, handle this case
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        // Handle error, set appropriate authentication state
+        dispatch({
+          type: HANDLERS.INITIALIZE
+        });
+      }
     } else {
       dispatch({
         type: HANDLERS.INITIALIZE
@@ -103,28 +116,26 @@ export const AuthProvider = (props) => {
     }
   };
 
+
+
   useEffect(
     () => {
       initialize();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
   const skip = () => {
     try {
-      window.sessionStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('authenticated', 'true');
     } catch (err) {
       console.error(err);
     }
-
     const user = {
-      id: '5e86809283e28b96d2d38537',
-      avatar: '/assets/avatars/avatar-anika-visser.png',
-      name: 'Anika Visser',
-      email: 'anika.visser@devias.io'
+      id: querySnapshot.docs[0].id,
+      email: querySnapshot.docs[0].data().u_email,
+      team: querySnapshot.docs[0].data().u_team,
     };
-
     dispatch({
       type: HANDLERS.SIGN_IN,
       payload: user
@@ -133,26 +144,26 @@ export const AuthProvider = (props) => {
 
   const signIn = async (u_email, u_password) => {
     try {
-      // 连接数据库，检查用户是否存在
+      // Check if user exists
       const q = query(collection(firestore, "users"), where('u_email', '==', u_email), where('u_password', '==', u_password));
       const querySnapshot = await getDocs(q);
       if (querySnapshot.empty) {
-        // 用户不存在或密码错误
+        // User does not exist or incorrect password
         throw new Error('Please check your email and password');
       }
   
-      // 用户存在且密码正确，进行登录
       const user = {
-        id: querySnapshot.docs[0].id, // 获取用户文档的ID
-        email: querySnapshot.docs[0].data().u_email, // 获取用户的邮箱
-        // 其他用户信息根据需要从数据库中获取
+        id: querySnapshot.docs[0].id, // Get user ID
+        email: querySnapshot.docs[0].data().u_email, // Get user email
+        team: querySnapshot.docs[0].data().u_team // Get user team
       };
   
-      window.sessionStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('authenticated', 'true');
+      window.localStorage.setItem('userId', user.uid); // Save user ID to localStorage
   
       dispatch({
         type: HANDLERS.SIGN_IN,
-        payload: user
+        payload: { user, userId: user.uid } // Include userId in payload
       });
     } catch (err) {
       console.error(err);
@@ -161,28 +172,27 @@ export const AuthProvider = (props) => {
   };
   
 
-  const signUp = async (userId, password, email, userName, checkpsw ) => {
+  const signUp = async (password, email, userName, checkpsw) => {
     try {
-      const userId = uuidv4();
-      await auth.signUp(values.u_id, values.u_password,values.u_checkpsw, values.u_name, values.u_email);
-      await setDoc(doc(firestore, "users", userId), {
+      const userId = uuidv4(); // 創建用戶唯一ID
+
+      await auth.signUp(userId, password, checkpsw, userName, email); // 傳遞用戶相關信息進行註冊
+      await setDoc(doc(firestore, "users", userId), { // 將用戶信息保存到 Firestore 中
         u_id: userId,
         u_password: password,
         u_email: email,
-        //p_id: playerId,
         u_name: userName,
         u_checkpsw: checkpsw,
+        u_team: teamCodeName,
       });
-      router.push('/');
-      alert("User document created successfully!");
-    } 
-    catch (error) {
-      console.error("Error creating user document:", error);
-      
-      //throw new Error('Sign up is not implemented');
+      router.push('/'); // 成功註冊後，跳轉到首頁
+      alert("User document created successfully!"); // 提示用戶註冊成功
     }
-    
+    catch (error) {
+      console.error("Error creating user document:", error); // 處理錯誤
+    }
   };
+
 
   const signOut = () => {
     dispatch({

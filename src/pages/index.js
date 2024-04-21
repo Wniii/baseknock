@@ -18,7 +18,7 @@ const Page = () => (
   <>
     <Head>
       <title>
-        test
+        BaseKnock
       </title>
     </Head>
     {/* <Box

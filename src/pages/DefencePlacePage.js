@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { collection, doc, getDoc,updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, updateDoc } from 'firebase/firestore';
 import { Box, Grid, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Typography, Container, Button, Paper } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { firestore } from './firebase';
-import UserIcon from '@heroicons/react/24/solid/UserIcon';
 
 const DefencePlacePage = () => {
   const router = useRouter();
@@ -17,6 +16,9 @@ const DefencePlacePage = () => {
   const [initialIndexes, setInitialIndexes] = useState({});
   const [showPlayerList, setShowPlayerList] = useState(true);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const { codeName } = router.query;
+  const { teamId } = router.query;
+
   const [positions, setPositions] = useState({
     1: null, 2: null, 3: null,
     4: null, 5: null, 6: null,
@@ -37,63 +39,96 @@ const DefencePlacePage = () => {
 
   useEffect(() => {
     const fetchAttackList = async () => {
-      try {
-        if (!gameId) return;
-
-        const gamesCollectionRef = collection(firestore, 'team', '4DllBDaCXJOxbZRaRPCM', 'games');
-        const gameDocRef = doc(gamesCollectionRef, gameId);
-        const gameDocSnapshot = await getDoc(gameDocRef);
-
-        if (gameDocSnapshot.exists()) {
-          const gameData = gameDocSnapshot.data();
-          const attackList = gameData.attacklist;
-          setAttackList(attackList);
-
-          const teamDocRef = doc(firestore, 'team', '4DllBDaCXJOxbZRaRPCM');
-          const teamDocSnapshot = await getDoc(teamDocRef);
-
-          if (teamDocSnapshot.exists()) {
-            const teamData = teamDocSnapshot.data();
-            const playersField = teamData.players;
-
-            if (playersField && typeof playersField === 'object') {
-              const playerKeysInAttackList = attackList.filter(playerId => playerId in playersField);
-              setPlayerKeys(playerKeysInAttackList);
-
-              const playersData = {};
-              playerKeysInAttackList.forEach(playerId => {
-                playersData[playerId] = playersField[playerId];
-              });
-              setPlayers(playersData);
-
-              const originalIndexes = {};
-              playerKeysInAttackList.forEach((playerId, index) => {
-                originalIndexes[playerId] = index;
-              });
-              setOriginalPlayerIndexes(originalIndexes);
-              const initialIndexesData = {};
-              playerKeysInAttackList.forEach((playerId, index) => {
-                initialIndexesData[playerId] = index + 1;
-              });
-              setInitialIndexes(initialIndexesData);
-            } else {
-              console.log('团队文档中的players字段不是对象');
+        try {
+            if (!gameId || !codeName) {
+                console.log('gameId 或 codeName 不存在');
+                return;
             }
-          } else {
-            console.log('团队文档不存在');
-          }
-        } else {
-          console.log('游戏文档不存在');
+            console.log("codeName",codeName)
+            console.log("gameId",gameId)
+            const teamsCollectionRef = collection(firestore, 'team');
+            const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', codeName)));
+
+            if (!querySnapshot.empty) {
+                // 获取第一个匹配到的文档（假设每个 codeName 只对应一个文档）
+                const teamDocSnapshot = querySnapshot.docs[0];
+                console.log('团队文档存在', teamDocSnapshot.id);
+
+                // 获取游戏文档的引用
+                const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
+                const gameDocRef = doc(gamesCollectionRef, gameId);
+                const gameDocSnapshot = await getDoc(gameDocRef);
+
+                if (gameDocSnapshot.exists()) {
+                    console.log('游戏文档存在');
+
+                    const gameData = gameDocSnapshot.data();
+                    const attackList = gameData.attacklist;
+                    setAttackList(attackList);
+
+                    console.log('开始获取团队文档');
+                    console.log(attackList)
+                    const teamCollectionRef = collection(firestore, 'teams');
+                    const querySnapshot = await getDocs(query(teamCollectionRef, where('codeName', '==', codeName)));
+
+                    if (teamDocSnapshot.exists()) {
+                        console.log('团队文档存在');
+
+                        const teamData = teamDocSnapshot.data();
+                        const playersField = teamData.players;
+
+                        if (playersField && typeof playersField === 'object') {
+                            console.log('players 字段是对象');
+
+                            const playerKeysInAttackList = attackList.filter(playerId => playerId in playersField);
+                            setPlayerKeys(playerKeysInAttackList);
+
+                            const playersData = {};
+                            playerKeysInAttackList.forEach(playerId => {
+                                playersData[playerId] = playersField[playerId];
+                            });
+                            setPlayers(playersData);
+
+                            console.log('设置玩家数据');
+
+                            const originalIndexes = {};
+                            playerKeysInAttackList.forEach((playerId, index) => {
+                                originalIndexes[playerId] = index;
+                            });
+                            setOriginalPlayerIndexes(originalIndexes);
+
+                            console.log('设置初始索引');
+
+                            const initialIndexesData = {};
+                            playerKeysInAttackList.forEach((playerId, index) => {
+                                initialIndexesData[playerId] = index + 1;
+                            });
+                            setInitialIndexes(initialIndexesData);
+
+                            console.log('完成设置');
+                        } else {
+                            console.log('团队文档中的players字段不是对象');
+                        }
+                    } else {
+                        console.log('团队文档不存在');
+                    }
+                } else {
+                    console.log('游戏文档不存在');
+                }
+            } else {
+                console.log('找不到匹配的团队文档');
+            }
+        } catch (error) {
+            console.error('Error fetching game data:', error);
         }
-      } catch (error) {
-        console.error('Error fetching game data:', error);
-      }
     };
 
-    console.log('觸發 useEffect');
+    console.log('触发 useEffect');
     fetchAttackList();
-  }, [gameId]);
-  
+}, [gameId, codeName]);
+
+
+
   const handlePositionClick = (position) => {
     setSelectedPosition(position);
   };
@@ -123,7 +158,7 @@ const DefencePlacePage = () => {
   const savePositionData = async () => {
     try {
         // 獲取團隊文檔的引用
-        const teamDocRef = doc(firestore, 'team', '4DllBDaCXJOxbZRaRPCM');
+        const teamDocRef = doc(firestore, 'team', teamId);
         const teamDocSnapshot = await getDoc(teamDocRef);
 
         // 確認團隊文檔存在
@@ -137,7 +172,7 @@ const DefencePlacePage = () => {
                 const gameIdFromRouter = gameId;
 
                 // 獲取遊戲文檔的引用
-                const gameIdDocRef = doc(firestore, 'team', '4DllBDaCXJOxbZRaRPCM', 'games', gameIdFromRouter);
+                const gameIdDocRef = doc(firestore, 'team', teamId , 'games', gameIdFromRouter);
                 const gameIdDocSnapshot = await getDoc(gameIdDocRef);
 
                 // 確認遊戲文檔存在

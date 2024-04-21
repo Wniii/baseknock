@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { firestore } from 'src/pages/firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc, setDoc } from 'firebase/firestore';
-import {
-    Box,
-    Card,
-    ListItem,
-    ListItemIcon,
-    List,
-    Typography,
-    Link
-} from '@mui/material';
+import { collection, getDocs, addDoc, deleteDoc, doc, setDoc, updateDoc, query, where, getDoc } from 'firebase/firestore';
+import { Box, Card, ListItem, ListItemIcon, List, Typography, Link, TextField, Button } from '@mui/material';
+import firebase from 'firebase/app';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useAuth } from 'src/hooks/use-auth';
+import 'firebase/firestore';
+
+
 
 const CurrentTeamSx = {
     backgroundColor: '#d3d3d3',
@@ -38,6 +37,14 @@ const ListItemStyle = {
 
 export const Manage = ({ onTeamSelect }) => {
     const [teams, setTeams] = useState([]);
+    const [teamId, setTeamId] = useState('');
+    const [message, setMessage] = useState('');
+    const [currentUserId, setCurrentUserId] = useState('');
+    const [userData, setUserData] = useState(null);
+    const auth = useAuth();
+    const router = useRouter();
+    const [userId, setUserId] = useState(null);
+
 
     useEffect(() => {
         const fetchTeams = async () => {
@@ -48,16 +55,119 @@ export const Manage = ({ onTeamSelect }) => {
             });
             setTeams(teamsArray);
         };
-
         fetchTeams();
     }, []);
+
+    useEffect(() => {
+        // 在组件加载时从LocalStorage中获取userId
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) {
+            // 如果LocalStorage中有userId，则设置到状态变量中
+            setUserId(storedUserId);
+        }
+    }, []);
+
+
+    useEffect(() => {
+        const auth = getAuth();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setCurrentUserId(user.uid);
+                localStorage.setItem('userId', auth.user.id);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+console.log()
+
+    //加入球隊欄位
+    const handleAddTeam = async () => {
+        console.log("Starting handleAddTeam...");
+    
+        const userId = localStorage.getItem('userId');
+        console.log("userId:", userId);
+    
+        try {
+            if (!userId) {
+                alert('無效的使用者ID');
+                return;
+            }
+    
+            const teamIdTrimmed = teamId.trim(); // 刪除可能存在的空格
+            console.log("teamIdTrimmed:", teamIdTrimmed);
+    
+            if (!teamIdTrimmed) {
+                alert('請輸入球隊ID');
+                return;
+            }
+    
+            const teamRef = doc(firestore, "team", teamIdTrimmed);
+            console.log("teamRef:", teamRef);
+    
+            const teamDoc = await getDoc(teamRef);
+            console.log("teamDoc:", teamDoc);
+    
+            if (!teamDoc.exists()) {
+                alert('找不到該球隊');
+                return;
+            }
+    
+            const teamcodeName = teamDoc.data().codeName;
+            console.log("teamcodeName:", teamcodeName);
+    
+            const userRef = doc(firestore, "users", userId);
+            console.log("userRef:", userRef);
+    
+            // 獲取當前用戶的文檔
+            const userDoc = await getDoc(userRef);
+            let userDocData = userDoc.data();
+    
+            // 如果用戶文檔不存在或者 u_team 欄位不存在，初始化為一個空陣列
+            if (!userDoc.exists() || !userDocData.u_team) {
+                userDocData.u_team = [];
+            }
+    
+            // 使用 push 方法將新的值添加到陣列的末尾
+            userDocData.u_team.push(teamcodeName);
+    
+            // 更新用戶文檔中的 u_team 欄位為新的陣列
+            await updateDoc(userRef, {
+                u_team: userDocData.u_team
+            }, { merge: true });
+    
+            console.log("Team added to user successfully.");
+    
+            alert('成功將球隊添加到使用者');
+        } catch (error) {
+            console.error('Error adding team to user:', error);
+            alert('添加球隊時出錯');
+        }
+    };
+    
+    
 
     return (
         <div>
             <form>
-                <div style={{ textAlign: 'left', padding: '8px' }}>
-                    <Typography variant="h6">目前球隊（可點選更改）</Typography>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="h6" style={{ flex: 1 }}>目前球隊</Typography>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="h6" style={{ textAlign: 'right' }}>
+                            加入球隊：
+                        </Typography>
+                        <TextField
+                            label="輸入球隊ID"
+                            value={teamId}
+                            onChange={(e) => setTeamId(e.target.value)}
+                            sx={{ width: '300px', marginLeft: '8px' }}
+                        />
+                        <Button variant="contained" onClick={handleAddTeam}>確認</Button>
+                    </div>
+                    <Typography variant="body1" color={message.includes('成功') ? 'success' : 'error'}>
+                        {message}
+                    </Typography>
                 </div>
+                &nbsp;
 
                 <Card sx={CurrentTeamSx}>
                     <List style={ListStyle}>
