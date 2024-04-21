@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   Button,
   Card,
@@ -13,11 +13,17 @@ import {
   Typography,
   Unstable_Grid2 as Grid
 } from '@mui/material';
+import { collection, getDocs } from "firebase/firestore"; 
+import { firestore } from 'src/pages/firebase'; // 確保路徑與你的配置文件相匹配
+
 
 export const HitrecordSearch = ({ onConfirm }) => {
   const [values, setValues] = useState({
     state: '',
   });
+
+  const [selectedTeam, setSelectedTeam] = useState('');
+  const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
  
   const [checkboxStates, setCheckboxStates] = useState([
     { label: '打席', checked: false },
@@ -79,9 +85,35 @@ export const HitrecordSearch = ({ onConfirm }) => {
   };
 
   const handleConfirm = () => {
-    const selectedColumns = checkboxStates.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.label);
-    onConfirm(selectedColumns);
+    const selectedColumns = checkboxStates
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => checkbox.label);
+    onConfirm(selectedColumns, selectedTeam); // 傳遞所選球隊
   };
+
+  const handleTeamChange = (event) => {
+    setSelectedTeam(event.target.value);
+  };
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      // 假設 'teams' 是您儲存團隊的集合名稱
+      const teamsCollectionRef = collection(firestore, "team");
+      
+      try {
+        const querySnapshot = await getDocs(teamsCollectionRef);
+        const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setTeams(teamsData);
+      } catch (error) {
+        console.error("提取團隊數據時發生錯誤：", error);
+        // 相應地處理錯誤
+      }
+    };
+  
+    fetchTeams();
+  }, []);
+
+
   return (
     <Card>
       <CardContent sx={{ pt: 2 }}>
@@ -157,6 +189,23 @@ export const HitrecordSearch = ({ onConfirm }) => {
                 </option>
               ))}
             </TextField>
+          </Grid>
+          <Grid item xs={12} md={4}>
+          <TextField
+      fullWidth
+      label="球隊"
+      name="team"
+      onChange={handleTeamChange}
+      select
+      SelectProps={{ native: true }}
+      value={selectedTeam}
+    >
+      {teams.map((team) => (
+        <option key={team.id} value={team.id}>
+          {team.Name}
+        </option>
+      ))}
+    </TextField>
           </Grid>
         </Grid>
         <br />

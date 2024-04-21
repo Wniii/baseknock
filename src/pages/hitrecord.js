@@ -22,6 +22,8 @@ const Page = () => {
   const playerId = useMemo(() => player.map(player => player.id), [player]);
   const playerSelection = useSelection(playerId);
 
+  const [selectedTeam, setSelectedTeam] = useState(null);
+
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
   }, []);
@@ -47,9 +49,10 @@ const Page = () => {
     fetchPlayersData();
   }, []);
 
-  const handleSearchConfirm = useCallback((columns) => {
+  const handleSearchConfirm = useCallback((columns, team) => {
     setSelectedColumns(columns);
-  }, []); // 将 setSelectedColumns 添加到 useCallback 依赖项中
+    setSelectedTeam(team); // 更新selectedTeam變量
+  }, []);
 
   return (
     <>
@@ -79,6 +82,7 @@ const Page = () => {
             {/* 将 ParentComponent 替换为 HitrecordTable 的子组件 */}
             <HitrecordSearch onConfirm={handleSearchConfirm} />
             <HitrecordTable
+             selectedTeam={selectedTeam}
               count={playersData.length}
               items={player}
               onDeselectAll={playerSelection.handleDeselectAll}

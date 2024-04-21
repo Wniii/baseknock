@@ -47,11 +47,15 @@ export const TeamManagement = () => {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
+  // 初始化包含九个空白球员条目的Map
+  const initialPlayers = new Map([...Array(1)].map((_, index) => [`${index}`, { PName: '', PNum: '', habit: '', position: '' }]));
+
+
   const [values, setValues] = useState({
     Name: '',
     codeName: '',
     introduction: '',
-    players: new Map([...Array(9)].map((_, i) => [uuidv4(), { PName: '', PNum: '', position: '', habit: '' }]))
+    players: initialPlayers
   });
 
   const handleFileChange = (event) => {
@@ -71,23 +75,45 @@ export const TeamManagement = () => {
     fileInputRef.current.click();
   };
 
-  const handlePlayerChange = (key, field, event) => {
-    if (event && event.target) {
-      const { value } = event.target;
-      setValues(prevState => {
-        const playerToUpdate = prevState.players.get(key);
-        const updatedPlayer = { ...playerToUpdate, [field]: value };
-        const updatedPlayers = new Map(prevState.players).set(key, updatedPlayer);
-        return {
-          ...prevState,
-          players: updatedPlayers
-        };
-      });
+  const handlePlayerChange = (id, field, event) => {
+    const value = event.target.value;
+  
+    // 如果正在改變'PName'，則直接返回並不更新Map鍵值
+    if (field === 'PName') {
+      setValues(prevState => ({
+        ...prevState,
+        players: new Map(prevState.players).set(id, {
+          ...prevState.players.get(id),
+          [field]: value
+        })
+      }));
+      return;
     }
+  
+    // 其他字段正常更新
+    setValues(prevState => {
+      const newPlayers = new Map(prevState.players);
+      const playerData = newPlayers.get(id) || {};
+      playerData[field] = value;
+      newPlayers.set(id, playerData);
+      return { ...prevState, players: newPlayers };
+    });
   };
+
+  const handlePlayerNameChange = (id, newName) => {
+  setValues(prevState => {
+    const newPlayers = new Map(prevState.players);
+    const playerData = newPlayers.get(id);
+    newPlayers.delete(id); // 刪除舊的鍵
+    newPlayers.set(newName, playerData); // 使用新名稱作為鍵
+    return { ...prevState, players: newPlayers };
+  });
+};
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    console.log('Submit started'); // 调试语句
+  
     let photoURL = '';
     if (file) {
       try {
@@ -100,33 +126,46 @@ export const TeamManagement = () => {
         return;
       }
     }
-    try {
-      const playersObject = {};
-      // 使用玩家的姓名作为键
-      Array.from(values.players.entries()).forEach(([key, player]) => {
-        playersObject[player.PName] = player;
-      });
-      const teamCollectionRef = collection(firestore, 'team');
-      const newTeamDocRef = await addDoc(teamCollectionRef, {
-        Name: values.Name,
-        codeName: values.codeName,
-        introduction: values.introduction,
-        photo: photoURL,
-        players: playersObject
-      });
-      console.log('Team document added successfully with ID:', newTeamDocRef.id);
-      setValues({
-        Name: '',
-        codeName: '',
-        introduction: '',
-        players: new Map([...Array(9)].map((_, i) => [uuidv4(), { PName: '', PNum: '', position: '', habit: '' }]))
-      });
-      setPreviewUrl(null);
-      setFile(null);
-    } catch (error) {
-      console.error('Error adding team document:', error);
+  
+    const playersObject = {};
+  values.players.forEach((playerData, playerName) => {
+    playersObject[playerName] = { ...playerData }; // 使用玩家名稱作為鍵
+  });
+
+  // 調試：輸出 players 對象以確認它的內容
+  console.log('Players to upload:', playersObject);
+
+  try {
+    const playersToSave = {};
+  values.players.forEach((playerData, id) => {
+    const playerName = playerData.PName.trim();
+    if (playerName) {
+      playersToSave[playerName] = {
+        PNum: playerData.PNum,
+        habit: playerData.habit,
+        position: playerData.position,
+      };
     }
-  };
+  });
+
+
+    // 將玩家數據上傳至 Firebase
+    const newTeamDocRef = await addDoc(collection(firestore, 'team'), {
+      Name: values.Name,
+      codeName: values.codeName,
+      introduction: values.introduction,
+      photo: photoURL,
+      players: playersToSave
+    });
+
+    // ...後續的處理
+  } catch (error) {
+    console.error('Error adding team document:', error);
+  }
+};
+
+  
+
   const handleAddPlayer = () => {
     setValues(prevState => {
       const newKey = uuidv4();
@@ -249,24 +288,25 @@ export const TeamManagement = () => {
         }}>
                 <CardContent sx={{ pt: 3 }}>
                   <Box sx={{ m: -1.5 }}>
-                  {Array.from(values.players.entries()).map(([key, player]) => (
-                       <Grid key={key} container spacing={2} alignItems="center">
+                  {Array.from(values.players.entries()).map(([index, player]) => (
+                       <Grid container key={index} spacing={2} alignItems="center">
                       <Grid item xs={12} md={3}>
                       <TextField
   fullWidth
   label="姓名"
   name="PName"
-  onChange={(e) => handlePlayerChange(key, 'PName', e)} // 传入 'PName' 作为要更新的字段名称
+  value={player.PName || ''}
+  onChange={(e) => handlePlayerChange(index, 'PName', e)}
   required
-  value={player.PName}
 />
+
                       </Grid>
                       <Grid item xs={12} md={3}>
                       <TextField
   fullWidth
   label="背號"
   name="PNum"
-  onChange={(e) => handlePlayerChange(key, 'PNum', e)} // 传入 'PNum' 作为要更新的字段名称
+  onChange={(e) => handlePlayerChange(index, 'PNum', e)} // 传入 'PNum' 作为要更新的字段名称
   required
   value={player.PNum}
 />
@@ -276,7 +316,7 @@ export const TeamManagement = () => {
   fullWidth
   label="守備位置"
   name="position"
-  onChange={(e) => handlePlayerChange(key, 'position', e)} // 传入 'position' 作为要更新的字段名称
+  onChange={(e) => handlePlayerChange(index, 'position', e)} // 传入 'position' 作为要更新的字段名称
   required
   select
   SelectProps={{ native: true }}
@@ -294,7 +334,7 @@ export const TeamManagement = () => {
   fullWidth
   label="投打習慣"
   name="habit"
-  onChange={(e) => handlePlayerChange(key, 'habit', e)} // 传入 'habit' 作为要更新的字段名称
+  onChange={(e) => handlePlayerChange(index, 'habit', e)} // 传入 'habit' 作为要更新的字段名称
   required
   select
   SelectProps={{ native: true }}
@@ -308,7 +348,7 @@ export const TeamManagement = () => {
 </TextField>
                       </Grid>
                       {values.players.size > 9 && (
-      <IconButton size="small" onClick={() => handleDeletePlayer(key)}>
+      <IconButton size="small" onClick={() => handleDeletePlayer(index)}>
         <DeleteIcon fontSize="small" />
       </IconButton>
     )}
