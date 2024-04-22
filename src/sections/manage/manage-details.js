@@ -44,20 +44,37 @@ export const Manage = ({ onTeamSelect }) => {
     const auth = useAuth();
     const router = useRouter();
     const [userId, setUserId] = useState(null);
+    
 
 
     useEffect(() => {
-        const fetchTeams = async () => {
-            const querySnapshot = await getDocs(collection(firestore, "team"));
-            const teamsArray = [];
-            querySnapshot.forEach((doc) => {
-                teamsArray.push({ id: doc.id, ...doc.data() });
-            });
-            setTeams(teamsArray);
+        const fetchTeam = async () => {
+          const userTeamCodeNameString = localStorage.getItem('userTeam'); // 從localStorage中獲取代碼名稱
+          if (userTeamCodeNameString) {
+            const userTeamCodeNames = userTeamCodeNameString.split(','); // 使用逗號分隔字符串，轉成數組
+            const teamsData = [];
+      
+            for (const codeName of userTeamCodeNames) {
+              const q = query(collection(firestore, "team"), where("codeName", "==", codeName.trim()));
+              const querySnapshot = await getDocs(q);
+              querySnapshot.forEach((doc) => {
+                teamsData.push({ id: doc.id, ...doc.data() });
+              });
+            }
+            
+            if (teamsData.length > 0) {
+              setTeams(teamsData); // 將所有找到的團隊設置到狀態中
+            } else {
+              console.log("No such team!");
+              alert('找不到對應的球隊');
+            }
+          }
         };
-        fetchTeams();
-    }, []);
-
+      
+        fetchTeam();
+      }, []);
+      
+      
     useEffect(() => {
         // 在组件加载时从LocalStorage中获取userId
         const storedUserId = localStorage.getItem('userId');
@@ -66,7 +83,6 @@ export const Manage = ({ onTeamSelect }) => {
             setUserId(storedUserId);
         }
     }, []);
-
 
     useEffect(() => {
         const auth = getAuth();
@@ -78,73 +94,73 @@ export const Manage = ({ onTeamSelect }) => {
         });
         return () => unsubscribe();
     }, []);
-console.log()
+    console.log()
 
     //加入球隊欄位
     const handleAddTeam = async () => {
         console.log("Starting handleAddTeam...");
-    
+
         const userId = localStorage.getItem('userId');
         console.log("userId:", userId);
-    
+
         try {
             if (!userId) {
                 alert('無效的使用者ID');
                 return;
             }
-    
             const teamIdTrimmed = teamId.trim(); // 刪除可能存在的空格
             console.log("teamIdTrimmed:", teamIdTrimmed);
-    
+
             if (!teamIdTrimmed) {
                 alert('請輸入球隊ID');
                 return;
             }
-    
             const teamRef = doc(firestore, "team", teamIdTrimmed);
             console.log("teamRef:", teamRef);
-    
             const teamDoc = await getDoc(teamRef);
             console.log("teamDoc:", teamDoc);
-    
+
             if (!teamDoc.exists()) {
                 alert('找不到該球隊');
                 return;
             }
-    
+
             const teamcodeName = teamDoc.data().codeName;
             console.log("teamcodeName:", teamcodeName);
-    
+
             const userRef = doc(firestore, "users", userId);
             console.log("userRef:", userRef);
-    
+
             // 獲取當前用戶的文檔
             const userDoc = await getDoc(userRef);
             let userDocData = userDoc.data();
-    
+
             // 如果用戶文檔不存在或者 u_team 欄位不存在，初始化為一個空陣列
             if (!userDoc.exists() || !userDocData.u_team) {
                 userDocData.u_team = [];
             }
-    
+
             // 使用 push 方法將新的值添加到陣列的末尾
             userDocData.u_team.push(teamcodeName);
-    
+
             // 更新用戶文檔中的 u_team 欄位為新的陣列
             await updateDoc(userRef, {
                 u_team: userDocData.u_team
+
             }, { merge: true });
-    
+
             console.log("Team added to user successfully.");
-    
+
             alert('成功將球隊添加到使用者');
         } catch (error) {
             console.error('Error adding team to user:', error);
             alert('添加球隊時出錯');
         }
     };
+
     
-    
+
+
 
     return (
         <div>
@@ -175,7 +191,7 @@ console.log()
                             <ListItem key={team.id} style={{ display: 'flex' }} onClick={() => onTeamSelect(team)}>
                                 <Box>
                                     <ListItemIcon style={{ margin: 'auto' }}>
-                                        <Link /* ... */>
+                                        <Link >
                                             <img src={team.photo} alt="icon" style={{ width: '100px', height: '100px' }} />
                                             <br></br>
                                             {team.Name}
