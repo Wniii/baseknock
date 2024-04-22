@@ -104,23 +104,19 @@ let buttonPlaced = false;
         <TableBody>
   {attackListData.map((attack, index) => {
     // 在 ordermain 中查找具有相同 p_name 的对象
-    const orderMainItem = ordermain.find(item => item.p_name === attack);
+    const orderMainItems = ordermain.filter(item => item.p_name === attack);
 
     // 获取当前攻击者的内容
-    const content = orderMainItem ? orderMainItem.content.split(',')[0] : '';
+     // 初始化存放内容的数组
+     const contentArray = new Array(9).fill('');
 
-    // 初始化存放内容的数组
-    const contentArray = new Array(9).fill('');
-
-    // 根据 inn 字符串的内容确定应该放置在哪一列
-    if (orderMainItem && orderMainItem.inn) {
-      const innContent = orderMainItem.inn;
-      for (let i = 0; i < 9; i++) {
-        if (innContent.includes(`${i + 1}`)) {
-          contentArray[i] = content;
-        }
-      }
-    }
+     // 將每個攻擊者的內容添加到相應的列中
+     orderMainItems.forEach(orderMainItem => {
+       if (orderMainItem && orderMainItem.inn) {
+         const innContent = orderMainItem.inn;
+         contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
+       }
+     });
 
     // 根据 outs 数字计算按钮所在的列数
     let buttonColumn = -1;

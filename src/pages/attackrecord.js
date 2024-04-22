@@ -94,12 +94,10 @@ const Page = () => {
           if (!gamesQuerySnapshot.empty) {
             const gameIds = gamesQuerySnapshot.docs.map(doc => doc.id);
             setGameDocIds(gameIds);
-            console.log('Game document IDs found:', gameIds);
 
             const gameRef = doc(firestore, 'team', teamId, 'games', timestamp); // 使用具體的遊戲 ID
             const gameSnap = await getDoc(gameRef);
             if (gameSnap.exists()) {
-              console.log("2222", gameSnap)
               const gameData = gameSnap.data();
               if (gameData.pitcher) {
                 setInitialBalls(gameData.pitcher.ball || 0); // 確保沒有數據時返回 0
@@ -112,7 +110,6 @@ const Page = () => {
                 console.log('Initial Outs:', gameData.outs || 0);
               }
               if (gameSnap.exists()) {
-                console.log("Game data:", gameSnap.data())
                 const gameData = gameSnap.data();
                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
                 setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
@@ -139,7 +136,7 @@ const Page = () => {
     };
 
     fetchGameDocument();
-  }, [codeName, timestamp, firestore, outs]);
+  }, [codeName, timestamp, firestore]);
 
 
 
@@ -223,7 +220,7 @@ const Page = () => {
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
-    }
+    } 
     setOuts(prevOuts => {
       console.log('Current outs before update:', prevOuts); // 正確的位置
       const newOuts = prevOuts + additionalOuts;
@@ -231,6 +228,7 @@ const Page = () => {
       return newOuts;
     });
   };
+  
 
 
 

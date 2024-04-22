@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from './firebase';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { Box, Button, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Grid, Typography, Container } from '@mui/material';
@@ -27,6 +27,7 @@ const ALLPlayerPage = () => {
   
           if (teamData.codeName === codeName && teamData.games && teamData.games[timestamp]) {
             setPlayers(teamData.players || {});
+            console.log(teamData.players)
             return;
           }
         }
@@ -59,67 +60,59 @@ const ALLPlayerPage = () => {
     router.push('/your-other-page');
   };
   console.log(codeName)
-  const handleSaveAndNavigate = async (codeName) => {
+
+
+  const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
 
     try {
         console.log('timestamp', timestamp);
-        console.log('codeName',codeName)
-        // 查找匹配的团队文档
-        const teamCollection = collection(firestore, 'team');
-        const querySnapshot = await getDocs(teamCollection);
+        console.log('codeName', codeName);
 
-        let gamesCollectionRef;
-
-        for (const doc of querySnapshot.docs) {
-            const teamData = doc.data();
-          console.log('teamData.codeName',teamData.codeName)
-            if (teamData.codeName === codeName) {
-                console.log('Match found for codeName:', codeName);
-                gamesCollectionRef = collection(doc.ref, 'games');
-                // 找到匹配的团队后就停止遍歷
-                break;
-            }
-        }
-
-        if (!gamesCollectionRef) {
-            console.error('No team found with codeName:', codeName);
-            return;
-        }
-
-        console.log('gamesCollectionRef:', gamesCollectionRef);
-
-        // 在這裡處理 timestamp 的文檔
+        // 创建一个空数组来存储所有的异步更新操作
         const promises = [];
 
-        querySnapshot.forEach((doc) => {
-            const gameId = doc.id;
+        // 创建游戏文档的引用
+        const gameDocRef = doc(firestore, "team", teamId, "games", timestamp);
 
-            if (gameId === timestamp) {
-                console.log('Match found for timestamp:', timestamp);
-                const updatedAttackList = [...selectedPlayers];
-                console.log('updatedAttackList:', updatedAttackList);
-                const promise = setDoc(doc.ref, { attacklist: updatedAttackList });
-                promises.push(promise);
+        // 获取指定游戏文档
+        const gameDocSnapshot = await getDoc(gameDocRef);
 
-                navigatetodefence(gameId, codeName);
-            }
-        });
+        if (gameDocSnapshot.exists()) {
+            console.log("Game document found with ID:", timestamp);
+            console.log("Game data:", gameDocSnapshot.data());
+            
+            // 创建要更新的攻击列表副本
+            const updatedAttackList = [...selectedPlayers];
+            console.log('updatedAttackList:', updatedAttackList);
+        
+            // 更新游戏文档，保留其他字段的值
+            const promise = updateDoc(gameDocRef, {
+                attacklist: updatedAttackList
+            }, { merge: true });
+            promises.push(promise);
+        } else {
+            console.log("No matching game document found with ID:", timestamp);
+        }
 
         console.log('Promises:', promises);
 
+        // 等待所有的更新操作完成
         await Promise.all(promises);
         console.log('All promises resolved');
 
+        // 导航到防守页面
         navigatetodefence(timestamp, codeName);
         console.log('Navigated to defence');
 
+        // 清空选定的球员列表
         setSelectedPlayers([]);
         console.log('Selected players cleared');
     } catch (error) {
-        console.error('Error adding selected players to game document:', error);
+        console.error('Error updating game document or navigating to defence:', error);
     }
 };
+
 
 
   
