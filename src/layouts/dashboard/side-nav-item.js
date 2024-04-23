@@ -19,9 +19,6 @@ function YourComponent({ onClose }) {
     <>
       <MenuItem onClick={() => handleItemClick('/hitrecord')}>打擊數據</MenuItem>
       <MenuItem onClick={() => handleItemClick('/defendrecord')}>投球數據</MenuItem>
-      <MenuItem onClick={() => handleItemClick('/rank')}>各項排名</MenuItem>
-      <MenuItem onClick={() => handleItemClick('/vsteam')}>球隊比較</MenuItem>
-      <MenuItem onClick={() => handleItemClick('/vsplayer')}>球員比較</MenuItem>
       <MenuItem onClick={() => handleItemClick('/personal-data')}>個人數據</MenuItem>
     </>
   );
