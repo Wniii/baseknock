@@ -18,7 +18,8 @@ import {
   Typography,
   ImageList,
   ImageListItem,
-  ImageListItemBar
+  ImageListItemBar,
+  DialogContentText
 } from '@mui/material';
 
 const CurrentTeamSx = {
@@ -65,12 +66,21 @@ export const ManagePlayer = ({ teamInfo }) => {
     const [newPlayerHabit, setNewPlayerHabit] = useState('');
     const [selectedTeamInfo, setSelectedTeamInfo] = useState(null); // 新增状态来保存选择的球队信息
 
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [dialogTitle, setDialogTitle] = useState('');
+
+    
+
     useEffect(() => {
+
+
         if (teamInfo && teamInfo.players) {
             const keys = Object.keys(teamInfo.players);
             setPlayerKeys(keys);
         }
     }, [teamInfo]);
+
 
     const handleOpenAddPlayerDialog = (teamInfo) => {
         setSelectedTeamInfo(teamInfo); // 设置选定的球队信息
@@ -154,28 +164,61 @@ export const ManagePlayer = ({ teamInfo }) => {
     
     // 根据获取的 player 键名生成 itemData
     const itemData = playerKeys.map(key => ({
-        img: 'https://images.unsplash.com/photo-1549388604-817d15aa0110',
+        img: 'https://img.lovepik.com/png/20231027/Dark-gray-simple-avatar-grey-silhouette-placeholder_369196_wh860.png',
         title: key,
         author: key
     }));
 
+    const handleClick = (player) => {
+        const playerData = teamInfo.players[player.title]; // 获取点击球员的完整信息
+        setSelectedPlayer(playerData); // 设置选定的球员信息
+        setDialogTitle(player.author);
+        setOpenDialog(true); // 打开对话框
+    };
+    
+    
+
+    // 关闭对话框
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+    };
+
+
+
     return (
         <div>
             <Typography variant="h6" style={{ textAlign: 'left', padding: '8px' }}>球員名單</Typography>
-            <Card sx={CurrentTeamSx}>
-                <List>
-                    <ImageList variant="standard" cols={cols} gap={8}>
-                        {itemData.map((item) => (
-                            <ImageListItem key={item.img} sx={{ width: '100px', height: '50px' }}>
-                                <img src={`${item.img}?w=248&fit=crop&auto=format`} alt={item.title} loading="lazy" />
-                                <ImageListItemBar position="below" title={item.author} />
-                                <Button onClick={() => handleDelete(item.title)}>刪除</Button>
-                            </ImageListItem>
-                        ))}
-                    </ImageList>
-                </List>
-            </Card>
+            <Card>
+            <List>
+                <ImageList variant="standard" cols={cols} gap={8}>
+                    {itemData.map((item) => (
+                        <ImageListItem key={item.img} sx={{ width: '100px', height: '50px', marginLeft: '16px' }} onClick={() => handleClick(item)}>
+                            <img src={`${item.img}?w=248&fit=crop&auto=format`} alt={item.title} loading="lazy"/>
+                            <ImageListItemBar position="below" title={item.author} sx={{ textAlign: 'center' }} />
+                            <Button onClick={() => handleDelete(item.title)}>刪除</Button>
+                        </ImageListItem>
+                    ))}
+                </ImageList>
+            </List>
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogTitle>{dialogTitle}</DialogTitle>
+                <DialogContent>
+                    {selectedPlayer && (
+                        <DialogContentText>
+                            背號: {selectedPlayer.PNum}<br/>
+                            投打習慣: {selectedPlayer.habit}<br/>
+                            守備位置: {selectedPlayer.position}<br/>
+                        </DialogContentText>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog}>關閉</Button>
+                </DialogActions>
+            </Dialog>
+        </Card>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
             <Button variant="contained" color="primary" onClick={() => handleOpenAddPlayerDialog(teamInfo)}>新增球員</Button>
+        </div>
             <Dialog open={openAddPlayerDialog} onClose={handleCloseAddPlayerDialog}>
                 <DialogTitle>新增球員</DialogTitle>
                 <DialogContent>
@@ -200,7 +243,7 @@ export const ManagePlayer = ({ teamInfo }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseAddPlayerDialog}>取消</Button>
-                    <Button onClick={() => handleAddPlayer(teamInfo)}>添加</Button>
+                    <Button onClick={() => handleAddPlayer(teamInfo)}>新增</Button>
                 </DialogActions>
             </Dialog>
         </div>
