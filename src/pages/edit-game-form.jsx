@@ -15,7 +15,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Stack,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
 } from "@mui/material";
+
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
 import { firestore } from "./firebase";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
@@ -24,15 +30,15 @@ import { deleteDoc } from "firebase/firestore";
 import { CircularProgress } from "@mui/material";
 import { runTransaction } from "firebase/firestore";
 
-const hometeamOptions = [
-  { value: "fju", label: "輔仁大學" },
-  { value: "kpbl", label: "卡皮巴拉" },
-];
+// const hometeamOptions = [
+//   { value: "fju", label: "輔仁大學" },
+//   { value: "kpbl", label: "卡皮巴拉" },
+// ];
 
-const awayteamOptions = [
-  { value: "fju", label: "輔仁大學" },
-  { value: "kpbl", label: "卡皮巴拉" },
-];
+// const awayteamOptions = [
+//   { value: "fju", label: "輔仁大學" },
+//   { value: "kpbl", label: "卡皮巴拉" },
+// ];
 
 const gNameOptions = [
   { value: "friendly", label: "友誼賽" },
@@ -48,10 +54,11 @@ const labelOptions = [
 ];
 
 export const EditGame = ({ g_id }) => {
+  const [teamOptions, setTeamOptions] = useState([]);
   const router = useRouter();
   const [values, setValues] = useState({
-    GDate: null, // 初始化为空字符串，而非 null
-    GTime: null, // 初始化为空字符串，而非 null
+    GDate: null,
+    GTime: null,
     hometeam: "",
     awayteam: "",
     gName: "",
@@ -59,6 +66,8 @@ export const EditGame = ({ g_id }) => {
     recorder: "",
     label: "",
     remark: "",
+    result: "", // 添加用于存储比赛结果的状态
+    youtubelink: "", // 添加用于存储YouTube链接的状态
   });
 
   const [loading, setLoading] = useState(true);
@@ -72,7 +81,30 @@ export const EditGame = ({ g_id }) => {
   const handleClose = () => {
     setOpen(false);
   };
-
+  const [hometeamOptions, setHometeamOptions] = useState([
+    { value: 'loadingHome', label: '加载主队数据...' }
+  ]);
+  const [awayteamOptions, setAwayteamOptions] = useState([
+    { value: 'loadingAway', label: '加载客队数据...' }
+  ]);
+  
+  useEffect(() => {
+    const userTeamsString = localStorage.getItem("userTeam");
+    let initialHomeTeams = [];
+    let initialAwayTeams = [];
+  
+    if (userTeamsString) {
+      const userTeams = userTeamsString.split(",");
+      initialHomeTeams = userTeams.map(team => ({ value: team, label: team }));
+      initialAwayTeams = userTeams.map(team => ({ value: team, label: team }));
+    } else {
+      initialHomeTeams = [{ value: 'noHome', label: '无可选主队' }];
+      initialAwayTeams = [{ value: 'noAway', label: '无可选客队' }];
+    }
+  
+    setHometeamOptions(initialHomeTeams);
+    setAwayteamOptions(initialAwayTeams);
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -82,6 +114,8 @@ export const EditGame = ({ g_id }) => {
         if (docSnap.exists()) {
           const gameData = docSnap.data();
           setValues({
+            result: gameData.result || "",
+            youtubelink: gameData.youtubelink || "",
             GDate: gameData.GDate ? gameData.GDate.toDate() : null,
             GTime: gameData.GTime,
             hometeam: gameData.hometeam || "",
@@ -122,11 +156,10 @@ export const EditGame = ({ g_id }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     try {
       await updateDoc(doc(firestore, "team", "111", "games", g_id), values);
-      router.push("/schedule");
       alert("Game information updated successfully!");
+      router.push("/schedule");
     } catch (error) {
       console.error("Error updating game information:", error);
       alert("An error occurred while updating game information.");
@@ -172,6 +205,296 @@ export const EditGame = ({ g_id }) => {
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Card>
           <CardContent>
+            <Grid item xs={12} md={4}>
+              <Stack spacing={1}>
+                <Typography variant="h6">賽後資訊</Typography>
+                <Stack></Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h9">卡皮巴拉</Typography>
+                <Stack>
+                  <div>
+                    <TextField
+                      label="1"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="2"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="3"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="4"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="5"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="6"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="7"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="8"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="9"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                  </div>
+                </Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h9">輔仁大學</Typography>
+                <Stack>
+                  <div>
+                    <TextField
+                      label="1"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="2"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="3"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="4"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="5"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="6"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="7"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="8"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                    <TextField
+                      label="9"
+                      id="standard-size-normal"
+                      defaultValue="0"
+                      size="normal"
+                      variant="standard"
+                      sx={{ width: "50px" }}
+                    />
+                  </div>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography variant="h9">失誤</Typography>
+                  <Stack>
+                    <div>
+                      <TextField
+                        label="1"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="2"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="3"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="4"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="5"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="6"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="7"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="8"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="9"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                    </div>
+                  </Stack>
+                </Stack>
+              </Stack>
+            </Grid>
+            <Stack spacing={4}>
+              <Typography variant="h6"></Typography>
+              <Stack></Stack>
+            </Stack>
+            <Grid item xs={12} md={4}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">勝敗</FormLabel>
+                <RadioGroup
+                  row
+                  aria-label="result"
+                  name="result"
+                  value={values.result}
+                  onChange={handleChange}
+                >
+                  <FormControlLabel value="win" control={<Radio />} label="勝" />
+                  <FormControlLabel value="lose" control={<Radio />} label="敗" />
+                  <FormControlLabel value="draw" control={<Radio />} label="平" />
+                  <FormControlLabel value="We abstain" control={<Radio />} label="我方棄權" />
+                  <FormControlLabel value="opponent abstain" control={<Radio />} label="對方棄權" />
+                </RadioGroup>
+              </FormControl>
+              <Stack spacing={4}>
+                <Typography variant="h6"></Typography>
+                <Stack></Stack>
+              </Stack>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  fullWidth
+                  label="YouTube Video Link"
+                  name="youtubelink"
+                  onChange={handleChange}
+                  value={values.youtubelink}
+                />
+              </Grid>
+              <Stack spacing={4}>
+                <Typography variant="h6"></Typography>
+                <Stack></Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h6">賽前資訊</Typography>
+                <Stack></Stack>
+              </Stack>
+              <Stack spacing={4}>
+                <Typography variant="h6"></Typography>
+                <Stack></Stack>
+              </Stack>
+            </Grid>
             <Grid container spacing={2}>
               <Grid container spacing={4}>
                 <Grid item xs={12} md={4}>
@@ -197,6 +520,7 @@ export const EditGame = ({ g_id }) => {
                     </Select>
                   </FormControl>
                 </Grid>
+
                 {/* <Grid item xs={12} md={2} align="center">
                   <Typography variant="body1" component="div" sx={{ paddingTop: "15px" }}>
                     V.S
@@ -214,7 +538,7 @@ export const EditGame = ({ g_id }) => {
                     </Select>
                   </FormControl>
                 </Grid>
-                
+
                 <Grid item xs={12} md={12}>
                   <FormControl fullWidth required>
                     <InputLabel>比賽性質</InputLabel>
@@ -271,17 +595,17 @@ export const EditGame = ({ g_id }) => {
           </CardContent>
         </Card>
         &nbsp;
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
           <Button type="submit" variant="contained" color="primary">
             確認編輯
           </Button>
           <Button
             type="button"
             sx={{
-              color: 'white',
-              backgroundColor: 'red',
-              '&:hover': {
-                backgroundColor: '#b2102f', // 深红色
+              color: "white",
+              backgroundColor: "red",
+              "&:hover": {
+                backgroundColor: "#b2102f", // 深红色
               },
             }}
             onClick={handleClickOpen}
@@ -289,7 +613,6 @@ export const EditGame = ({ g_id }) => {
             刪除比賽
           </Button>
         </div>
-
         <Dialog
           open={open}
           onClose={handleClose}

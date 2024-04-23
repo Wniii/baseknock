@@ -58,21 +58,31 @@ export const AddGame = () => {
     remark: "",
   });
 
+  const [hometeamOptions, setHometeamOptions] = useState([
+    { value: 'loadingHome', label: '加载主队数据...' }
+  ]);
+  const [awayteamOptions, setAwayteamOptions] = useState([
+    { value: 'loadingAway', label: '加载客队数据...' }
+  ]);
+  
   useEffect(() => {
-    // Retrieve userTeam from localStorage
     const userTeamsString = localStorage.getItem("userTeam");
+    let initialHomeTeams = [];
+    let initialAwayTeams = [];
+  
     if (userTeamsString) {
-      // Split the string to get individual userTeams
       const userTeams = userTeamsString.split(",");
-      // Update the label options for hometeam and awayteam
-      setHometeamOptions(userTeams.map((team) => ({ value: team, label: team })));
-      setAwayteamOptions(userTeams.map((team) => ({ value: team, label: team })));
+      initialHomeTeams = userTeams.map(team => ({ value: team, label: team }));
+      initialAwayTeams = userTeams.map(team => ({ value: team, label: team }));
+    } else {
+      initialHomeTeams = [{ value: 'noHome', label: '无可选主队' }];
+      initialAwayTeams = [{ value: 'noAway', label: '无可选客队' }];
     }
+  
+    setHometeamOptions(initialHomeTeams);
+    setAwayteamOptions(initialAwayTeams);
   }, []);
-
-  // State variables for label options of hometeam and awayteam
-  const [hometeamOptions, setHometeamOptions] = useState([]);
-  const [awayteamOptions, setAwayteamOptions] = useState([]);
+   
 
 
   const AddGameSx = {
