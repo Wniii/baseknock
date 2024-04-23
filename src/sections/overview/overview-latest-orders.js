@@ -45,6 +45,61 @@ const style = {
   borderColor: 'divider',
   backgroundColor: 'background.paper',
 };
+const todayCardSx = {
+  backgroundColor: '#d3d3d3',
+  padding: '4px',
+  //borderRadius: '4px',
+  height: '100px',
+  width: 'auto',
+  margin: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'center', // 文字水平置中
+};
+const contentCardSx = {
+  backgroundColor: '#d3d3d3',
+  padding: '4px',
+  //borderRadius: '4px',
+  width: 'auto',
+  margin: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'center', // 文字水平置中
+};
+const sx = {
+  backgroundColor: '#d3d3d3',
+  padding: '4px',
+  borderRadius: '4px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'center', // 文字水平置中
+  position: 'relative'
+};
+const addSx = {
+  backgroundColor: '#ffffff',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'right', // 文字水平置中
+  ml: 'auto',
+  position: 'absolute',
+  top: 160,
+  right: 30,
+};
+const ytCardSx = {
+  backgroundColor: '#d3d3d3',
+  padding: '4px',
+  //borderRadius: '4px',
+  width: 'auto',
+  margin: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center', // 垂直置中
+  textAlign: 'center', // 文字水平置中
+};
 
 
 
@@ -61,64 +116,10 @@ export const OverviewLatestOrders = () => {
 
 
   const [games, setGames] = useState([]);
-  
-
-  const todayCardSx = {
-    backgroundColor: '#d3d3d3',
-    padding: '4px',
-    //borderRadius: '4px',
-    height: '100px',
-    width: 'auto',
-    margin: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 垂直置中
-    textAlign: 'center', // 文字水平置中
-  };
-  const contentCardSx = {
-    backgroundColor: '#d3d3d3',
-    padding: '4px',
-    //borderRadius: '4px',
-    width: 'auto',
-    margin: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 垂直置中
-    textAlign: 'center', // 文字水平置中
-  };
-  const sx = {
-    backgroundColor: '#d3d3d3',
-    padding: '4px',
-    borderRadius: '4px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 垂直置中
-    textAlign: 'center', // 文字水平置中
-    position: 'relative'
-  };
-  const addSx = {
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 垂直置中
-    textAlign: 'right', // 文字水平置中
-    ml: 'auto',
-    position: 'absolute',
-    top: 160,
-    right: 30,
-  };
-  const ytCardSx = {
-    backgroundColor: '#d3d3d3',
-    padding: '4px',
-    //borderRadius: '4px',
-    width: 'auto',
-    margin: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center', // 垂直置中
-    textAlign: 'center', // 文字水平置中
-  };
-
+  const [futureGames, setFutureGames] = useState([]);
+  console.log(futureGames)
+  console.log(games)
+ 
 
   
   useEffect(() => {
@@ -128,6 +129,7 @@ export const OverviewLatestOrders = () => {
             const teamsQuerySnapshot = await getDocs(collection(firestore, 'team'));
             const teams = teamsQuerySnapshot.docs.map(doc => doc.data());
             const filteredGames = [];
+            const futureGames = [];
 
             // 对每个团队进行操作
             for (const teamDoc of teamsQuerySnapshot.docs) {
@@ -139,31 +141,62 @@ export const OverviewLatestOrders = () => {
 
                 // 对游戏子集合中的每个文档进行操作
                 for (const doc of teamGamesQuerySnapshot.docs) {
-                    const gameData = doc.data();
-                    // 检查文档中是否包含 GDate 字段
-                    if (!gameData.GDate) {
-                        continue; // 如果没有 GDate 字段，跳过当前文档
-                    }
-                    const gameDateTimestamp = gameData.GDate;
-                    const gameDate = new Date(gameDateTimestamp.seconds * 1000);
-                    const formattedGameDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
-                    console.log(formattedGameDate)
-                    console.log(formattedDate)
-                    // 如果比赛日期与指定日期匹配，则将比赛数据添加到结果数组中
-                    if (formattedGameDate === formattedDate) {
-                      console.log("dsdasd")
-                        filteredGames.push({
-                            id: doc.id,
-                            hometeam: gameData.hometeam,
-                            awayteam: gameData.awayteam,
-                            ...gameData
-                        });
-                    }
+                  const gameData = doc.data();
+                  // 检查文档中是否包含 GDate 字段
+                  if (!gameData.GDate) {
+                      continue; // 如果没有 GDate 字段，跳过当前文档
+                  }
+                  const gameDateTimestamp = gameData.GDate;
+                  const gameDate = new Date(gameDateTimestamp.seconds * 1000);
+                  const formattedGameDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
+                  console.log(formattedGameDate);
+              
+                  // 确保 formattedGameDate 在 futureGames.push 可见的作用域内
+                  let formattedGameDateForPush = formattedGameDate;
+              
+                  // 获取当前日期的格式
+                  const today = new Date();
+                  const year = today.getFullYear();
+                  const month = (today.getMonth() + 1).toString().padStart(2, '0');
+                  const day = today.getDate().toString().padStart(2, '0');
+                  const formattedToday = `${year}/${month}/${day}`;
+              
+                  const currentDate = new Date(); // 获取当前日期和时间
+                  const futureDate = new Date(); // 获取当前日期加六天的日期
+                  futureDate.setDate(futureDate.getDate() + 6);
+              
+                  
+                  // 如果游戏日期等于当前日期，则将比赛数据添加到 filteredGames 数组中
+                  if (formattedGameDate === formattedToday) {
+                      filteredGames.push({
+                          id: doc.id,
+                          hometeam: gameData.hometeam,
+                          awayteam: gameData.awayteam,
+                          ...gameData
+                      });
+                  }
+                  // 如果游戏日期在未来五天内但不包括今天，则将比赛数据添加到 futureGames 数组中
+                  else if (gameDate > currentDate && gameDate < futureDate) {
+                      // 如果是，则将比赛数据添加到 futureGames 数组中
+                      futureGames.push({
+                          GDate: formattedGameDateForPush,
+                          id: doc.id,
+                          hometeam: gameData.hometeam,
+                          awayteam: gameData.awayteam,
+                          ...gameData
+                      });
+                  }       
+              
+
                 }
             }
 
-            console.log('Filtered games:', filteredGames);
+            // 将今天的比赛设置到状态中
             setGames(filteredGames);
+
+            // 将未来五天内但不包括今天的比赛设置到状态中
+            setFutureGames(futureGames);
+            console.log(futureGames)
         } catch (error) {
             console.error('Error fetching games:', error);
         }
@@ -172,6 +205,16 @@ export const OverviewLatestOrders = () => {
     fetchGames();
 }, []);
 
+
+// 检查日期是否在未来五天内但不包括今天的辅助函数
+
+const formatDate = (timestamp) => {
+  const date = timestamp.toDate(); // 将 Firestore Timestamp 转换为 JavaScript Date 对象
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
 
   
   
@@ -207,21 +250,18 @@ export const OverviewLatestOrders = () => {
       </div>
 
       <Card sx={contentCardSx}>
-        <List sx={sx}>
-          <ListItem>
-            <ListItemText primary={
-              <div>
-                <Typography align="center">10/09(Mon.) 卡皮巴拉v.s輔仁大學</Typography>
-              </div>
-            } />
+  <List sx={sx}>
+    {futureGames.map((game, index) => (
+      <div key={index}>
+        <Divider variant="middle" component="li" />
+        <ListItem>
+          <ListItemText primary={<Typography align="center">{`${formatDate(game.GDate)}   `}{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
+        </ListItem>
+      </div>
+    ))}
+  </List>
+</Card>
 
-          </ListItem>
-          <Divider variant="middle" component="li" />
-          <ListItem>
-            <ListItemText primary={<Typography align="center">10/10(Tue.) 卡皮巴拉v.s輔仁大學</Typography>} />
-          </ListItem>
-        </List>
-      </Card>
 
       <CardActions sx={{ justifyContent: 'flex-end' }}>
         {/* <Button
