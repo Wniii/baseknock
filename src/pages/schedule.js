@@ -194,9 +194,9 @@ const SchedulePage = () => {
       </Box>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogActions>
-          <Button onClick={() => recorddefence("記錄防守")} color="primary" autoFocus>
+          {/* <Button onClick={() => recorddefence("記錄防守")} color="primary" autoFocus>
             記錄防守
-          </Button>
+          </Button> */}
           <Button onClick={() => recordattack("記錄打擊")} color="primary">
             記錄打擊
           </Button>

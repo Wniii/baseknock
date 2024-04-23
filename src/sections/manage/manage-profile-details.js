@@ -45,7 +45,7 @@ export const ManageProfileDetails = ({ teamInfo }) => {
 
   const handleSave = async (event) => {
     event.preventDefault();
-  
+
     try {
       // 使用团队信息中的ID构建文档路径
       const teamDocRef = doc(firestore, "team", values.id);
@@ -55,7 +55,7 @@ export const ManageProfileDetails = ({ teamInfo }) => {
         Name: values.Name,
         introduction: values.introduction
       });
-  
+
       // 显示成功更新的提示框
       alert("Team information updated successfully!");
     } catch (error) {
@@ -120,9 +120,10 @@ export const ManageProfileDetails = ({ teamInfo }) => {
               </Grid>
             </Box>
           </CardContent>
-          <CardActions>
-            <Button onClick={handleSave}>保存</Button>
+          <CardActions style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start' }}>
+            <Button onClick={handleSave}>確認修改</Button>
           </CardActions>
+
         </Card>
       </div>
     </form>
