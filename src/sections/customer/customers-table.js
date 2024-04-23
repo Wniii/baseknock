@@ -6,6 +6,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
 import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
+import { green,blue, red } from '@mui/material/colors';
 
 export const CustomersTable = (props) => {
   const {
@@ -156,11 +157,63 @@ let buttonPlaced = false;
             }
           }
           // 显示内容
-          return (
-            <TableCell key={i}>
-              {content && <span>{content}</span>}
-            </TableCell>
-          );
+
+          const determineButtonProps = (content) => {
+            let buttonColor;
+            switch (content) {
+              case '一安':
+              case '二安':
+              case '三安':
+              case '全打':
+                buttonColor = green[300]; // 绿色
+                break;
+              case '三振':
+              case '飛球':
+              case '滾地':
+              case '失誤':
+              case '野選':
+              case '雙殺':
+              case '違規':
+                buttonColor = red[300]; // 红色
+                break;
+              case '四壞':
+              case '犧飛':
+              case '犧觸':
+              case '觸身':
+                buttonColor = 'lightblue'; // 淡蓝色
+                break;
+              default:
+                buttonColor = 'black'; // 黑色
+            }
+            return {
+              color: buttonColor,
+              text: content
+            };
+          };
+
+          // 根据当前内容确定按钮颜色
+const buttonProps = determineButtonProps(content);
+
+// 渲染按钮
+return (
+  <TableCell key={i}>
+  {content && (
+    <div
+      style={{
+        height: '30px',
+        padding: 0,
+        backgroundColor: buttonProps.color,
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {buttonProps.text}
+    </div>
+  )}
+</TableCell>
+)
         })}
       </TableRow>
     );
