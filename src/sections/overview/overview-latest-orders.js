@@ -19,7 +19,7 @@ import { SeverityPill } from 'src/components/severity-pill';
 
 // import React from 'react';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
@@ -62,28 +62,21 @@ const style = {
 
 
 
-
-// const statusMap = {
-//   pending: 'warning',
-//   delivered: 'success',
-//   refunded: 'error'
-// };
-
-
+import axios from 'axios';
 
 
 export const OverviewLatestOrders = () => {
-  // const { orders = [], sx } = props;
 
   const today = new Date();
   const year = today.getFullYear();
   const month = (today.getMonth() + 1).toString().padStart(2, '0');
   const day = today.getDate().toString().padStart(2, '0');
   const formattedDate = `${year}/${month}/${day} `;
-  // const [date, setDate] = useState(new Date());
-  // const handleDateChange = (newDate) => {
-  //   setDate(newDate);
-  // };
+  
+
+
+  const [games, setGames] = useState([]);
+  
 
   const todayCardSx = {
     backgroundColor: '#d3d3d3',
@@ -141,6 +134,34 @@ export const OverviewLatestOrders = () => {
     textAlign: 'center', // 文字水平置中
   };
 
+  useEffect(() => {
+    // 從資料庫中獲取今天的比賽資料
+    fetchGamesByDate(formattedDate)
+      .then((data) => setGames(data))
+      .catch((error) => console.error('Error fetching games:', error));
+  }, [formattedDate]);
+
+  const fetchGamesByDate = async (formattedDate) => {
+    try {
+      const response = await axios.get('/team/games');
+      const games = response.data;
+      // 過濾符合指定日期的比賽
+      const filteredGames = games.filter(game => {
+        // 假設 Firebase 中的日期欄位名為 GDate
+        const gameDate = new Date(game.GDate);
+        const gameFormattedDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
+        return gameFormattedDate === formattedDate;
+      });
+      return filteredGames;
+    } catch (error) {
+      throw new Error('Error fetching games:', error);
+    }
+  };
+  
+  
+  
+  
+
   return (
 
     <div>
@@ -149,31 +170,25 @@ export const OverviewLatestOrders = () => {
       </div>
 
 
-      <Card sx={todayCardSx}>
-        <List sx={sx}>
-          <ListItem>
-            <ListItemText primary={<Typography align="center" fontSize={25} variant='h4'>今日尚無比賽</Typography>} />
-          </ListItem>
+      <Card sx={{ backgroundColor: '#d3d3d3', padding: '4px', width: 'auto', margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+        <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
+          {games.length === 0 ? (
+            <ListItem>
+              <ListItemText primary={<Typography align="center" fontSize={20}>今日尚無比賽</Typography>} />
+            </ListItem>
+          ) : (
+            games.map((game, index) => (
+              <div key={index}>
+                <ListItem>
+                  <ListItemText primary={<Typography align="center" fontSize={20}>{game.g_id}</Typography>} />
+                </ListItem>
+              </div>
+            ))
+          )}
         </List>
-        <Box>
-          {/* <NextLink href="/add" passHref> */}
-          <Link href="/game" >
-          <Fab sx={addSx} align='right' size="small" aria-label="add">
-            <AddIcon />
-          </Fab>
-          </Link>
-          {/* </NextLink> */}
-        </Box>
       </Card>
       <br></br>
 
-      {/* 日曆
-              <div style={{ maxWidth: '400px', margin: 'auto'  }}>
-              <Calendar 
-                //onChange={handleDateChange}
-                value={date}
-              />
-              </div> */}
       <div style={{ textAlign: 'left', padding: '8px', marginLeft: '25px' }}>
         <Typography variant="h6">coming up...</Typography>
       </div>
@@ -217,7 +232,7 @@ export const OverviewLatestOrders = () => {
           }}
           onClick={preventDefault}
         >
-          <Link href="/schedule.js" >
+          <Link href="/schedule" >
             <Button
               color="inherit"
               endIcon={(
