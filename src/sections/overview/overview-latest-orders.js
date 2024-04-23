@@ -1,5 +1,3 @@
-import { format } from 'date-fns';
-import PropTypes from 'prop-types';
 import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import {
   Box,
@@ -15,12 +13,12 @@ import {
   TableRow
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from 'src/components/severity-pill';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { firestore } from 'src/pages/firebase';
 
 // import React from 'react';
 
 import { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 import * as React from 'react';
@@ -29,18 +27,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import { Typography } from '@mui/material';
-
-
-import Tabs, { tabsClasses } from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-//import NextLink from 'next/link';
-import EditIcon from '@mui/icons-material/Edit';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import NavigationIcon from '@mui/icons-material/Navigation';
-
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import ImageListItemBar from '@mui/material/ImageListItemBar';
@@ -62,7 +48,6 @@ const style = {
 
 
 
-import axios from 'axios';
 
 
 export const OverviewLatestOrders = () => {
@@ -71,7 +56,7 @@ export const OverviewLatestOrders = () => {
   const year = today.getFullYear();
   const month = (today.getMonth() + 1).toString().padStart(2, '0');
   const day = today.getDate().toString().padStart(2, '0');
-  const formattedDate = `${year}/${month}/${day} `;
+  const formattedDate = `${year}/${month}/${day}`;
   
 
 
@@ -134,29 +119,61 @@ export const OverviewLatestOrders = () => {
     textAlign: 'center', // 文字水平置中
   };
 
-  useEffect(() => {
-    // 從資料庫中獲取今天的比賽資料
-    fetchGamesByDate(formattedDate)
-      .then((data) => setGames(data))
-      .catch((error) => console.error('Error fetching games:', error));
-  }, [formattedDate]);
 
-  const fetchGamesByDate = async (formattedDate) => {
-    try {
-      const response = await axios.get('/team/games');
-      const games = response.data;
-      // 過濾符合指定日期的比賽
-      const filteredGames = games.filter(game => {
-        // 假設 Firebase 中的日期欄位名為 GDate
-        const gameDate = new Date(game.GDate);
-        const gameFormattedDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
-        return gameFormattedDate === formattedDate;
-      });
-      return filteredGames;
-    } catch (error) {
-      throw new Error('Error fetching games:', error);
-    }
-  };
+  
+  useEffect(() => {
+    const fetchGames = async () => {
+        try {
+            // 查询所有团队
+            const teamsQuerySnapshot = await getDocs(collection(firestore, 'team'));
+            const teams = teamsQuerySnapshot.docs.map(doc => doc.data());
+            const filteredGames = [];
+
+            // 对每个团队进行操作
+            for (const teamDoc of teamsQuerySnapshot.docs) {
+                const teamData = teamDoc.data();
+                const teamId = teamDoc.id; // 团队文档的 ID
+
+                // 获取团队的游戏子集合
+                const teamGamesQuerySnapshot = await getDocs(collection(firestore, 'team', teamId, 'games'));
+
+                // 对游戏子集合中的每个文档进行操作
+                for (const doc of teamGamesQuerySnapshot.docs) {
+                    const gameData = doc.data();
+                    // 检查文档中是否包含 GDate 字段
+                    if (!gameData.GDate) {
+                        continue; // 如果没有 GDate 字段，跳过当前文档
+                    }
+                    const gameDateTimestamp = gameData.GDate;
+                    const gameDate = new Date(gameDateTimestamp.seconds * 1000);
+                    const formattedGameDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
+                    console.log(formattedGameDate)
+                    console.log(formattedDate)
+                    // 如果比赛日期与指定日期匹配，则将比赛数据添加到结果数组中
+                    if (formattedGameDate === formattedDate) {
+                      console.log("dsdasd")
+                        filteredGames.push({
+                            id: doc.id,
+                            hometeam: gameData.hometeam,
+                            awayteam: gameData.awayteam,
+                            ...gameData
+                        });
+                    }
+                }
+            }
+
+            console.log('Filtered games:', filteredGames);
+            setGames(filteredGames);
+        } catch (error) {
+            console.error('Error fetching games:', error);
+        }
+    };
+
+    fetchGames();
+}, []);
+
+
+  
   
   
   
@@ -168,25 +185,21 @@ export const OverviewLatestOrders = () => {
       <div style={{ textAlign: 'center', padding: '8px' }}>
         <Typography variant="h5" fontWeight="bold">{formattedDate}</Typography>
       </div>
-
-
       <Card sx={{ backgroundColor: '#d3d3d3', padding: '4px', width: 'auto', margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-        <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
-          {games.length === 0 ? (
-            <ListItem>
-              <ListItemText primary={<Typography align="center" fontSize={20}>今日尚無比賽</Typography>} />
-            </ListItem>
-          ) : (
-            games.map((game, index) => (
-              <div key={index}>
-                <ListItem>
-                  <ListItemText primary={<Typography align="center" fontSize={20}>{game.g_id}</Typography>} />
-                </ListItem>
-              </div>
-            ))
-          )}
-        </List>
-      </Card>
+  <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
+  {games.length === 0 ? (
+  <ListItem>
+    <ListItemText primary={<Typography align="center" fontSize={20}>今日尚無比賽</Typography>} />
+  </ListItem>
+) : (
+  games.map((game, index) => (
+    <ListItem key={index}>
+      <ListItemText primary={<Typography align="center" fontSize={20}>{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
+    </ListItem>
+  ))
+)}
+  </List>           
+</Card>
       <br></br>
 
       <div style={{ textAlign: 'left', padding: '8px', marginLeft: '25px' }}>
