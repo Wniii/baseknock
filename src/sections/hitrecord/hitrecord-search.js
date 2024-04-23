@@ -11,9 +11,13 @@ import {
   Stack,
   TextField,
   Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Unstable_Grid2 as Grid
 } from '@mui/material';
-import { collection, getDocs } from "firebase/firestore"; 
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from 'src/pages/firebase'; // 確保路徑與你的配置文件相匹配
 
 
@@ -22,7 +26,7 @@ export const HitrecordSearch = ({ onConfirm }) => {
 
   const [selectedTeam, setSelectedTeam] = useState('');
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
- 
+
   const [checkboxStates, setCheckboxStates] = useState([
     { label: '打席', checked: false },
     { label: '打數', checked: false },
@@ -57,7 +61,7 @@ export const HitrecordSearch = ({ onConfirm }) => {
     setCheckboxStates(updatedCheckboxStates);
   };
 
-  
+
   const handleCheckboxChange = (index) => (event) => {
     const { checked } = event.target;
     const updatedCheckboxStates = [...checkboxStates];
@@ -80,19 +84,26 @@ export const HitrecordSearch = ({ onConfirm }) => {
 
   useEffect(() => {
     const fetchTeams = async () => {
-      // 假設 'teams' 是您儲存團隊的集合名稱
+      // 從 localStorage 中獲取 userTeam
+      const userTeamCodes = localStorage.getItem("userTeam")?.split(',') || [];
       const teamsCollectionRef = collection(firestore, "team");
-      
-      try {
-        const querySnapshot = await getDocs(teamsCollectionRef);
-        const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setTeams(teamsData);
-      } catch (error) {
-        console.error("提取團隊數據時發生錯誤：", error);
-        // 相應地處理錯誤
+      if (userTeamCodes.length > 0) {
+        // 創建一個查詢，根據userTeamCodes中的codeName來過濾隊伍
+        const teamsQuery = query(teamsCollectionRef, where("codeName", "in", userTeamCodes));
+        try {
+          const querySnapshot = await getDocs(teamsQuery);
+          const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setTeams(teamsData);
+          
+          // 如果有預選隊伍，設置選中的隊伍
+          if (teamsData.length > 0) {
+            setSelectedTeam(teamsData[0].id); // 或其他邏輯來選擇特定隊伍
+          }
+        } catch (error) {
+          console.error("提取團隊數據時發生錯誤：", error);
+        }
       }
     };
-  
     fetchTeams();
   }, []);
 
@@ -102,21 +113,24 @@ export const HitrecordSearch = ({ onConfirm }) => {
       <CardContent sx={{ pt: 2 }}>
         <Grid container spacing={5}>
           <Grid item xs={12} md={4}>
-          <TextField
-      fullWidth
-      label="球隊"
-      name="team"
-      onChange={handleTeamChange}
-      select
-      SelectProps={{ native: true }}
-      value={selectedTeam}
-    >
-      {teams.map((team) => (
-        <option key={team.id} value={team.id}>
-          {team.Name}
-        </option>
-      ))}
-    </TextField>
+            <TextField
+              fullWidth
+              label="球隊"
+              name="team"
+              onChange={handleTeamChange}
+              select
+              SelectProps={{ native: true }}
+              value={selectedTeam}
+            >
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.Name}
+                </option>
+              ))}
+            </TextField>
+
+           
+
           </Grid>
         </Grid>
         <br />
