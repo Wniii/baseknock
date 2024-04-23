@@ -21,17 +21,6 @@ import { getDoc } from "firebase/firestore";
 
 
 
-
-// const hometeam = [
-//   { value: "fju", label: "輔仁大學" },
-//   { value: "kpbl", label: "卡皮巴拉" },
-// ];
-
-// const awayteam = [
-//   { value: "fju", label: "輔仁大學" },
-//   { value: "kpbl", label: "卡皮巴拉" },
-// ];
-
 const gName = [
   { value: "friendly", label: "友誼賽" },
   { value: "ubl", label: "大專盃" },

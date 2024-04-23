@@ -105,6 +105,7 @@ export const EditGame = ({ g_id }) => {
     setHometeamOptions(initialHomeTeams);
     setAwayteamOptions(initialAwayTeams);
   }, []);
+  
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
