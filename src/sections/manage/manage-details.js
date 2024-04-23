@@ -154,16 +154,12 @@ export const Manage = ({ onTeamSelect }) => {
 
             console.log("Team added to user successfully.");
 
-            alert('成功將球隊添加到使用者');
+            alert('已成功加入球隊！請重新登入以重整頁面');
         } catch (error) {
             console.error('Error adding team to user:', error);
             alert('添加球隊時出錯');
         }
     };
-
-
-
-
 
     return (
         <div>
