@@ -22,18 +22,21 @@ const CurrentTeamSx = {
     textAlign: 'center',
 };
 const ListStyle = {
-    display: 'flex', // 使用Flexbox
-    flexDirection: 'row', // 子元素水平排列
-    padding: 0, // 可以根据需要调整
-    margin: 0 // 可以根据需要调整
+    display: 'flex', // Keep using Flexbox
+    flexDirection: 'row', // Keep child elements in a row
+    padding: 0, // Adjust as needed
+    margin: 0, // Adjust as needed
+    justifyContent: 'flex-start' // Align items to the left side
 };
 
 const ListItemStyle = {
-    display: 'flex', // 使用Flexbox
-    justifyContent: 'center', // 水平居中对齐
-    alignItems: 'center', // 垂直居中对齐
-    margin: '8px' // 为每个项添加外边距
+    display: 'flex', // Keep using Flexbox
+    justifyContent: 'flex-start', // Align items to the left side
+    alignItems: 'center', // Keep vertical center alignment
+    margin: '1px' // Minimize space between items, adjust as needed
 };
+
+
 
 export const Manage = ({ onTeamSelect }) => {
     const [teams, setTeams] = useState([]);
@@ -44,37 +47,37 @@ export const Manage = ({ onTeamSelect }) => {
     const auth = useAuth();
     const router = useRouter();
     const [userId, setUserId] = useState(null);
-    
+
 
 
     useEffect(() => {
         const fetchTeam = async () => {
-          const userTeamCodeNameString = localStorage.getItem('userTeam'); // 從localStorage中獲取代碼名稱
-          if (userTeamCodeNameString) {
-            const userTeamCodeNames = userTeamCodeNameString.split(','); // 使用逗號分隔字符串，轉成數組
-            const teamsData = [];
-      
-            for (const codeName of userTeamCodeNames) {
-              const q = query(collection(firestore, "team"), where("codeName", "==", codeName.trim()));
-              const querySnapshot = await getDocs(q);
-              querySnapshot.forEach((doc) => {
-                teamsData.push({ id: doc.id, ...doc.data() });
-              });
+            const userTeamCodeNameString = localStorage.getItem('userTeam'); // 從localStorage中獲取代碼名稱
+            if (userTeamCodeNameString) {
+                const userTeamCodeNames = userTeamCodeNameString.split(','); // 使用逗號分隔字符串，轉成數組
+                const teamsData = [];
+
+                for (const codeName of userTeamCodeNames) {
+                    const q = query(collection(firestore, "team"), where("codeName", "==", codeName.trim()));
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach((doc) => {
+                        teamsData.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+
+                if (teamsData.length > 0) {
+                    setTeams(teamsData); // 將所有找到的團隊設置到狀態中
+                } else {
+                    console.log("No such team!");
+                    alert('找不到對應的球隊');
+                }
             }
-            
-            if (teamsData.length > 0) {
-              setTeams(teamsData); // 將所有找到的團隊設置到狀態中
-            } else {
-              console.log("No such team!");
-              alert('找不到對應的球隊');
-            }
-          }
         };
-      
+
         fetchTeam();
-      }, []);
-      
-      
+    }, []);
+
+
     useEffect(() => {
         // 在组件加载时从LocalStorage中获取userId
         const storedUserId = localStorage.getItem('userId');
@@ -158,7 +161,7 @@ export const Manage = ({ onTeamSelect }) => {
         }
     };
 
-    
+
 
 
 
@@ -188,10 +191,10 @@ export const Manage = ({ onTeamSelect }) => {
                 <Card sx={CurrentTeamSx}>
                     <List style={ListStyle}>
                         {teams.map((team) => (
-                            <ListItem key={team.id} style={{ display: 'flex' }} onClick={() => onTeamSelect(team)}>
+                            <ListItem sx={ListItemStyle} key={team.id} style={{ display: 'flex' }} onClick={() => onTeamSelect(team)}>
                                 <Box>
                                     <ListItemIcon style={{ margin: 'auto' }}>
-                                        <Link >
+                                        <Link style={{ margin: '0px' }}>
                                             <img src={team.photo} alt="icon" style={{ width: '100px', height: '100px' }} />
                                             <br></br>
                                             {team.Name}

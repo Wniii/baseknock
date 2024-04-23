@@ -12,6 +12,8 @@ import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from 'src/pages/firebase';
 import { applyPagination } from 'src/utils/apply-pagination';
 
+import { doc, getDoc } from "firebase/firestore"; // 导入doc和getDoc函数
+
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -34,24 +36,50 @@ const Page = () => {
 
   useEffect(() => {
     const fetchPlayersData = async () => {
-      const playersCollection = collection(firestore, 'player');
-      const querySnapshot = await getDocs(playersCollection);
-      const data = [];
-      querySnapshot.forEach((doc) => {
-        data.push({
-          p_id: doc.id,
-          p_name: doc.data().p_name
-        });
-      });
-
-      setPlayersData(data);
+      // 仅当selectedTeam存在时才执行以下代码
+      if (!selectedTeam) {
+        console.log('未选择团队！');
+        return;
+      }
+      
+      try {
+        const teamDocRef = doc(firestore, 'team', selectedTeam); // 'selectedTeam' 应该是团队文档的ID
+        const teamDocSnap = await getDoc(teamDocRef);
+  
+        if (!teamDocSnap.exists()) {
+          console.log('未检索到团队文档！');
+          return;
+        }
+  
+        const teamData = teamDocSnap.data();
+        const players = teamData.players;
+  
+        if (players && typeof players === 'object') {
+          const playerKeys = Object.keys(players);
+          const playersArray = playerKeys.map((key) => ({
+            p_id: key,
+            ...players[key],
+          }));
+  
+          setPlayersData(playersArray); // 设置playersData为playersArray
+        } else {
+          console.log('在团队文档中找不到 players 字段或者 players 不是一个对象:', selectedTeam);
+        }
+      } catch (error) {
+        console.error("获取数据时出错: ", error);
+      }
     };
+  
     fetchPlayersData();
-  }, []);
+  }, [selectedTeam]); // 当selectedTeam改变时，会重新运行这个effect
+  
+  
+  
 
   const handleSearchConfirm = useCallback((columns, team) => {
+    console.log('Team received on confirm:', team); // Added log
     setSelectedColumns(columns);
-    setSelectedTeam(team); // 更新selectedTeam變量
+    setSelectedTeam(team);
   }, []);
 
   return (
