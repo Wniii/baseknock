@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
+import { Timestamp } from 'firebase/firestore'; // 导入 Timestamp 类型
 
 export const Bdata = (props) => {
   const {
@@ -23,7 +24,10 @@ export const Bdata = (props) => {
     page = 0,
     rowsPerPage = 0,
     selected = [],
+    selectedPlayer, // 接收来自 AccountProfile 组件传递的球员信息
   } = props;
+
+  console.log('Bdata 组件收到的球员信息:', selectedPlayer);
 
   return (
     <Card>
@@ -37,7 +41,6 @@ export const Bdata = (props) => {
                 <TableCell>打數</TableCell>
                 <TableCell>安打</TableCell>
                 <TableCell>壘打數</TableCell>
-                <TableCell>壘數</TableCell>
                 <TableCell>得分</TableCell>
                 <TableCell>打點</TableCell>
                 <TableCell>一安</TableCell>
@@ -47,33 +50,26 @@ export const Bdata = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((customer) => {
-                const isSelected = selected.includes(customer.id);
-                const createdAt = format(customer.createdAt, "dd/MM/yyyy");
+            {items.map((game) => {
+  const isSelected = selected.includes(game.id);
+  // 如果游戏对象中没有 date 属性或者 date 是 undefined，则返回一个空字符串
+  const formattedDate = game.date ? format(game.date.toDate(), "dd/MM/yyyy") : "";
 
-                return (
-                  <TableRow hover key={customer.id} selected={isSelected}>
-                    <TableCell>
-                      <Stack alignItems="center" direction="row" spacing={2}>
-                        <Typography variant="subtitle2">{customer.name}</Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>{customer.email}</TableCell>
-                    <TableCell>
-                      {customer.address.city}
-                    </TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.totalbase}</TableCell>
-                    <TableCell>{customer.base}</TableCell>
-                    <TableCell>{customer.score}</TableCell>
-                    <TableCell>{customer.rbi}</TableCell>
-                    <TableCell>{customer.firstb}</TableCell>
-                    <TableCell>{customer.secondb}</TableCell>
-                    <TableCell>{customer.thirdb}</TableCell>
-                    <TableCell>{customer.hr}</TableCell>
-                  </TableRow>
-                );
-              })}
+  return (
+    <TableRow hover key={game.id} selected={isSelected}>
+      <TableCell>{formattedDate}</TableCell>
+      <TableCell>{game.at_bat}</TableCell>
+      <TableCell>{game.hits}</TableCell>
+      <TableCell>{game.total_bases}</TableCell>
+      <TableCell>{game.runs}</TableCell>
+      <TableCell>{game.rbi}</TableCell>
+      <TableCell>{game.single_hits}</TableCell>
+      <TableCell>{game.double_hits}</TableCell>
+      <TableCell>{game.triple_hits}</TableCell>
+      <TableCell>{game.home_runs}</TableCell>
+    </TableRow>
+  );
+})}
             </TableBody>
           </Table>
         </Box>

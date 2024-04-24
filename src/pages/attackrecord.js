@@ -1,8 +1,11 @@
 import Head from 'next/head';
 import { useState, useEffect } from 'react'; // Import useState and useEffect
-import { Box, Container, Stack, Typography, Button, CardActions, Snackbar, Alert } from '@mui/material';
+import {
+  Box, Container, Stack, Typography, Button, CardActions, Snackbar,
+  Alert, Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
+  MenuItem, InputLabel, Select
+} from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import BallLandingPoint from 'src/sections/hit/balllandingpoint';
 import { useRouter } from 'next/router'; // Import Next.js router
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { firestore } from './firebase';
@@ -23,7 +26,7 @@ const Page = () => {
   const router = useRouter();
   const attackData = router.query.attack;
   const { codeName, timestamp, teamId } = router.query;
-
+  const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
@@ -55,7 +58,6 @@ const Page = () => {
   });
   const [initialBalls, setInitialBalls] = useState(0);
   const [initialStrikes, setInitialStrikes] = useState(0);
-
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
   const [outs, setOuts] = useState(0);
@@ -72,10 +74,10 @@ const Page = () => {
 
   useEffect(() => {
     const fetchGameDocument = async () => {
-      if (!codeName || !timestamp) {
+      if (!codeName || !timestamp || !firestore) {
         return;
       }
-
+      if (gameDocIds.length > 0 && currentInning > 0) return;
       try {
         const teamQuerySnapshot = await getDocs(
           query(collection(firestore, 'team'), where('codeName', '==', codeName))
@@ -136,7 +138,7 @@ const Page = () => {
     };
 
     fetchGameDocument();
-  }, [codeName, timestamp, firestore]);
+  }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
 
 
 
@@ -146,62 +148,83 @@ const Page = () => {
     event.preventDefault();
   }, []);
 
-  const handleSaveToFirebase = async () => {
+
+  const saveData = async () => {
+
     const hitContents = ['一安', '二安', '三安', '全打', '一分',
       '三振', '飛球', '滾地', '失誤', '兩分',
       '野選', '雙殺', '違規', '不知', '三分',
       '四壞', '犧飛', '犧觸', '觸身', '四分'];
 
     const baseStatuses = ['一壘', '二壘', '三壘'];
-    const selectedContent = Object.entries(selectedHits)
-      .filter(([key, value]) => value && hitContents.includes(key))
-      .map(([key, _]) => key)
-      .join(', ');
-
-    let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
-    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
-
-    // const inningsCompleted = Math.floor(outs / 3) + 1;
-    // setCurrentInning(inningsCompleted);
+    const selectedBases = baseStatuses.filter(base => selectedHits[base]);
+    const baseOuts = ['0','1', '2', '3'];
+  
 
 
-    // Calculate RBIs from selected run scoring hits
-    let rbiCount = 0;
-    if (selectedHits['一分']) rbiCount += 1;
-    if (selectedHits['兩分']) rbiCount += 2;
-    if (selectedHits['三分']) rbiCount += 3;
-    if (selectedHits['四分']) rbiCount += 4;
+      const selectedContent = Object.entries(selectedHits)
+        .filter(([key, value]) => value && hitContents.includes(key))
+        .map(([key, _]) => key)
+        .join(', ');
 
-    try {
-      await updateDoc(gameRef, {
-        'ordermain': arrayUnion({
-          'content': selectedContent,
-          'inn': currentInning,
-          'onbase': bases,
-          'p_name': attackData,
-          'rbi': rbiCount,
-        }),
-        pitcher: {
-          ball: initialBalls + balls.filter(Boolean).length,
-          strike: initialStrikes + strikes.filter(Boolean).length
-        },
-        'outs': outs
-      });
-      console.log('Document successfully updated!');
-      alert('Document successfully updated!');
-      router.push({
-        pathname: '/test',
-        query: {
-          timestamp: timestamp,
-          codeName: codeName,
-          teamId: teamId
-        },
-      });
-    } catch (error) {
-      console.error('Error updating document:', error);
-      alert('Error updating document: ' + error.message);
+      let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
+      const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
+
+      // Calculate RBIs from selected run scoring hits
+      let rbiCount = 0;
+      if (selectedHits['一分']) rbiCount += 1;
+      if (selectedHits['兩分']) rbiCount += 2;
+      if (selectedHits['三分']) rbiCount += 3;
+      if (selectedHits['四分']) rbiCount += 4;
+
+      const markerData = {
+        x: markers.x.toString(),
+        y: markers.y.toString()
+      };
+
+      try {
+        await updateDoc(gameRef, {
+          'ordermain': arrayUnion({
+            'content': selectedContent,
+            'inn': currentInning,
+            'onbase': bases,
+            'p_name': attackData,
+            'rbi': rbiCount,
+            'markers': markers
+          }),
+          pitcher: {
+            ball: initialBalls + balls.filter(Boolean).length,
+            strike: initialStrikes + strikes.filter(Boolean).length
+          },
+          'outs': outs
+        });
+        console.log('Document successfully updated!');
+        alert('Document successfully updated!');
+        router.push({
+          pathname: '/test',
+          query: {
+            timestamp: timestamp,
+            codeName: codeName,
+            teamId: teamId
+          },
+        });
+        setOpenDialog(false);
+        setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
+      } catch (error) {
+        console.error('Error updating document:', error);
+        alert('Error updating document: ' + error.message);
+      }
+    
+  };
+
+  const handleSaveToFirebase = () => {
+    if (selectedHits['一壘'] || selectedHits['二壘'] || selectedHits['三壘']) {
+      setOpenDialog(true);
+    } else {
+      saveData();  // 如果没有基壘被选中，直接保存数据
     }
   };
+  
 
 
   const handleCloseSnackbar = () => {
@@ -216,11 +239,24 @@ const Page = () => {
   };
 
 
-  const handleOutChange = (hitType = null) => {
+  const handleOutChange = (baseOuts, hitType = null) => {
+    const selectedValue = parseInt(event.target.value);
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
-    } 
+    }
+    else if(baseOuts === 0){
+      additionalOuts = 0;
+    }
+    else if(baseOuts === 1){
+      additionalOuts = 1;
+    }
+    else if(baseOuts === 2){
+      additionalOuts = 2;
+    }
+    else if(baseOuts === 3){
+      additionalOuts = 3;
+    }
     setOuts(prevOuts => {
       console.log('Current outs before update:', prevOuts); // 正確的位置
       const newOuts = prevOuts + additionalOuts;
@@ -228,12 +264,6 @@ const Page = () => {
       return newOuts;
     });
   };
-  
-
-
-
-
-
 
   const renderOutsCheckboxes = () => {
     const remainder = outs % 3; // 計算 outs 除以 3 的餘數
@@ -251,6 +281,23 @@ const Page = () => {
       />
     ));
   };
+
+  //落點
+  const [markers, setMarkers] = useState({ x: '', y: '' });
+  const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
+
+  const handleImageClick = (event) => {
+    const { offsetX, offsetY } = event.nativeEvent;
+    setClickCoordinates({ x: offsetX, y: offsetY });
+    setMarkers({ x: offsetX.toString(), y: offsetY.toString() });
+  };
+
+  const handleDeleteLastMarker = () => {
+    // 直接重置 markers 对象
+    setMarkers({ x: '', y: '' });
+  };
+
+  //出局數彈跳視窗
 
 
 
@@ -364,9 +411,6 @@ const Page = () => {
                             </Typography>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
-                            {/* <Typography variant='body1'>
-                              P:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pitches
-                            </Typography> */}
                           </div>
                         </div>
                       </CardContent>
@@ -379,7 +423,37 @@ const Page = () => {
                   sm={6}
                   item
                 >
-                  <BallLandingPoint />
+                  <Card>
+                    <CardContent>
+                      <div style={{ position: 'relative' }}>
+                        <img
+                          src='https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
+                          width={'400px'}
+                          alt='棒球場地'
+                          onClick={handleImageClick}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        {/* 檢查是否有設置 markers */}
+                        {markers.x && markers.y && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: `${markers.y}px`, // 添加 'px' 单位
+                              left: `${markers.x}px`, // 添加 'px' 单位
+                              width: '10px',
+                              height: '10px',
+                              backgroundColor: 'red',
+                              transform: 'translate(-50%, -50%)',
+                              borderRadius: '50%'
+                            }}
+                          />
+                        )}
+                      </div>
+                      <Button onClick={handleDeleteLastMarker} color="secondary">
+                        返回
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </Grid>
 
                 <Grid
@@ -688,13 +762,58 @@ const Page = () => {
                     </Card>
                   </form>
                 </Grid>
+
+                <CardContent>
+                  <Dialog
+                    open={openDialog}
+                    onClose={() => setOpenDialog(false)}
+                  >
+                    <DialogTitle>壘上出局數</DialogTitle>
+                    <DialogContent>
+                      <Box
+                        noValidate
+                        component="form"
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          m: 'auto',
+                          width: 'fit-content',
+                        }}
+                      >
+                        <FormControl sx={{ mt: 2, minWidth: 120 }}>
+                          <Select autoFocus onChange={(event) => handleOutChange(parseInt(event.target.value))}>
+                            <InputLabel>出局數</InputLabel>
+                            <MenuItem value="0">0</MenuItem>
+                            <MenuItem value="1">1</MenuItem>
+                            <MenuItem value="2">2</MenuItem>
+                            <MenuItem value="3">3</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={() => {
+                        console.log('Save button clicked!');
+                        saveData();
+                      }}>
+                        儲存
+                      </Button>
+                      <Snackbar open={alertInfo.open} autoHideDuration={6000} onClose={() => setAlertInfo({ ...alertInfo, open: false })}>
+                      <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                          {alertInfo.message}
+                        </Alert>
+                      </Snackbar>
+                    </DialogActions>
+                  </Dialog>
+                </CardContent>
+
               </Grid>
             </div>
           </Stack>
           <CardActions sx={{ justifyContent: 'center' }}>
             <Button
               variant="contained"
-              onClick={handleSaveToFirebase} // 点击按钮时执行 handleSave 函数
+              onClick={handleSaveToFirebase} 
             >
               儲存
             </Button>

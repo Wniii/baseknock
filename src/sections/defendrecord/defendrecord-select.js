@@ -1,219 +1,162 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   Button,
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   Checkbox,
   Divider,
   FormControlLabel,
-  Stack,
-
   TextField,
-
   Typography,
   Unstable_Grid2 as Grid
 } from '@mui/material';
+import { collection, getDocs, where, query } from "firebase/firestore"; 
+import { firestore } from 'src/pages/firebase'; // 確保路徑與您的配置文件相匹配
 
-export const DefendSelect = () => {
- // 使用 useState 钩子来创建状态和更新函数
- const [values, setValues] = useState({
-  state: '',
-  // 添加其他需要的状态属性
-});
+export const DefendSelect = ({ onConfirm }) => {
+  const [selectedTeam, setSelectedTeam] = useState('');
+  const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
 
-  const interval = [
-    {
-      value: '生涯',
-      label: '生涯'
-    },
-    {
-      value: '沒有區間',
-      label: '沒有區間'
-    }
-  ];
+  const [checkboxStates, setCheckboxStates] = useState([
+    { label: '勝投', checked: false },
+    { label: '敗投', checked: false },
+    { label: 'ERA', checked: false },
+    { label: '出賽', checked: false },
+    { label: '先發', checked: false },
+    { label: '局數', checked: false },
+    { label: '安打', checked: false },
+    { label: '失分', checked: false },
+    { label: '球數', checked: false },
+    { label: '四壞', checked: false },
+    { label: '奪三振', checked: false },
+    { label: 'WHIP', checked: false },
+    { label: '好壞球比', checked: false },
+    { label: '每局耗球', checked: false },
+    { label: 'K/9', checked: false },
+    { label: 'BB/9', checked: false },
+    { label: 'H/9', checked: false },
+  ]);
 
-  const sort = [
-    {
-      value: 'alabama',
-      label: 'Alabama'
-    },
-  ];
-
-  const recent = [
-    {
-      value: 'alabama',
-      label: 'Alabama'
-    },
-  ];
-
-  // 定义 handleChange 函数来处理输入框变化
-  const handleChange = useCallback((event) => {
-    // 使用更新函数来更新状态
-    setValues((prevValues) => ({
-      ...prevValues,
-      [event.target.name]: event.target.value
+  const handleSelectAllChange = (event) => {
+    const isChecked = event.target.checked;
+    const updatedCheckboxStates = checkboxStates.map((checkbox) => ({
+      ...checkbox,
+      checked: isChecked
     }));
-  }, []); // 请注意，依赖项是一个空数组，表示这个回调函数不依赖于外部变量
+    setCheckboxStates(updatedCheckboxStates);
+  };
+
+  const handleCheckboxChange = (index) => (event) => {
+    const { checked } = event.target;
+    const updatedCheckboxStates = [...checkboxStates];
+    updatedCheckboxStates[index] = { ...updatedCheckboxStates[index], checked };
+    setCheckboxStates(updatedCheckboxStates);
+  };
+
+  const handleConfirm = () => {
+    const selectedColumns = checkboxStates
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => checkbox.label);
+    console.log('選擇的團隊是：', selectedTeam); // 添加日志
+    onConfirm(selectedColumns, selectedTeam); // 傳遞選擇的團隊
+  };
+
+  const handleTeamChange = (event) => {
+    console.log('團隊選擇已更改為：', event.target.value); // 添加日志
+    setSelectedTeam(event.target.value);
+  };
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      // 從 localStorage 中獲取 userTeam
+      const userTeamCodes = localStorage.getItem("userTeam")?.split(',') || [];
+      const teamsCollectionRef = collection(firestore, "team");
+      if (userTeamCodes.length > 0) {
+        // 創建一個查詢，根據userTeamCodes中的codeName來過濾隊伍
+        const teamsQuery = query(teamsCollectionRef, where("codeName", "in", userTeamCodes));
+        try {
+          const querySnapshot = await getDocs(teamsQuery);
+          const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setTeams(teamsData);
+          
+          // 如果有預選隊伍，設置選中的隊伍
+          if (teamsData.length > 0) {
+            setSelectedTeam(teamsData[0].id); // 或其他邏輯來選擇特定隊伍
+          }
+        } catch (error) {
+          console.error("提取團隊數據時發生錯誤：", error);
+        }
+      }
+    };
+    fetchTeams();
+  }, []);
+
 
   return (
-    
-      <Card>
-      
+    <Card>
       <CardContent sx={{ pt: 2 }}>
-      {/* <form onSubmit={handleSubmit}> */}
-      
-      <Grid container spacing={5}>
-      <Grid
-        xs={12}
-        md={4}
-      >
-                <TextField
-                  fullWidth
-                  label="查詢區間"
-                  name="interval"
-                  onChange={handleChange}
-                  select
-                  SelectProps={{ 
-                    native: true,
-                    style: { padding: '7px', margin: '5px 0' }
-                   }}
-                  value={values.interval}
-                  sx={{ marginTop: '10px' }}
-                >
-                  {interval.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-        </Grid>
-        <Grid
-        xs={12}
-        md={4}
-      >
-                <TextField
-                  fullWidth
-                  label="排序"
-                  name="sort"
-                  onChange={handleChange}
-                  select
-                  SelectProps={{ 
-                    native: true,
-                    style: { padding: '7px', margin: '5px 0' }
-                   }}
-                  value={values.sort}
-                  sx={{ marginTop: '10px' }}
-                >
-                  {sort.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-        </Grid>
-        <Grid
-        xs={12}
-        md={4}
-      >
-                <TextField
-                  fullWidth
-                  label="最近打席"
-                  name="recent"
-                  onChange={handleChange}
-                  select
-                  SelectProps={{ 
-                    native: true,
-                    style: { padding: '7px', margin: '5px 0' }
-                   }}
-                  value={values.recent}
-                  sx={{ marginTop: '10px' }}
-                >
-                  {recent.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-        </Grid>
-        </Grid><br></br>
-  <Grid container spacing={6}>
-    {/* 第一个 Grid 用于显示 Notifications */}
-    <Grid item xs={12}>
-      <Typography variant="h6">
-        比賽性質
-      </Typography>
-      <Grid container spacing={1}>
-        {[
-          '季賽',
-          '季後賽',
-          '盃賽',
-          '友誼賽',
-        ].map((label, index) => (
-          <Grid item xs={4} key={index}>
-            <FormControlLabel
-              control={<Checkbox defaultChecked />}
-              label={label}
-            />
+        <Grid container spacing={5}>
+          <Grid item xs={12} md={4}>
+          <TextField
+              fullWidth
+              label="球隊"
+              name="team"
+              onChange={handleTeamChange}
+              select
+              SelectProps={{ native: true }}
+              value={selectedTeam}
+            >
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.Name}
+                </option>
+              ))}
+            </TextField>
           </Grid>
-        ))}
-      </Grid>
-    </Grid>
-    {/* 第二个 Grid 用于显示 Messages */}
-    <Grid item xs={12}>
-      <Typography variant="h6">
-        選示欄位
-      </Typography>
-      <Grid container spacing={1}>
-        {[
-          '全選',
-          '勝投',
-          '敗投',
-          'ERA',
-          '出賽',
-          '先發',
-          '局數',
-          '安打',
-          '失分',
-          '球數',
-          '四壞',
-          '奪三振',
-          'WHIP',
-          '好壞球比',
-          '每局耗球',
-          'K/9',
-          'BB/9',
-          'H/9',
-        ].map((label, index) => (
-          <Grid item xs={4} key={index}  style={{ width: '100px', whiteSpace: 'nowrap' }}>
-            <FormControlLabel
-              control={<Checkbox defaultChecked />}
-              label={label}
-            />
+        </Grid>
+        <br />
+        <Grid container spacing={6}>
+          <Grid item xs={12}>
+            <Typography variant="h6">
+              比賽性質
+            </Typography>
+            <Grid container spacing={1}>
+              {['季賽', '季後賽', '盃賽', '友誼賽'].map((label, index) => (
+                <Grid item xs={4} key={index}>
+                  <FormControlLabel
+                    control={<Checkbox defaultChecked />}
+                    label={label}
+                  />
+                </Grid>
+              ))}
+            </Grid>
           </Grid>
-        ))}
-      </Grid>
-    </Grid>
-  </Grid>
-</CardContent>
-
-        <Divider />
-        <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained">
-            確認
-          </Button>
-        </CardActions>
-      </Card>
-    // </form>
+          <Grid item xs={12}>
+            <Typography variant="h6">
+              選示欄位
+            </Typography>
+            <Grid container spacing={1}>
+              <FormControlLabel
+                control={<Checkbox onChange={handleSelectAllChange} />}
+                label="全選"
+              />
+              {checkboxStates.map((checkbox, index) => (
+                <Grid item xs={4} key={index}>
+                  <FormControlLabel
+                    control={<Checkbox checked={checkbox.checked} onChange={handleCheckboxChange(index)} />}
+                    label={checkbox.label}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
+      </CardContent>
+      <Divider />
+      <CardActions>
+        <Button onClick={handleConfirm}>確認</Button>
+      </CardActions>
+    </Card>
   );
 };

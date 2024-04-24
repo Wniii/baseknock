@@ -19,6 +19,9 @@ const Page = () => {
   const playerId = useMemo(() => player.map(player => player.id), [player]);
   const playerSelection = useSelection(playerId);
 
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedColumns, setSelectedColumns] = useState([]); // 将 setSelectedColumns 添加到 Page 组件中
+
   const handlePageChange = useCallback(
     (event, value) => {
       setPage(value);
@@ -49,11 +52,18 @@ const Page = () => {
     fetchPlayersData();
   }, []);
 
+  
+  const handleSearchConfirm = useCallback((columns, team) => {
+    console.log('Team received on confirm:', team); // Added log
+    setSelectedColumns(columns);
+    setSelectedTeam(team);
+  }, []);
+
   return (
     <>
       <Head>
         <title>
-          防守數據
+          投球數據
         </title>
       </Head>
       <Box
@@ -72,11 +82,11 @@ const Page = () => {
             >
               <Stack spacing={1}>
                 <Typography variant="h4">
-                  防守數據
+                  投球數據
                 </Typography>
               </Stack>
             </Stack>
-            <DefendSelect />
+            <DefendSelect onConfirm={handleSearchConfirm}/>
             <DefendTable
               count={playersData.length}
               items={player}
@@ -89,6 +99,7 @@ const Page = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               selected={playerSelection.selected}
+              selectedColumns={selectedColumns}
             />
           </Stack>
         </Container>

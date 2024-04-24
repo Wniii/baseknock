@@ -123,21 +123,31 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
 
-          gameData.order_main.forEach((playerStat) => {
+          if (gameData.ordermain) {
+          gameData.ordermain.forEach((playerStat) => {
             const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
             if (playerEntry) {
               playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
             }
           });
+        }else {
+          // 可能想要在这里处理没有ordermain的情况
+          console.log('No ordermain for this game:', docSnapshot.id);
+        }
 
-          gameData.order_oppo.forEach((playerStat) => {
+        if (gameData.orderoppo) {
+          gameData.orderoppo.forEach((playerStat) => {
             const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
             if (playerEntry) {
               playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
             }
           });
+        }else {
+          // 可能想要在这里处理没有orderoppo的情况
+          console.log('No orderoppo for this game:', docSnapshot.id);
+        }
+        
         });
-
         setPlayerPlateAppearances(playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
@@ -159,8 +169,8 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
           
-          // Process order_main
-          gameData.order_main.forEach(playerStat => {
+          // Process ordermain
+          gameData.ordermain.forEach(playerStat => {
             const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
             if (playerEntry) {
               if (!newPlayerHits[playerEntry.p_id]) {
@@ -179,8 +189,8 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
             }
           });
   
-          // Process order_oppo and check for o_content
-          gameData.order_oppo.forEach(playerStat => {
+          // Process orderoppo and check for o_content
+          gameData.orderoppo.forEach(playerStat => {
             const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
             if (playerEntry) {
               if (!newPlayerHits[playerEntry.p_id]) {
@@ -216,15 +226,15 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     querySnapshot.forEach((docSnapshot) => {
       const gameData = docSnapshot.data();
   
-      // Check order_main for the player's name and location
-      gameData.order_main.forEach((play) => {
+      // Check ordermain for the player's name and location
+      gameData.ordermain.forEach((play) => {
         if (play.p_name === playerId && play.location) {
           locations.push(play.location);
         }
       });
   
-      // Check order_oppo for the player's name and location
-      gameData.order_oppo.forEach((play) => {
+      // Check orderoppo for the player's name and location
+      gameData.orderoppo.forEach((play) => {
         if (play.o_p_name === playerId && play.location) {
           locations.push(play.location);
         }
