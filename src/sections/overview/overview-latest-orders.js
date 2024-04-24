@@ -112,115 +112,121 @@ export const OverviewLatestOrders = () => {
   const month = (today.getMonth() + 1).toString().padStart(2, '0');
   const day = today.getDate().toString().padStart(2, '0');
   const formattedDate = `${year}/${month}/${day}`;
-  
+
 
 
   const [games, setGames] = useState([]);
   const [futureGames, setFutureGames] = useState([]);
   console.log(futureGames)
   console.log(games)
- 
 
-  
+  const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
+
+
+
   useEffect(() => {
     const fetchGames = async () => {
-        try {
-            // 查询所有团队
-            const teamsQuerySnapshot = await getDocs(collection(firestore, 'team'));
-            const teams = teamsQuerySnapshot.docs.map(doc => doc.data());
-            const filteredGames = [];
-            const futureGames = [];
+      try {
+        // 查询所有团队
+        const teamsQuerySnapshot = await getDocs(collection(firestore, 'team'));
+        const teams = teamsQuerySnapshot.docs.map(doc => doc.data());
+        const filteredGames = [];
+        const futureGames = [];
 
-            // 对每个团队进行操作
-            for (const teamDoc of teamsQuerySnapshot.docs) {
-                const teamData = teamDoc.data();
-                const teamId = teamDoc.id; // 团队文档的 ID
+        // 对每个团队进行操作
+        for (const teamDoc of teamsQuerySnapshot.docs) {
+          const teamData = teamDoc.data();
+          const teamId = teamDoc.id; // 团队文档的 ID
 
-                // 获取团队的游戏子集合
-                const teamGamesQuerySnapshot = await getDocs(collection(firestore, 'team', teamId, 'games'));
+          // 获取团队的游戏子集合
+          const teamGamesQuerySnapshot = await getDocs(collection(firestore, 'team', teamId, 'games'));
 
-                // 对游戏子集合中的每个文档进行操作
-                for (const doc of teamGamesQuerySnapshot.docs) {
-                  const gameData = doc.data();
-                  // 检查文档中是否包含 GDate 字段
-                  if (!gameData.GDate) {
-                      continue; // 如果没有 GDate 字段，跳过当前文档
-                  }
-                  const gameDateTimestamp = gameData.GDate;
-                  const gameDate = new Date(gameDateTimestamp.seconds * 1000);
-                  const formattedGameDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
-                  console.log(formattedGameDate);
-              
-                  // 确保 formattedGameDate 在 futureGames.push 可见的作用域内
-                  let formattedGameDateForPush = formattedGameDate;
-              
-                  // 获取当前日期的格式
-                  const today = new Date();
-                  const year = today.getFullYear();
-                  const month = (today.getMonth() + 1).toString().padStart(2, '0');
-                  const day = today.getDate().toString().padStart(2, '0');
-                  const formattedToday = `${year}/${month}/${day}`;
-              
-                  const currentDate = new Date(); // 获取当前日期和时间
-                  const futureDate = new Date(); // 获取当前日期加六天的日期
-                  futureDate.setDate(futureDate.getDate() + 6);
-              
-                  
-                  // 如果游戏日期等于当前日期，则将比赛数据添加到 filteredGames 数组中
-                  if (formattedGameDate === formattedToday) {
-                      filteredGames.push({
-                          id: doc.id,
-                          hometeam: gameData.hometeam,
-                          awayteam: gameData.awayteam,
-                          ...gameData
-                      });
-                  }
-                  // 如果游戏日期在未来五天内但不包括今天，则将比赛数据添加到 futureGames 数组中
-                  else if (gameDate > currentDate && gameDate < futureDate) {
-                      // 如果是，则将比赛数据添加到 futureGames 数组中
-                      futureGames.push({
-                          GDate: formattedGameDateForPush,
-                          id: doc.id,
-                          hometeam: gameData.hometeam,
-                          awayteam: gameData.awayteam,
-                          ...gameData
-                      });
-                  }       
-              
+          // 对游戏子集合中的每个文档进行操作
+          for (const doc of teamGamesQuerySnapshot.docs) {
+            const gameData = doc.data();
+            // 检查文档中是否包含 GDate 字段
+            if (!gameData.GDate) {
+              continue; // 如果没有 GDate 字段，跳过当前文档
+            }
+            const gameDateTimestamp = gameData.GDate;
+            const gameDate = new Date(gameDateTimestamp.seconds * 1000);
+            const formattedGameDate = `${gameDate.getFullYear()}/${(gameDate.getMonth() + 1).toString().padStart(2, '0')}/${gameDate.getDate().toString().padStart(2, '0')}`;
+            console.log(formattedGameDate);
 
-                }
+            // 确保 formattedGameDate 在 futureGames.push 可见的作用域内
+            let formattedGameDateForPush = formattedGameDate;
+
+            // 获取当前日期的格式
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const formattedToday = `${year}/${month}/${day}`;
+
+            const currentDate = new Date(); // 获取当前日期和时间
+            const futureDate = new Date(); // 获取当前日期加六天的日期
+            futureDate.setDate(futureDate.getDate() + 6);
+
+
+            // 如果游戏日期等于当前日期，则将比赛数据添加到 filteredGames 数组中
+            if (formattedGameDate === formattedToday) {
+              filteredGames.push({
+                id: doc.id,
+                hometeam: gameData.hometeam,
+                awayteam: gameData.awayteam,
+                ...gameData
+              });
+            }
+            // 如果游戏日期在未来五天内但不包括今天，则将比赛数据添加到 futureGames 数组中
+            else if (gameDate > currentDate && gameDate < futureDate) {
+              // 如果是，则将比赛数据添加到 futureGames 数组中
+              futureGames.push({
+                GDate: gameDate,
+                id: doc.id,
+                hometeam: gameData.hometeam,
+                awayteam: gameData.awayteam,
+                ...gameData
+              });
             }
 
-            // 将今天的比赛设置到状态中
-            setGames(filteredGames);
 
-            // 将未来五天内但不包括今天的比赛设置到状态中
-            setFutureGames(futureGames);
-            console.log(futureGames)
-        } catch (error) {
-            console.error('Error fetching games:', error);
+          }
         }
+
+        // 将今天的比赛设置到状态中
+        setGames(filteredGames);
+        futureGames.sort((a, b) => a.GDate - b.GDate);
+        // 将未来五天内但不包括今天的比赛设置到状态中
+        setFutureGames(futureGames);
+        console.log(futureGames)
+      } catch (error) {
+        console.error('Error fetching games:', error);
+      }
     };
 
     fetchGames();
-}, []);
+  }, []);
+
+  const isTeamInUserTeams = (hometeam, awayteam) => {
+    return userTeam.includes(hometeam) && userTeam.includes(awayteam);
+  };
 
 
-// 检查日期是否在未来五天内但不包括今天的辅助函数
+  // 检查日期是否在未来五天内但不包括今天的辅助函数
 
-const formatDate = (timestamp) => {
-  const date = timestamp.toDate(); // 将 Firestore Timestamp 转换为 JavaScript Date 对象
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}/${month}/${day}`;
-};
+  const formatDate = (timestamp) => {
+    const date = timestamp.toDate(); // 将 Firestore Timestamp 转换为 JavaScript Date 对象
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}/${month}/${day}`;
+  };
 
-  
-  
-  
-  
-  
+
+
+
+
+
 
   return (
 
@@ -229,20 +235,25 @@ const formatDate = (timestamp) => {
         <Typography variant="h5" fontWeight="bold">{formattedDate}</Typography>
       </div>
       <Card sx={{ backgroundColor: '#d3d3d3', padding: '4px', width: 'auto', margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-  <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
-  {games.length === 0 ? (
-  <ListItem>
-    <ListItemText primary={<Typography align="center" fontSize={20}>今日尚無比賽</Typography>} />
-  </ListItem>
-) : (
-  games.map((game, index) => (
-    <ListItem key={index}>
-      <ListItemText primary={<Typography align="center" fontSize={20}>{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
-    </ListItem>
-  ))
-)}
-  </List>           
-</Card>
+        <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
+          {(() => {
+            const filteredGames = games.filter(game => isTeamInUserTeams(game.hometeam, game.awayteam));
+            if (filteredGames.length === 0) {
+              return (
+                <ListItem>
+                  <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold">今日尚無比賽</Typography>} />
+                </ListItem>
+              );
+            } else {
+              return filteredGames.map((game, index) => (
+                <ListItem key={index}>
+                  <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold" >{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
+                </ListItem>
+              ));
+            }
+          })()}
+        </List>
+      </Card>
       <br></br>
 
       <div style={{ textAlign: 'left', padding: '8px', marginLeft: '25px' }}>
@@ -250,32 +261,37 @@ const formatDate = (timestamp) => {
       </div>
 
       <Card sx={contentCardSx}>
-  <List sx={sx}>
-    {futureGames.map((game, index) => (
-      <div key={index}>
-        <Divider variant="middle" component="li" />
-        <ListItem>
-          <ListItemText primary={<Typography align="center">{`${formatDate(game.GDate)}   `}{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
-        </ListItem>
-      </div>
-    ))}
-  </List>
-</Card>
+        <List sx={sx}>
+          {(() => {
+            // Sort games by date first
+            const sortedAndFilteredFutureGames = futureGames
+              .sort((a, b) => new Date(a.GDate) - new Date(b.GDate)) // Ensure GDate is in a format that can be parsed by Date constructor
+              .filter(game => isTeamInUserTeams(game.hometeam, game.awayteam));
+
+            if (sortedAndFilteredFutureGames.length === 0) {
+              return (
+                <ListItem>
+                  <ListItemText primary={<Typography align="center" fontSize={20} fontWeight='500'>近一週尚無比賽</Typography>} />
+                </ListItem>
+              );
+            } else {
+              return sortedAndFilteredFutureGames.map((game, index) => (
+                <div key={index} style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <ListItem style={{ alignItems: 'flex-start' }}>
+                    <ListItemText primary={<Typography align="center" fontWeight='500'>{`${formatDate(game.GDate)}`}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
+                  </ListItem>
+                </div>
+
+              ));
+            }
+          })()}
+        </List>
+      </Card>
+
+
 
 
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        {/* <Button
-          color="inherit"
-          endIcon={(
-            <SvgIcon fontSize="small">
-              <ArrowRightIcon />
-            </SvgIcon>
-          )}
-          size="small"
-          variant="text"
-        >
-          View more
-        </Button> */}
         <Box
           sx={{
             typography: 'body1',
@@ -285,7 +301,7 @@ const formatDate = (timestamp) => {
           }}
           onClick={preventDefault}
         >
-          <Link href="/schedule" >
+          <Link href="/schedule">
             <Button
               color="inherit"
               endIcon={(

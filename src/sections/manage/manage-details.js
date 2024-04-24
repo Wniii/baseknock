@@ -165,18 +165,18 @@ export const Manage = ({ onTeamSelect }) => {
         <div>
             <form>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="h6" style={{ flex: 1 }}>目前球隊</Typography>
+                    <Typography variant="h5" style={{ flex: 1 }}>目前球隊</Typography>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="h6" style={{ textAlign: 'right' }}>
+                        <Typography variant="h6" style={{ textAlign: 'right'}}>
                             加入球隊：
                         </Typography>
                         <TextField
                             label="輸入球隊ID"
                             value={teamId}
                             onChange={(e) => setTeamId(e.target.value)}
-                            sx={{ width: '300px', marginLeft: '8px' }}
+                            sx={{ width: '300px', marginLeft: '8px', height:'50px'}}
                         />
-                        <Button variant="contained" onClick={handleAddTeam}>確認</Button>
+                        &nbsp;<Button variant="contained" onClick={handleAddTeam} >確認</Button>
                     </div>
                     <Typography variant="body1" color={message.includes('成功') ? 'success' : 'error'}>
                         {message}
