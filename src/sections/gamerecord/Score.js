@@ -88,11 +88,11 @@ export const Score = (props) => {
           sethometeam(gameDocSnapshot.data().hometeam || []);
           setawayteam(gameDocSnapshot.data().awayteam || []);
           setordermain(gameDocSnapshot.data().ordermain || []);
-
+          
           // 计算 RBI 并设置状态
           const rbiTotal = calculateRbi(gameDocSnapshot.data().ordermain || []);
           setRbiTotalByInn(rbiTotal);
-
+          console.log("wd",rbiTotal)
         } else {
           console.log("No matching game document with ID:", timestamp);
         }

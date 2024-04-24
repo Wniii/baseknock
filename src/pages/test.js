@@ -172,7 +172,11 @@ console.log("111",timestamp)
                 </Box>
               </div>
             </div>
-            <Score />
+            <Score  
+            teamId={teamId}
+            timestamp={timestamp}
+            codeName={codeName}
+            />
             <CustomersTable
               teamId={teamId}
               timestamp={timestamp}
