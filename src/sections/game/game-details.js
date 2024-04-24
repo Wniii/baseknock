@@ -19,8 +19,6 @@ import { query, where, getDocs, orderBy } from "firebase/firestore";
 import { format } from "date-fns";
 import { getDoc } from "firebase/firestore";
 
-
-
 const gName = [
   { value: "friendly", label: "友誼賽" },
   { value: "ubl", label: "大專盃" },
@@ -48,31 +46,29 @@ export const AddGame = () => {
   });
 
   const [hometeamOptions, setHometeamOptions] = useState([
-    { value: 'loadingHome', label: '加载主队数据...' }
+    { value: "loadingHome", label: "加载主队数据..." },
   ]);
   const [awayteamOptions, setAwayteamOptions] = useState([
-    { value: 'loadingAway', label: '加载客队数据...' }
+    { value: "loadingAway", label: "加载客队数据..." },
   ]);
-  
+
   useEffect(() => {
     const userTeamsString = localStorage.getItem("userTeam");
     let initialHomeTeams = [];
     let initialAwayTeams = [];
-  
+
     if (userTeamsString) {
       const userTeams = userTeamsString.split(",");
-      initialHomeTeams = userTeams.map(team => ({ value: team, label: team }));
-      initialAwayTeams = userTeams.map(team => ({ value: team, label: team }));
+      initialHomeTeams = userTeams.map((team) => ({ value: team, label: team }));
+      initialAwayTeams = userTeams.map((team) => ({ value: team, label: team }));
     } else {
-      initialHomeTeams = [{ value: 'noHome', label: '无可选主队' }];
-      initialAwayTeams = [{ value: 'noAway', label: '无可选客队' }];
+      initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
+      initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
     }
-  
+
     setHometeamOptions(initialHomeTeams);
     setAwayteamOptions(initialAwayTeams);
   }, []);
-   
-
 
   const AddGameSx = {
     backgroundColor: "#d3d3d3",
@@ -117,65 +113,87 @@ export const AddGame = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     try {
       const g_id = await generateGameId();
       const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
-
-      const homeTeamCollectionRef = collection(firestore, "team", values.hometeam, "games");
-      const awayTeamCollectionRef = collection(firestore, "team", values.awayteam, "games");
-
-      // 在 "games" 集合中添加一个新文档，文档 ID 为 g_id
-      const gameDocRef = doc(firestore, "team", "111", "games", g_id);
-      await setDoc(gameDocRef, {
-        g_id: g_id, // 将 g_id 作为文档的一个字段
-        GDate: values.GDate, // 仅存储日期部分
-        GTime: values.GTime,
-        hometeam: values.hometeam,
-        awayteam: values.awayteam,
-        gName: values.gName,
-        coach: values.coach,
-        recorder: values.recorder,
-        label: values.label,
-        remark: values.remark,
-      });
-
-      // 在 "team" 集合中更新团队文档，添加一个名为 games 的字段，其值为一个对象，包含 g_id 和 GDate
-      const teamDocRef = doc(firestore, "team", "111");
-      const teamDocSnapshot = await getDoc(teamDocRef);
-      if (teamDocSnapshot.exists()) {
-        const teamData = teamDocSnapshot.data();
-        const gamesData = teamData.games || {}; // 如果 games 字段不存在，则初始化为空对象
-        gamesData[g_id] = values.GDate; // 将新游戏的 g_id 和 GDate 添加到 games 字段中
-        await setDoc(teamDocRef, { games: gamesData }, { merge: true }); // 使用 { merge: true } 选项将新数据合并到现有文档中
-
-        // 打印结果
-        console.log("Team document exists. Games data updated:", gamesData);
-      } else {
-        console.log("Team document not found or does not exist.");
+  
+      // 查询主队ID
+      const hquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
+      );
+      let hteam = hquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+  
+      // 查询客队ID
+      const aquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
+      );
+      let ateam = aquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+  
+      if (!hteam || !ateam) {
+        console.error("未找到相应的主队或客队");
+        alert("未找到相应的主队或客队");
+        return; // 如果没有找到队伍，就中止操作
       }
+  
+      // 创建主队和客队的游戏文档
+      await Promise.all([
+        setDoc(doc(firestore, "team", hteam, "games", g_id), {
+          g_id: g_id, // 将 g_id 作为文档的一个字段
+          GDate: values.GDate, // 仅存储日期部分
+          GTime: values.GTime,
+          hometeam: values.hometeam,
+          awayteam: values.awayteam,
+          gName: values.gName,
+          coach: values.coach,
+          recorder: values.recorder,
+          label: values.label,
+          remark: values.remark,
+        }),
+        setDoc(doc(firestore, "team", ateam, "games", g_id), {
+          g_id: g_id, // 将 g_id 作为文档的一个字段
+          GDate: values.GDate, // 仅存储日期部分
+          GTime: values.GTime,
+          hometeam: values.hometeam,
+          awayteam: values.awayteam,
+          gName: values.gName,
+          coach: values.coach,
+          recorder: values.recorder,
+          label: values.label,
+          remark: values.remark,
+        })
+      ]);
+  
+      // 更新主队的games字段
+      await updateGamesField(hteam, g_id, GDate);
+  
+      // 更新客队的games字段
+      await updateGamesField(ateam, g_id, GDate);
+  
       console.log("New game document created with g_id:", g_id);
-      console.log("Game details:", {
-        g_id: g_id,
-        GDate: values.GDate,
-        GTime: values.GTime,
-        hometeam: values.hometeam,
-        awayteam: values.awayteam,
-        gName: values.gName,
-        coach: values.coach,
-        recorder: values.recorder,
-        label: values.label,
-        remark: values.remark,
-      });
-      // 提示新增成功
       alert("新增成功！");
     } catch (error) {
       console.error("Error creating game document:", error);
       alert("An error occurred while creating game document.");
     }
   };
-
-
+  
+  async function updateGamesField(teamId, g_id, GDate) {
+    const teamDocRef = doc(firestore, "team", teamId);
+    const teamDocSnapshot = await getDoc(teamDocRef);
+    if (!teamDocSnapshot.exists()) {
+      console.log("Team document not found or does not exist.");
+      return;
+    }
+  
+    const teamData = teamDocSnapshot.data();
+    const gamesData = teamData.games || {}; // 如果 games 字段不存在，则初始化为空对象
+    gamesData[g_id] = GDate; // 将新游戏的 g_id 和 GDate 添加到 games 字段中
+  
+    await setDoc(teamDocRef, { games: gamesData }, { merge: true });
+    console.log("Team document exists. Games data updated:", gamesData);
+  }
+  
   return (
     <div>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
@@ -320,7 +338,7 @@ export const AddGame = () => {
           </CardContent>
         </Card>
         &nbsp;
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: "flex", justifyContent: "center" }}>
           <Button type="submit" variant="contained" color="primary">
             確認新增
           </Button>
