@@ -37,7 +37,6 @@ export const AddGame = () => {
   const router = useRouter();
   const [values, setValues] = useState({
     GDate: null,
-    GTime: null,
     hometeam: "",
     awayteam: "",
     gName: "",
@@ -118,7 +117,7 @@ export const AddGame = () => {
   
     try {
       const g_id = await generateGameId();
-      const { GDate, GTime, ...otherValues } = values; // 分离日期和时间
+      const { GDate, ...otherValues } = values; // 分离日期和时间
   
       // 查询主队ID
       const hquerySnapshot = await getDocs(
@@ -148,7 +147,6 @@ export const AddGame = () => {
         setDoc(doc(firestore, "team", hteam, "games", g_id), {
           g_id: g_id, // 将 g_id 作为文档的一个字段
           GDate: values.GDate, // 仅存储日期部分
-          GTime: values.GTime,
           hometeam: values.hometeam,
           awayteam: values.awayteam,
           gName: values.gName,
@@ -160,7 +158,6 @@ export const AddGame = () => {
         setDoc(doc(firestore, "team", ateam, "games", g_id), {
           g_id: g_id, // 将 g_id 作为文档的一个字段
           GDate: values.GDate, // 仅存储日期部分
-          GTime: values.GTime,
           hometeam: values.hometeam,
           awayteam: values.awayteam,
           gName: values.gName,

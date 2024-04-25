@@ -14,11 +14,19 @@ import {
 } from "@mui/material";
 
 import { Layout as DashboardLayout } from "src/layouts/dashboard/layout";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  query,
+  collection,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { firestore } from "./firebase";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { title } from "process";
 
 const localizer = momentLocalizer(moment);
 
@@ -30,52 +38,100 @@ const SchedulePage = () => {
   const [codeName, setcodeName] = useState(null); // 修改这里
   const [teamId, setteamId] = useState(null); // 修改这里
   const timeZone = "Asia/Taipei";
+  const [values, setValues] = useState({
+    hometeam: "",
+    awayteam: "",
+  });
 
   const fetchGames = async () => {
     try {
-      const teamCollection = collection(firestore, "team");
-      const teamSnapshot = await getDocs(teamCollection);
-  
-      const gamesData = [];
-      for (const doc of teamSnapshot.docs) {
-        const teamId = doc.id; // 获取文档ID作为团队的唯一标识符
-        const teamData = doc.data();
-        const teamGames = teamData.games;
-        console.log("csc",teamGames)
-        if (teamGames) {
-          Object.keys(teamGames).forEach((timestamp) => {
-            const game = teamGames[timestamp]; // 获取游戏数据
-            const hometeam = teamGames.hometeam; // 获取hometeam的值
-            const gameData = {
-              id: timestamp,
-              title: teamData.codeName,
-              start: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
-              end: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
-              timestamp: timestamp,
-              teamId: teamId, // 将团队ID添加到游戏数据中
-              hometeam: hometeam // 将hometeam添加到游戏数据中
-            };
-  
-            gamesData.push(gameData);
-          });
+        const teamCollection = collection(firestore, "team");
+        const teamSnapshot = await getDocs(teamCollection);
+
+        // 獲取所有隊伍資料，以便進行 ID 和 名稱查找
+        const teamsData = await getDocs(collection(firestore, "team"));
+        const teamIdMap = new Map();
+        const teamNameMap = new Map();
+        teamsData.forEach(doc => {
+            const data = doc.data();
+            teamIdMap.set(data.codeName, doc.id);
+            teamNameMap.set(data.codeName, data.Name);  // 保存 codeName 到 name 的映射
+        });
+
+        const gamesData = [];
+        const addedTimestamps = new Set();
+
+        for (const teamDoc of teamSnapshot.docs) {
+            const teamId = teamDoc.id;
+            const teamData = teamDoc.data();
+            const teamGames = teamData.games;
+
+            if (teamGames) {
+                for (const timestamp of Object.keys(teamGames)) {
+                    const game = teamGames[timestamp];
+                    const docRef = doc(firestore, "team", teamId, "games", timestamp);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        console.log("Document data:", docSnap.data()); // Debug log
+                        const gameData = docSnap.data();
+
+                        if (!gameData.hometeam || !gameData.awayteam) {
+                            console.log(gameData.hometeam, gameData.awayteam);
+                            console.error("Game data is missing team information");
+                            continue; // Skip this game if team data is incomplete
+                        }
+
+                        const hteam = teamIdMap.get(gameData.hometeam);
+                        const ateam = teamIdMap.get(gameData.awayteam);
+                        const homeTeamName = teamNameMap.get(gameData.hometeam);
+                        const awayTeamName = teamNameMap.get(gameData.awayteam);
+                        const title = `${homeTeamName} v.s. ${awayTeamName}`;
+
+                        if (!hteam || !ateam) {
+                            console.error("未找到相应的主队或客队");
+                            continue;  // 如果没有找到队伍，就跳过这场比赛
+                        }
+
+                        if (!addedTimestamps.has(timestamp)) {
+                            gamesData.push({
+                                id: timestamp,
+                                title: title,
+                                codeName: teamData.codeName,
+                                start: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
+                                end: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
+                                timestamp: timestamp,
+                                teamId: teamId,
+                                hometeamId: hteam,
+                                awayteamId: ateam,
+                                hcodeName: gameData.hometeam,
+                                acodeName: gameData.awayteam,
+                                selectedTeam: gameData.awayteam
+                            });
+                            addedTimestamps.add(timestamp);
+                        }
+                    }
+                }
+            }
         }
-      }
-  
-      setGames(gamesData);
-  
-      // 设置codeName状态值
-      const firstTeamCodeName = teamSnapshot.docs[0]?.data()?.codeName; // 从第一个团队中获取codeName
-      if (firstTeamCodeName) {
-        setcodeName(firstTeamCodeName);
-      }
+
+        setGames(gamesData);
     } catch (error) {
-      console.error("Error fetching games:", error);
+        console.error("Error fetching games:", error);
     }
-  };
-  
-  useEffect(() => {
+};
+
+useEffect(() => {
     fetchGames();
-  }, []);
+}, []);
+
+
+  
+  
+  
+  
+  // 其餘函數保持不變...
+
+  
   
   console.log(games)
   // Handle click on a game event
@@ -98,8 +154,8 @@ const SchedulePage = () => {
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
     
     // 从团队数据中提取codeName 和 hometeam
-    const codeName = selectedGameData ? selectedGameData.title : null;
-    const hometeam = selectedGameData ? selectedGameData.hometeam : null;
+    const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
+    const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
 
     
     // 获取选定游戏的团队ID
@@ -110,9 +166,8 @@ const SchedulePage = () => {
       pathname: "/playershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        hometeam: hometeam, // Add hometeam to the query
-        teamId: teamId // Add teamId to the query
+        codeName: hcodeName, // Add codeName to the query
+        teamId: hometeamId // Add teamId to the query
       }
     });
   };
@@ -123,20 +178,17 @@ const SchedulePage = () => {
         
     // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-    
-    // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.title : null;
-    
-    // 获取选定游戏的团队ID
-    const teamId = selectedGameData ? selectedGameData.teamId : null;
+    const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
+    const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
+
     
     // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/playershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        teamId: teamId // Add teamId to the query
+        codeName: hcodeName, // Add codeName to the query
+        teamId: hometeamId // Add teamId to the query
       }
     });
   };
@@ -148,7 +200,7 @@ const SchedulePage = () => {
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
     
     // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.title : null;
+    const codeName = selectedGameData ? selectedGameData.codeName : null;
     
     // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
@@ -171,7 +223,7 @@ const SchedulePage = () => {
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
     
     // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.title : null;
+    const codeName = selectedGameData ? selectedGameData.codeName : null;
     
     // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
@@ -196,7 +248,7 @@ const SchedulePage = () => {
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
       
     // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.title : null;
+    const codeName = selectedGameData ? selectedGameData.codeName : null;
 
     const teamId = selectedGameData ? selectedGameData.teamId : null;
 
@@ -219,10 +271,23 @@ const SchedulePage = () => {
   const handleEditGame = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
+    
+    // 获取选定游戏的团队数据
+    const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
+      
+    // 从团队数据中提取codeName
+    const codeName = selectedGameData ? selectedGameData.codeName : null;
+
+    const teamId = selectedGameData ? selectedGameData.teamId : null;
+
+    setDialogOpen(false); // Close the dialog after action
     router.push({
       pathname: "/edit-game",
-      query: { g_id: selectedGame.timestamp },
-    });          
+      query: { 
+        timestamp: selectedGame.timestamp,
+        codeName: codeName, // Add codeName to the query
+      }
+    }); 
   };
 
   return (

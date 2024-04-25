@@ -62,7 +62,6 @@ export const EditGame = () => {
 
   const [values, setValues] = useState({
     GDate: null,
-    GTime: null,
     hometeam: "",
     awayteam: "",
     gName: "",
@@ -131,8 +130,6 @@ export const EditGame = () => {
   const [prevateam, setPrevAteam] = useState("");
 
   useEffect(() => {
-    console.log("Fetching data...");
-    console.log("Fetching data with teamId:", teamId, "and g_id:", g_id);
     const fetchData = async () => {
       console.log("Fetching data with teamId:", teamId, "and g_id:", g_id); // Debug log
       if (teamId && g_id) {
@@ -150,7 +147,6 @@ export const EditGame = () => {
               result: gameData.result || "",
               youtubelink: gameData.youtubelink || "",
               GDate: gameData.GDate ? parseISO(gameData.GDate.toDate().toISOString()) : null,
-              GTime: gameData.GTime,
               hometeam: gameData.hometeam || "",
               awayteam: gameData.awayteam || "",
               gName: gameData.gName || "",
