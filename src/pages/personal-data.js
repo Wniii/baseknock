@@ -10,30 +10,32 @@ import { Container, Stack } from "@mui/material";
 import { AccountProfile } from "src/sections/data/account-profile";
 
 // 假设这是你的数据
-const data = [
+// const data = [
   // 数据项
-];
+// ];
 
-const now = new Date();
+// const now = new Date();
 
-const useCustomers = (page, rowsPerPage) => {
-  return useMemo(() => {
-    return applyPagination(data, page, rowsPerPage);
-  }, [page, rowsPerPage]);
-};
+// const useCustomers = (page, rowsPerPage) => {
+//   return useMemo(() => {
+//     return applyPagination(data, page, rowsPerPage);
+//   }, [page, rowsPerPage]);
+// };
 
-const useCustomerIds = (customers) => {
-  return useMemo(() => {
-    return customers.map((customer) => customer.id);
-  }, [customers]);
-};
+// const useCustomerIds = (customers) => {
+//   return useMemo(() => {
+//     return customers.map((customer) => customer.id);
+//   }, [customers]);
+// };
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const customers = useCustomers(page, rowsPerPage);
-  const customersIds = useCustomerIds(customers);
-  const customersSelection = useSelection(customersIds);
+  // const customers = useCustomers(page, rowsPerPage);
+  // const customersIds = useCustomerIds(customers);
+  // const customersSelection = useSelection(customersIds);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null); // 添加這行
 
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
@@ -57,22 +59,24 @@ const Page = () => {
       >
         <Container maxWidth="xl">
           <Stack spacing={3}>
-            <AccountProfile />
+            <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam}/>
             <div>
               <Typography variant="h6">打擊成績</Typography>
             </div>
             <Bdata
-              count={data.length}
-              items={customers}
+              // count={data.length}
+              // items={customers}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
               rowsPerPage={rowsPerPage}
+              selectedPlayer={selectedPlayer}
+              selectedTeam={selectedTeam}
             />
             <Typography variant="h6">投球成績</Typography>
             <Pdata
-              count={data.length}
-              items={customers}
+              // count={data.length}
+              // items={customers}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}

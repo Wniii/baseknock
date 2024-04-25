@@ -13,21 +13,65 @@ import {
   Typography,
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
-import { Timestamp } from 'firebase/firestore'; // 导入 Timestamp 类型
+import React, { useState, useEffect } from 'react';
+import { firestore } from 'src/pages/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export const Bdata = (props) => {
-  const {
-    count = 0,
-    items = [],
-    onPageChange = () => {},
-    onRowsPerPageChange,
-    page = 0,
-    rowsPerPage = 0,
-    selected = [],
-    selectedPlayer, // 接收来自 AccountProfile 组件传递的球员信息
-  } = props;
+export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo }) => {
+  const [playerGames, setPlayerGames] = useState([]);
 
-  console.log('Bdata 组件收到的球员信息:', selectedPlayer);
+  useEffect(() => {
+    const fetchPlayerGames = async () => {
+      if (selectedPlayer?.id) {
+        // 從 Firestore 獲取 'games' 集合的引用
+        const gamesRef = collection(firestore, "games");
+        // 獲取所有遊戲記錄
+        const gamesSnapshot = await getDocs(gamesRef);
+        
+        // 使用 .map() 和 .filter() 處理獲取的遊戲記錄
+        const filteredGames = gamesSnapshot.docs
+          .map(doc => {
+            const data = doc.data();
+            // 檢查 GDate 是否存在，並且是否是 Timestamp 物件
+            const formattedDate = data.GDate && typeof data.GDate.toDate === 'function' 
+                                  ? format(data.GDate.toDate(), "dd/MM/yyyy") 
+                                  : "無日期";
+            return {
+              id: doc.id,
+              ...data,
+              formattedDate
+            };
+          })
+          .filter(game => {
+            // 確保 ordermain 和 orderoppo 都被定義並且是數組
+            const isInOrderMain = Array.isArray(ordermain) && ordermain.some(order => order.p_name === selectedPlayer.id);
+            const isInOrderOppo = Array.isArray(orderoppo) && orderoppo.some(order => order.o_p_name === selectedPlayer.id);
+            return isInOrderMain || isInOrderOppo;
+          });
+        
+        // 更新 state
+        setPlayerGames(filteredGames);
+      }
+    };
+  
+    fetchPlayerGames();
+  }, [selectedPlayer, ordermain, orderoppo]);
+  
+  useEffect(() => {
+    console.log('更新後的遊戲數據:', playerGames);
+  }, [playerGames]);
+
+  useEffect(() => {
+    console.log('Bdata 組件收到的球員信息:', selectedPlayer);
+    // ...
+  }, [selectedPlayer]);
+
+
+  useEffect(() => {
+    console.log('ordermain:', ordermain);
+    console.log('orderoppo:', orderoppo);
+    // ...
+  }, [ordermain, orderoppo]);
 
   return (
     <Card>
@@ -50,14 +94,9 @@ export const Bdata = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-            {items.map((game) => {
-  const isSelected = selected.includes(game.id);
-  // 如果游戏对象中没有 date 属性或者 date 是 undefined，则返回一个空字符串
-  const formattedDate = game.date ? format(game.date.toDate(), "dd/MM/yyyy") : "";
-
-  return (
-    <TableRow hover key={game.id} selected={isSelected}>
-      <TableCell>{formattedDate}</TableCell>
+            {playerGames.length > 0 ? playerGames.map((game) => (
+                <TableRow hover key={game.id}>
+      <TableCell>{game.formattedDate}</TableCell>
       <TableCell>{game.at_bat}</TableCell>
       <TableCell>{game.hits}</TableCell>
       <TableCell>{game.total_bases}</TableCell>
@@ -68,8 +107,11 @@ export const Bdata = (props) => {
       <TableCell>{game.triple_hits}</TableCell>
       <TableCell>{game.home_runs}</TableCell>
     </TableRow>
-  );
-})}
+    )) : (
+      <TableRow>
+        <TableCell colSpan={10}>沒有找到數據</TableCell>
+      </TableRow>
+    )}
             </TableBody>
           </Table>
         </Box>
@@ -89,9 +131,12 @@ export const Bdata = (props) => {
 
 Bdata.propTypes = {
   count: PropTypes.number,
-  items: PropTypes.array,
   onPageChange: PropTypes.func,
   onRowsPerPageChange: PropTypes.func,
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
+  selectedPlayer: PropTypes.object,
+  selectedTeam: PropTypes.object,
+  ordermain: PropTypes.array.isRequired, // 確保傳入的 ordermain 是數組類型
+  orderoppo: PropTypes.array.isRequired, // 確保傳入的 orderoppo 也是數組類型
 };
