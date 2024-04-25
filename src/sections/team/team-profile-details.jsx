@@ -122,10 +122,10 @@ export const TeamManagement = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("提交开始");
-  
-    // 從LocalStorage中獲取u_id
+
+    // 从LocalStorage中获取u_id
     const u_id = localStorage.getItem("userId");
-  
+
     let photoURL = "";
     try {
       if (file) {
@@ -138,7 +138,7 @@ export const TeamManagement = () => {
       alert("图片上传失败");
       return;
     }
-  
+
     const playersToSave = {};
     values.players.forEach((playerData, id) => {
       const playerName = playerData.PName.trim();
@@ -150,7 +150,7 @@ export const TeamManagement = () => {
         };
       }
     });
-  
+
     try {
       // 将团队文档添加到Firestore
       const newTeamDocRef = await addDoc(collection(firestore, "team"), {
@@ -160,38 +160,47 @@ export const TeamManagement = () => {
         photo: photoURL,
         players: playersToSave,
       });
-  
+
       const newTeamId = newTeamDocRef.id;
-  
+      console.log("团队添加成功，ID:", newTeamId);
+
       // 使用团队信息更新用户文档
-      const userRef = doc(firestore, "users", u_id);
-      const userDoc = await getDoc(userRef);
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        // 将u_team添加到Map中
-        const usergameData = userData.u_team || {}; // 确保u_team存在且为一个对象
-        usergameData[values.Name] = values.codeName;
+      try {
+        // 獲取用戶文檔的引用
+        const userRef = doc(firestore, "users", u_id);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // 確保u_team存在且為一個陣列
+          const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
+          // 將新隊伍名稱推送到陣列中
+          userTeamArray.push(values.codeName);
       
-        try {
-          // 更新用户文档
-          await setDoc(userRef, { u_team: usergameData }, { merge: true });
-          console.log("用户文档更新成功");
-        } catch (error) {
-          console.error("更新用户文档错误:", error);
+          try {
+            // 使用Array的方式更新用戶文檔的u_team字段
+            await updateDoc(userRef, { u_team: userTeamArray });
+            console.log("用户文档更新成功");
+          } catch (error) {
+            console.error("更新用户文档错误:", error);
+            alert("更新用戶文檔時出現錯誤");
+          }
+        } else {
+          console.error("找不到用户文档");
+          alert("用戶文檔不存在");
         }
-      } else {
-        console.error("找不到用户文档");
+      } catch (error) {
+        console.error("处理用户文档时出现错误:", error);
+        alert("處理用戶文檔時出現錯誤");
       }
-  
-      console.log("团队添加成功");
-      setDialogMessage("球队添加成功！");
+      setDialogMessage("球隊新增成功！");
       setOpenDialog(true);
     } catch (error) {
       console.error("添加团队文档错误:", error);
-      setDialogMessage("球队添加失败！");
+      setDialogMessage("球對新增失敗！");
       setOpenDialog(true);
     }
-  };
+};
+
   
   
 
@@ -407,7 +416,7 @@ export const TeamManagement = () => {
               <Typography>{dialogMessage}</Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setOpenDialog(false)}>确定</Button>
+              <Button onClick={() => setOpenDialog(false)}>確定</Button>
             </DialogActions>
           </Dialog>
         </Box>
