@@ -18,6 +18,7 @@ import { setDoc, doc, collection } from "firebase/firestore";
 import { query, where, getDocs, orderBy } from "firebase/firestore";
 import { format } from "date-fns";
 import { getDoc } from "firebase/firestore";
+import { useRouter } from "next/router";
 
 const gName = [
   { value: "friendly", label: "友誼賽" },
@@ -33,6 +34,7 @@ const labelOptions = [
 ];
 
 export const AddGame = () => {
+  const router = useRouter();
   const [values, setValues] = useState({
     GDate: null,
     GTime: null,
@@ -135,6 +137,11 @@ export const AddGame = () => {
         alert("未找到相应的主队或客队");
         return; // 如果没有找到队伍，就中止操作
       }
+      
+      if (hteam === ateam) {
+        alert("主队和客队不能相同，请重新选择！");
+        return; // 如果主队和客队相同，中止操作并提示用户
+      }
   
       // 创建主队和客队的游戏文档
       await Promise.all([
@@ -172,6 +179,7 @@ export const AddGame = () => {
   
       console.log("New game document created with g_id:", g_id);
       alert("新增成功！");
+      router.push("/schedule");
     } catch (error) {
       console.error("Error creating game document:", error);
       alert("An error occurred while creating game document.");

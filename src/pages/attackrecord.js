@@ -6,7 +6,7 @@ import {
   MenuItem, InputLabel, Select
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { useRouter } from 'next/router'; // Import Next.js router
+import { useRouter } from 'next/router';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { firestore } from './firebase';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
@@ -64,13 +64,7 @@ const Page = () => {
   const [currentInning, setCurrentInning] = useState(0);
   const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
 
-  const handleBallTypeChange = (index, type) => {
-    if (type === 'ball') {
-      setBalls(balls => balls.map((item, idx) => idx === index ? !item : item));
-    } else if (type === 'strike') {
-      setStrikes(strikes => strikes.map((item, idx) => idx === index ? !item : item));
-    }
-  };
+
 
   useEffect(() => {
     const fetchGameDocument = async () => {
@@ -158,63 +152,63 @@ const Page = () => {
 
     const baseStatuses = ['一壘', '二壘', '三壘'];
     const selectedBases = baseStatuses.filter(base => selectedHits[base]);
-    const baseOuts = ['0','1', '2', '3'];
-  
+    const baseOuts = ['0', '1', '2', '3'];
 
 
-      const selectedContent = Object.entries(selectedHits)
-        .filter(([key, value]) => value && hitContents.includes(key))
-        .map(([key, _]) => key)
-        .join(', ');
 
-      let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
-      const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
+    const selectedContent = Object.entries(selectedHits)
+      .filter(([key, value]) => value && hitContents.includes(key))
+      .map(([key, _]) => key)
+      .join(', ');
 
-      // Calculate RBIs from selected run scoring hits
-      let rbiCount = 0;
-      if (selectedHits['一分']) rbiCount += 1;
-      if (selectedHits['兩分']) rbiCount += 2;
-      if (selectedHits['三分']) rbiCount += 3;
-      if (selectedHits['四分']) rbiCount += 4;
+    let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
+    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
 
-      const markerData = {
-        x: markers.x.toString(),
-        y: markers.y.toString()
-      };
+    // Calculate RBIs from selected run scoring hits
+    let rbiCount = 0;
+    if (selectedHits['一分']) rbiCount += 1;
+    if (selectedHits['兩分']) rbiCount += 2;
+    if (selectedHits['三分']) rbiCount += 3;
+    if (selectedHits['四分']) rbiCount += 4;
 
-      try {
-        await updateDoc(gameRef, {
-          'ordermain': arrayUnion({
-            'content': selectedContent,
-            'inn': currentInning,
-            'onbase': bases,
-            'p_name': attackData,
-            'rbi': rbiCount,
-            'markers': markers
-          }),
-          pitcher: {
-            ball: initialBalls + balls.filter(Boolean).length,
-            strike: initialStrikes + strikes.filter(Boolean).length
-          },
-          'outs': outs
-        });
-        console.log('Document successfully updated!');
-        alert('Document successfully updated!');
-        router.push({
-          pathname: '/test',
-          query: {
-            timestamp: timestamp,
-            codeName: codeName,
-            teamId: teamId
-          },
-        });
-        setOpenDialog(false);
-        setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
-      } catch (error) {
-        console.error('Error updating document:', error);
-        alert('Error updating document: ' + error.message);
-      }
-    
+    const markerData = {
+      x: markers.x.toString(),
+      y: markers.y.toString()
+    };
+
+    try {
+      await updateDoc(gameRef, {
+        'ordermain': arrayUnion({
+          'content': selectedContent,
+          'inn': currentInning,
+          'onbase': bases,
+          'p_name': attackData,
+          'rbi': rbiCount,
+          'markers': markers
+        }),
+        pitcher: {
+          ball: initialBalls + balls.filter(Boolean).length,
+          strike: initialStrikes + strikes.filter(Boolean).length
+        },
+        'outs': outs
+      });
+      console.log('Document successfully updated!');
+      alert('Document successfully updated!');
+      router.push({
+        pathname: '/test',
+        query: {
+          timestamp: timestamp,
+          codeName: codeName,
+          teamId: teamId
+        },
+      });
+      setOpenDialog(false);
+      setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
+    } catch (error) {
+      console.error('Error updating document:', error);
+      alert('Error updating document: ' + error.message);
+    }
+
   };
 
   const handleSaveToFirebase = () => {
@@ -224,7 +218,7 @@ const Page = () => {
       saveData();  // 如果没有基壘被选中，直接保存数据
     }
   };
-  
+
 
 
   const handleCloseSnackbar = () => {
@@ -239,22 +233,75 @@ const Page = () => {
   };
 
 
+  const handleBallTypeChange = (index, type, hitType) => {
+    console.log('hitType:', hitType); // 輸出 hitType 的值
+
+    if (hitType === '四壞') {
+      console.log('进入四壞情况'); // 输出进入四壞情况
+      // 四壞情况，如果当前已经有三个壞球，则只增加一个壞球计数，否则增加四个
+      setBalls((currentBalls) => {
+        const currentBallCount = currentBalls.filter(Boolean).length;
+        if (currentBallCount === 3) {
+          // 已经有三个壞球，现在发生了“四壞”，因此只增加一个
+          return [true, true, true, true];
+        } else {
+          // 壞球计数重置，因为“四壞”后击球员将上垒
+          return [false, false, false, false];
+        }
+      });
+      setInitialBalls(prev => {
+        const currentBallCount = balls.filter(Boolean).length;
+        if (currentBallCount === 3) {
+          // 已经有三个壞球，只需加一个到总计
+          return prev ;
+        } 
+      });
+    } else if (hitType === '三振') {
+      console.log('進入三振情況'); // 输出进入四壞情况
+      // 四壞情况，如果当前已经有三个壞球，则只增加一个壞球计数，否则增加四个
+      setStrikes((currentStrikes) => {
+        const currentStrikeCount = currentStrikes.filter(Boolean).length;
+        if (currentStrikeCount === 2) {
+          // 已经有三个壞球，现在发生了“四壞”，因此只增加一个
+          return [true, true, true];
+        } else {
+          // 壞球计数重置，因为“四壞”后击球员将上垒
+          return [false, false, false];
+        }
+      });
+      setInitialBalls(prev => {
+        const currentStrikeCount = strikes.filter(Boolean).length;
+        if (currentStrikeCount === 2) {
+          // 已经有三个壞球，只需加一个到总计
+          return prev ;
+        } 
+      });
+    } else {
+      console.log('普通情況'); // 輸出普通情況
+
+      if (type === 'ball') {
+        setBalls(balls => balls.map((item, idx) => idx === index ? !item : item));
+      } else if (type === 'strike') {
+        setStrikes(strikes => strikes.map((item, idx) => idx === index ? !item : item));
+      }
+    }
+  };
+
   const handleOutChange = (baseOuts, hitType = null) => {
-    const selectedValue = parseInt(event.target.value);
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
     }
-    else if(baseOuts === 0){
+    else if (baseOuts === 0) {
       additionalOuts = 0;
     }
-    else if(baseOuts === 1){
+    else if (baseOuts === 1) {
       additionalOuts = 1;
     }
-    else if(baseOuts === 2){
+    else if (baseOuts === 2) {
       additionalOuts = 2;
     }
-    else if(baseOuts === 3){
+    else if (baseOuts === 3) {
       additionalOuts = 3;
     }
     setOuts(prevOuts => {
@@ -409,6 +456,9 @@ const Page = () => {
                             <Typography variant='body1'>
                               第{currentBattingOrder}棒次
                             </Typography>
+                            <Typography style={{ marginLeft: '120px' }}>
+                              投手：
+                            </Typography>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
                           </div>
@@ -539,6 +589,7 @@ const Page = () => {
                               onClick={() => {
                                 handleCheckboxChange('三振');
                                 handleOutChange('三振');
+                                handleBallTypeChange(strikes, 'strike', '三振');
                               }
                               }
                             >
@@ -668,7 +719,12 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => handleCheckboxChange('四壞')}
+                              onClick={() => {
+                                handleCheckboxChange('四壞')
+                                handleBallTypeChange(balls, 'ball', '四壞')
+                              }
+                              }
+                              
                             >
                               四壞
                             </Button>
@@ -799,7 +855,7 @@ const Page = () => {
                         儲存
                       </Button>
                       <Snackbar open={alertInfo.open} autoHideDuration={6000} onClose={() => setAlertInfo({ ...alertInfo, open: false })}>
-                      <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                        <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
                           {alertInfo.message}
                         </Alert>
                       </Snackbar>
@@ -813,7 +869,7 @@ const Page = () => {
           <CardActions sx={{ justifyContent: 'center' }}>
             <Button
               variant="contained"
-              onClick={handleSaveToFirebase} 
+              onClick={handleSaveToFirebase}
             >
               儲存
             </Button>

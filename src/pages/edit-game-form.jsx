@@ -24,21 +24,22 @@ import {
 
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
 import { firestore } from "./firebase";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  setDoc,
+  query,
+  collection,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { useRouter } from "next/router";
 import { deleteDoc } from "firebase/firestore";
 import { CircularProgress } from "@mui/material";
 import { runTransaction } from "firebase/firestore";
+import { parseISO } from "date-fns";
 
-// const hometeamOptions = [
-//   { value: "fju", label: "輔仁大學" },
-//   { value: "kpbl", label: "卡皮巴拉" },
-// ];
-
-// const awayteamOptions = [
-//   { value: "fju", label: "輔仁大學" },
-//   { value: "kpbl", label: "卡皮巴拉" },
-// ];
 
 const gNameOptions = [
   { value: "friendly", label: "友誼賽" },
@@ -53,9 +54,12 @@ const labelOptions = [
   { value: "others", label: "其他" },
 ];
 
-export const EditGame = ({ g_id }) => {
-  const [teamOptions, setTeamOptions] = useState([]);
+export const EditGame = () => {
   const router = useRouter();
+  const g_id = router.query.timestamp; // 从 URL 获取 g_id
+  const codeName = router.query.codeName;
+  const [teamId, setTeamId] = useState("");
+
   const [values, setValues] = useState({
     GDate: null,
     GTime: null,
@@ -82,63 +86,94 @@ export const EditGame = ({ g_id }) => {
     setOpen(false);
   };
   const [hometeamOptions, setHometeamOptions] = useState([
-    { value: 'loadingHome', label: '加载主队数据...' }
+    { value: "loadingHome", label: "加载主队数据..." },
   ]);
   const [awayteamOptions, setAwayteamOptions] = useState([
-    { value: 'loadingAway', label: '加载客队数据...' }
+    { value: "loadingAway", label: "加载客队数据..." },
   ]);
-  
+
+  useEffect(() => {
+    if (codeName) {
+      const fetchTeamId = async () => {
+        const teamsQuery = query(collection(firestore, "team"), where("codeName", "==", codeName));
+        const querySnapshot = await getDocs(teamsQuery);
+        if (!querySnapshot.empty) {
+          setTeamId(querySnapshot.docs[0].id);
+        } else {
+          console.log("No team found with the given codeName");
+        }
+      };
+
+      fetchTeamId();
+    }
+  }, [codeName]);
+
   useEffect(() => {
     const userTeamsString = localStorage.getItem("userTeam");
     let initialHomeTeams = [];
     let initialAwayTeams = [];
-  
+
     if (userTeamsString) {
       const userTeams = userTeamsString.split(",");
-      initialHomeTeams = userTeams.map(team => ({ value: team, label: team }));
-      initialAwayTeams = userTeams.map(team => ({ value: team, label: team }));
+      initialHomeTeams = userTeams.map((team) => ({ value: team, label: team }));
+      initialAwayTeams = userTeams.map((team) => ({ value: team, label: team }));
     } else {
-      initialHomeTeams = [{ value: 'noHome', label: '无可选主队' }];
-      initialAwayTeams = [{ value: 'noAway', label: '无可选客队' }];
+      initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
+      initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
     }
-  
+
     setHometeamOptions(initialHomeTeams);
     setAwayteamOptions(initialAwayTeams);
   }, []);
-  
+
+  // 在組件外部定義初始 prevhteam 和 prevateam 狀態
+  const [prevhteam, setPrevHteam] = useState("");
+  const [prevateam, setPrevAteam] = useState("");
+
   useEffect(() => {
+    console.log("Fetching data...");
+    console.log("Fetching data with teamId:", teamId, "and g_id:", g_id);
     const fetchData = async () => {
-      setLoading(true);
-      try {
-        const docRef = doc(firestore, "team", "111", "games", g_id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const gameData = docSnap.data();
-          setValues({
-            result: gameData.result || "",
-            youtubelink: gameData.youtubelink || "",
-            GDate: gameData.GDate ? gameData.GDate.toDate() : null,
-            GTime: gameData.GTime,
-            hometeam: gameData.hometeam || "",
-            awayteam: gameData.awayteam || "",
-            gName: gameData.gName || "",
-            coach: gameData.coach || "",
-            recorder: gameData.recorder || "",
-            label: gameData.label || "",
-            remark: gameData.remark || "",
-          });
-        } else {
-          console.log("No such document!");
+      console.log("Fetching data with teamId:", teamId, "and g_id:", g_id); // Debug log
+      if (teamId && g_id) {
+        setLoading(true);
+        try {
+          const docRef = doc(firestore, "team", teamId, "games", g_id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data()); // Debug log
+            const gameData = docSnap.data();
+            // 在這裡設置 prevhteam 和 prevateam 的值
+            setPrevHteam(gameData.hometeam || "");
+            setPrevAteam(gameData.awayteam || "");
+            setValues({
+              result: gameData.result || "",
+              youtubelink: gameData.youtubelink || "",
+              GDate: gameData.GDate ? parseISO(gameData.GDate.toDate().toISOString()) : null,
+              GTime: gameData.GTime,
+              hometeam: gameData.hometeam || "",
+              awayteam: gameData.awayteam || "",
+              gName: gameData.gName || "",
+              coach: gameData.coach || "",
+              recorder: gameData.recorder || "",
+              label: gameData.label || "",
+              remark: gameData.remark || "",
+            });
+          } else {
+            console.log("No such document!"); // Debug log
+          }
+        } catch (error) {
+          console.error("Error fetching document:", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching document:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchData();
-  }, [g_id]);
+    if (teamId && g_id) {
+      fetchData();
+    }
+  }, [teamId, g_id, firestore]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -146,7 +181,9 @@ export const EditGame = ({ g_id }) => {
       ...prevState,
       [name]: value,
     }));
+
   };
+  
 
   const handleDateChange = (date) => {
     setValues((prevState) => ({
@@ -158,48 +195,178 @@ export const EditGame = ({ g_id }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await updateDoc(doc(firestore, "team", "111", "games", g_id), values);
-      alert("Game information updated successfully!");
+      // 查询主队ID
+      const hquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
+      );
+      let hteam = hquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+
+      // 查询客队ID
+      const aquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
+      );
+      let ateam = aquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+
+      if (!hteam || !ateam) {
+        console.error("未找到相应的主队或客队");
+        alert("未找到相应的主队或客队");
+        return; // 如果没有找到队伍，就中止操作
+      }
+
+      // 检查主队和客队是否相同
+      if (hteam === ateam) {
+        alert("主隊和客隊不能相同，請重新選擇！");
+        return; // 如果主队和客队相同，中止操作并提示用户
+      }
+
+      const prevhquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", prevhteam))
+      );
+      let phteam = prevhquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+      
+      // 查询客队ID
+      const prevaquerySnapshot = await getDocs(
+        query(collection(firestore, "team"), where("codeName", "==", prevateam))
+      );
+      let pateam = prevaquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+      
+      if (!phteam || !pateam) {
+        console.error("未找到相应的主队或客队");
+        alert("未找到相应的主队或客队");
+        return; // 如果没有找到队伍，就中止操作
+      }
+      
+      // 更新原主隊的比賽資料和比賽日期
+      await deleteDoc(doc(firestore, "team", phteam, "games", g_id));
+      await deleteGamesField(phteam, g_id);
+      
+      // 更新原客隊的比賽資料和比賽日期
+      await deleteDoc(doc(firestore, "team", pateam, "games", g_id));
+      await deleteGamesField(pateam, g_id);      
+
+      // 新增新主隊的比賽資料和比賽日期
+      await setDoc(doc(firestore, "team", hteam, "games", g_id), values);
+      await updateGamesField(hteam, g_id, values.GDate);
+      // 新增新客隊的比賽資料和比賽日期
+      await setDoc(doc(firestore, "team", ateam, "games", g_id), values);
+      await updateGamesField(ateam, g_id, values.GDate);
+
+      alert("比賽資料更新成功！");
       router.push("/schedule");
     } catch (error) {
-      console.error("Error updating game information:", error);
-      alert("An error occurred while updating game information.");
+      console.error("更新比賽資料時發生錯誤:", error);
+      alert("更新比賽資料時發生錯誤。");
     }
   };
+
+
+  async function deleteGamesField(tId, g_id) {
+    const teamDocRef = doc(firestore, "team", tId);
+    const teamDocSnapshot = await getDoc(teamDocRef);
+    if (!teamDocSnapshot.exists()) {
+      console.log("找不到或不存在球队文件。");
+      return;
+    }
+  
+    const teamData = teamDocSnapshot.data();
+    console.log("原始 games 数据:", teamData.games);
+
+    const gamesData = teamData.games || {};
+    delete gamesData[g_id];
+    console.log("删除后的 games 数据:", gamesData);
+
+    await updateDoc(teamDocRef, { games: gamesData }, { merge: true });
+    console.log("球队文件已更新，刪除了比赛数据:", tId, g_id);
+
+    // 重新获取文档来确认删除
+    const updatedTeamDocSnapshot = await getDoc(teamDocRef);
+    console.log("更新后的 games 数据:", updatedTeamDocSnapshot.data().games);
+}
+
+  
+
+  async function updateGamesField(tId, g_id, GDate) {
+    const teamDocRef = doc(firestore, "team", tId);
+    const teamDocSnapshot = await getDoc(teamDocRef);
+    if (!teamDocSnapshot.exists()) {
+      console.log("找不到或不存在球隊文件。");
+      return;
+    }
+
+    const teamData = teamDocSnapshot.data();
+    const gamesData = teamData.games || {}; // 如果 games 字段不存在，则初始化为空对象
+
+    // 更新或添加新游戏的 g_id 和 GDate
+    gamesData[g_id] = GDate;
+
+    await setDoc(teamDocRef, { games: gamesData }, { merge: true });
+    console.log("球隊文件已更新，包含新的比賽資料:", gamesData);
+  }
 
   const handleDelete = async () => {
     handleClose(); // 关闭对话框
     try {
       await runTransaction(firestore, async (transaction) => {
-        const gameDocRef = doc(firestore, "team", "111", "games", g_id);
-        const teamDocRef = doc(firestore, "team", "111");
-
-        // 先读取 team 文档
-        const teamDoc = await transaction.get(teamDocRef);
-        if (!teamDoc.exists()) {
-          throw new Error("Document does not exist!");
+        // 获取主队ID
+        const prevhquerySnapshot = await getDocs(
+          query(collection(firestore, "team"), where("codeName", "==", prevhteam))
+        );
+        let phteam = prevhquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+        
+        // 获取客队ID
+        const prevaquerySnapshot = await getDocs(
+          query(collection(firestore, "team"), where("codeName", "==", prevateam))
+        );
+        let pateam = prevaquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+        
+        if (!phteam || !pateam) {
+          console.error("未找到相应的主队或客队");
+          alert("未找到相应的主队或客队");
+          return; // 如果没有找到队伍，就中止操作
         }
+        
+        // 获取主队和客队的文档引用
+        const phTeamDocRef = doc(firestore, "team", phteam);
+        const paTeamDocRef = doc(firestore, "team", pateam);
 
-        // 处理 team 文档数据
-        const teamData = teamDoc.data();
-        const gamesData = teamData.games || {};
-        if (gamesData[g_id]) {
-          delete gamesData[g_id];
-          // 在所有读取之后进行写入操作
-          transaction.update(teamDocRef, { games: gamesData });
+        // 获取主队和客队的文档数据
+        const phTeamDoc = await transaction.get(phTeamDocRef);
+        const paTeamDoc = await transaction.get(paTeamDocRef);
+        
+        if (!phTeamDoc.exists() || !paTeamDoc.exists()) {
+          throw new Error("主队或客队文件不存在!");
         }
-
-        // 删除游戏记录
-        transaction.delete(gameDocRef);
+        
+        // 处理主队文档数据
+        const phTeamData = phTeamDoc.data();
+        if (phTeamData.games && phTeamData.games[g_id]) {
+          delete phTeamData.games[g_id];
+          transaction.update(phTeamDocRef, { games: phTeamData.games });
+        }
+  
+        // 处理客队文档数据
+        const paTeamData = paTeamDoc.data();
+        if (paTeamData.games && paTeamData.games[g_id]) {
+          delete paTeamData.games[g_id];
+          transaction.update(paTeamDocRef, { games: paTeamData.games });
+        }
+  
+        // 删除主队和客队的游戏记录
+        const phgameDocRef = doc(firestore, "team", phteam, "games", g_id);
+        const pagameDocRef = doc(firestore, "team", pateam, "games", g_id);
+        transaction.delete(phgameDocRef);
+        transaction.delete(pagameDocRef);
       });
-
+  
       router.push("/schedule");
-      alert("比賽已刪除!");
+      alert("比赛已删除!");
     } catch (error) {
-      console.error("發生錯誤:", error);
-      alert("刪除失敗!");
+      console.error("发生错误:", error);
+      alert("删除失败!");
     }
   };
+
+  
 
   return (
     <div>
