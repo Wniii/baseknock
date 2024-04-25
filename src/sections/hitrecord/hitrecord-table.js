@@ -408,91 +408,141 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
             <TableHead>
 
               <TableRow>
-                <TableCell colSpan={2}>團隊成績</TableCell>
-                <TableCell>{teamTotals.plateAppearances}</TableCell>
-                <TableCell>{teamTotals.atBats}</TableCell>
-                <TableCell>{teamTotals.hits}</TableCell>
-                <TableCell>{teamTotals.totalBases}</TableCell>
-                <TableCell>{teamTotals.onBaseCount}</TableCell>
-
-                <TableCell>{teamTotals.trbi}</TableCell>
-                <TableCell>{teamTotals.singles}</TableCell>
-                <TableCell>{teamTotals.doubles}</TableCell>
-                <TableCell>{teamTotals.triples}</TableCell>
-                <TableCell>{teamTotals.homeruns}</TableCell>
-                <TableCell>{teamTotals.doublePlays}</TableCell>
-
-                <TableCell>{teamTotals.walks}</TableCell>
-                <TableCell>{teamTotals.sacrificeFlies}</TableCell>
-                <TableCell>{teamTotals.sacrificeHits}</TableCell>
-                <TableCell>{teamTotals.hitByPitch}</TableCell>
-                <TableCell>{teamTotals.battingAverage}</TableCell>
-                <TableCell>{teamTotals.onBasePercentage}</TableCell>
-                <TableCell>{teamTotals.sluggingPercentage}</TableCell>
-                <TableCell>{teamTotals.t_ops}</TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell size="small" style={{ position: 'sticky', left: 0, zIndex: 1 }}>查看細節</TableCell>
-                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
+                <TableCell size="small" style={{ position: 'sticky', left: 0, zIndex: 1, fontSize: '1.0em' }}>擊球落點</TableCell>
+                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1, fontSize: '1.0em' }}>球員</TableCell>
                 {selectedColumns.includes('打席') && (
-                  <TableCell>打席</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>打席</TableCell>
                 )}
                 {selectedColumns.includes('打數') && (
-                  <TableCell>打數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>打數</TableCell>
                 )}
                 {selectedColumns.includes('安打') && (
-                  <TableCell>安打</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>安打</TableCell>
                 )}
                 {selectedColumns.includes('壘打數') && (
-                  <TableCell>壘打數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>壘打數</TableCell>
                 )}
                 {selectedColumns.includes('上壘數') && (
-                  <TableCell>上壘數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>上壘數</TableCell>
                 )}
                 {selectedColumns.includes('打點') && (
-                  <TableCell>打點</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>打點</TableCell>
                 )}
                 {selectedColumns.includes('一安') && (
-                  <TableCell>一安</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>一安</TableCell>
                 )}
                 {selectedColumns.includes('二安') && (
-                  <TableCell>二安</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>二安</TableCell>
                 )}
                 {selectedColumns.includes('三安') && (
-                  <TableCell>三安</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>三安</TableCell>
                 )}
                 {selectedColumns.includes('全壘打') && (
-                  <TableCell>全壘打</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>全壘打</TableCell>
                 )}
                 {selectedColumns.includes('雙殺') && (
-                  <TableCell>雙殺</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>雙殺</TableCell>
                 )}
                 {selectedColumns.includes('四壞') && (
-                  <TableCell>四壞</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>四壞</TableCell>
                 )}
                 {selectedColumns.includes('犧飛') && (
-                  <TableCell>犧飛</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>犧飛</TableCell>
                 )}
                 {selectedColumns.includes('犧觸') && (
-                  <TableCell>犧觸</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>犧觸</TableCell>
                 )}
                 {selectedColumns.includes('觸身') && (
-                  <TableCell>觸身</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>觸身</TableCell>
                 )}
                 {selectedColumns.includes('打擊率') && (
-                  <TableCell>打擊率</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>打擊率</TableCell>
                 )}
                 {selectedColumns.includes('上壘率') && (
-                  <TableCell>上壘率</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>上壘率</TableCell>
                 )}
                 {selectedColumns.includes('長打率') && (
-                  <TableCell>長打率</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>長打率</TableCell>
                 )}
                 {selectedColumns.includes('OPS') && (
-                  <TableCell>OPS</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>OPS</TableCell>
                 )}
               </TableRow>
+
+
+              <TableRow>
+                {/* <TableCell colSpan={2} align='center' style={{ position: 'sticky',fontSize: '1.2em' }}>團隊成績</TableCell> */}
+
+                <TableCell align='right' style={{ position: 'sticky', left: 0, zIndex: 1, fontSize: '1.0em' }}>團隊成績</TableCell>
+                <TableCell></TableCell>
+                {selectedColumns.includes('打席') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>
+                    {teamTotals.plateAppearances}
+                  </TableCell>
+                )}
+                {selectedColumns.includes('打數') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>
+                    {teamTotals.atBats}
+                  </TableCell>
+                )}
+                {selectedColumns.includes('安打') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>
+                    {teamTotals.hits}
+                  </TableCell>
+                )}
+                {selectedColumns.includes('壘打數') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalBases}</TableCell>
+                )}
+                {selectedColumns.includes('上壘數') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.onBaseCount}</TableCell>
+                )}
+                {selectedColumns.includes('打點') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>
+                    {teamTotals.trbi}
+                  </TableCell>
+                )}
+
+                {selectedColumns.includes('一安') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.singles}</TableCell>
+                )}
+                {selectedColumns.includes('二安') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.doubles}</TableCell>
+                )}
+                {selectedColumns.includes('三安') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.triples}</TableCell>
+                )}
+                {selectedColumns.includes('全壘打') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.homeruns}</TableCell>
+                )}
+                {selectedColumns.includes('雙殺') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.doublePlays}</TableCell>
+                )}
+                {selectedColumns.includes('四壞') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.walks}</TableCell>
+                )}
+                {selectedColumns.includes('犧飛') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.sacrificeFlies}</TableCell>
+                )}
+                {selectedColumns.includes('犧觸') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.sacrificeHits}</TableCell>
+                )}
+                {selectedColumns.includes('觸身') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.hitByPitch}</TableCell>
+                )}
+                {selectedColumns.includes('打擊率') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.battingAverage}</TableCell>
+                )}
+                {selectedColumns.includes('上壘率') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.onBasePercentage}</TableCell>
+                )}
+                {selectedColumns.includes('長打率') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.sluggingPercentage}</TableCell>
+                )}
+                {selectedColumns.includes('OPS') && (
+                  <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.t_ops}</TableCell>
+                )}
+              </TableRow>
+
             </TableHead>
             <TableBody>
               {playersData.map((player, index) => {
@@ -507,7 +557,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
                         查看
                       </Button>
                     </TableCell>
-                    <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>{player.p_id}</TableCell>
+                    <TableCell style={{ position: 'sticky', left: 0, zIndex: 1, backgroundColor: 'rgba(255, 255, 255, 1)' }}>{player.p_id}</TableCell>
                     {selectedColumns.includes('打席') && (
                       <TableCell>
                         {playerPlateAppearances[player.p_id] || 'N/A'}
