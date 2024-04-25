@@ -97,12 +97,12 @@ const ALLPlayerPage = () => {
             console.log("Game data:", gameDocSnapshot.data());
             
             // 创建要更新的攻击列表副本
-            const updatedmainAttackList = [...selectedPlayers];
-            console.log('updatedAttackList:', updatedmainAttackList);
+            const updatedAttackList = [...selectedPlayers];
+            console.log('updatedAttackList:', updatedAttackList);
         
             // 更新游戏文档，保留其他字段的值
             const promise = updateDoc(gameDocRef, {
-                mainattacklist: updatedmainAttackList
+                mainattacklist: updateAttackList
             }, { merge: true });
             promises.push(promise);
 
