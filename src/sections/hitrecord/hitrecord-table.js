@@ -59,10 +59,11 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     const battingAverage =
       atBats > 0
         ? ((hitData.single || 0) +
-           (hitData.double || 0) +
-           (hitData.triple || 0) +
-           (hitData.homerun || 0)) / atBats
+          (hitData.double || 0) +
+          (hitData.triple || 0) +
+          (hitData.homerun || 0)) / atBats
         : 0;
+
 
     // 計算上壘率
     const onBasePercentage =
@@ -110,25 +111,53 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     fetchPlayers();
   }, [selectedTeam]);
 
+
+
+  const [teamTotals, setTeamTotals] = useState({
+    plateAppearances: 0,
+    atBats: 0,
+    hits: 0,
+    totalBases: 0,
+    onBaseCount: 0,
+
+    trbi: 0, //打點
+    singles: 0, //一安
+    doubles: 0, //二安
+    triples: 0, //三安
+    homeruns: 0, //全壘打
+    doublePlays: 0, //雙殺
+    walks: 0, //四壞
+    sacrificeFlies: 0, //犧飛
+    sacrificeHits: 0, //犧觸
+    hitByPitch: 0, //觸身
+
+    battingAverage: 0,
+    onBasePercentage: 0,
+    sluggingPercentage: 0,
+    t_ops: 0,
+  });
+
+
+
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
   useEffect(() => {
     const fetchGamesAndCalculatePlateAppearances = async () => {
       if (!selectedTeam || !playersData.length) return;
-  
+
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
       try {
         const querySnapshot = await getDocs(gamesRef);
         let playersStats = {};
-  
+
         if (querySnapshot.empty) {
           console.log('No games data found.');
           return;
         }
-  
+
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
           console.log('Game Data:', gameData); // 查看每场游戏的数据
-  
+
           // 处理 ordermain
           if (gameData.ordermain) {
             gameData.ordermain.forEach((playerStat) => {
@@ -141,7 +170,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
           } else {
             console.log('No ordermain for this game:', docSnapshot.id);
           }
-  
+
           // 处理 orderoppo
           if (gameData.orderoppo) {
             gameData.orderoppo.forEach((playerStat) => {
@@ -155,29 +184,29 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
             console.log('No orderoppo for this game:', docSnapshot.id);
           }
         });
-  
+
         setPlayerPlateAppearances(playersStats);
         console.log('Player plate appearances calculated:', playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
     };
-  
+
     fetchGamesAndCalculatePlateAppearances();
   }, [selectedTeam, playersData]);
 
   useEffect(() => {
     const fetchGamesAndCalculateHits = async () => {
       if (!selectedTeam || !playersData.length) return;
-  
+
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
       try {
         const querySnapshot = await getDocs(gamesRef);
         let newPlayerHits = {}; // 使用一個新的變量來存儲計算結果
-  
+
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
-          
+
           // Process ordermain
           if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
             gameData.ordermain.forEach(playerStat => {
@@ -193,21 +222,21 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
                   }
                 }
                 if (playerStat.content && playerStat.content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
-              if (playerStat.content && playerStat.content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
-              if (playerStat.content && playerStat.content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
-              if (playerStat.content && playerStat.content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
-              if (playerStat.content && playerStat.content.includes("雙殺")) newPlayerHits[playerEntry.p_id].doubleplay+= 1;
-              if (playerStat.content && playerStat.content.includes("四壞")) newPlayerHits[playerEntry.p_id].bb += 1;
-              if (playerStat.content && playerStat.content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
-              if (playerStat.content && playerStat.content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
-              if (playerStat.content && playerStat.content.includes("觸身")) newPlayerHits[playerEntry.p_id].touchball += 1;
-            }
+                if (playerStat.content && playerStat.content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
+                if (playerStat.content && playerStat.content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
+                if (playerStat.content && playerStat.content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
+                if (playerStat.content && playerStat.content.includes("雙殺")) newPlayerHits[playerEntry.p_id].doubleplay += 1;
+                if (playerStat.content && playerStat.content.includes("四壞")) newPlayerHits[playerEntry.p_id].bb += 1;
+                if (playerStat.content && playerStat.content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
+                if (playerStat.content && playerStat.content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
+                if (playerStat.content && playerStat.content.includes("觸身")) newPlayerHits[playerEntry.p_id].touchball += 1;
+              }
 
             });
           } else {
             console.log('No ordermain for this game:', docSnapshot.id);
           }
-    
+
           // Process orderoppo and check for o_content
           if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
             gameData.orderoppo.forEach(playerStat => {
@@ -223,21 +252,21 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
                   }
                 }
                 if (playerStat.o_content && playerStat.o_content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("雙殺")) newPlayerHits[playerEntry.p_id].doubleplay += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("四壞")) newPlayerHits[playerEntry.p_id].bb += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
-            }
+                if (playerStat.o_content && playerStat.o_content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("雙殺")) newPlayerHits[playerEntry.p_id].doubleplay += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("四壞")) newPlayerHits[playerEntry.p_id].bb += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
+                if (playerStat.o_content && playerStat.o_content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
+              }
 
             });
           } else {
             console.log('No orderoppo for this game:', docSnapshot.id);
           }
         });
-  
+
         // Update the state with the new hits
         setPlayerHits(newPlayerHits);
         console.log('Player hits:', newPlayerHits);
@@ -245,20 +274,20 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         console.error("Error fetching games data: ", error);
       }
     };
-  
+
     fetchGamesAndCalculateHits();
   }, [selectedTeam, playersData]);
-  
+
 
   const fetchAndSetPlayerLocations = async (playerId) => {
     const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
     try {
       const querySnapshot = await getDocs(gamesRef);
       const locations = [];
-    
+
       querySnapshot.forEach((docSnapshot) => {
         const gameData = docSnapshot.data();
-    
+
         // Check if ordermain exists and is an array before processing
         if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
           gameData.ordermain.forEach((play) => {
@@ -267,7 +296,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
             }
           });
         }
-    
+
         // Check if orderoppo exists and is an array before processing
         if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
           gameData.orderoppo.forEach((play) => {
@@ -277,7 +306,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
           });
         }
       });
-    
+
       setSelectedLocation(locations); // Update state with all found locations
     } catch (error) {
       console.error("Error fetching player locations: ", error);
@@ -291,12 +320,12 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
       // 如果它不是一個數組，你可能想要基於一些其他狀態或屬性來重設它：
       // setSelectedLocation(someOtherStateOrProp);
     };
-  
+
     window.addEventListener('resize', handleResize);
-  
+
     return () => window.removeEventListener('resize', handleResize);
   }, [selectedLocation]); // 依賴數組應該包括 selectedLocation，如果它預計會隨時間變化
-  
+
   useEffect(() => {
     console.log('Players Data:', playersData);
     console.log('Player Hits:', playerHits);
@@ -315,6 +344,61 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     setOpen(false);
   };
 
+
+  useEffect(() => {
+    const totals = {
+      plateAppearances: 0, //打席
+      atBats: 0, //打數
+      hits: 0,  //安打
+      totalBases: 0, //壘打數
+      onBaseCount: 0, //上壘數
+
+      trbi: 0, //打點
+      singles: 0, //一安
+      doubles: 0, //二安
+      triples: 0, //三安
+      homeruns: 0, //全壘打
+      doublePlays: 0, //雙殺
+
+      walks: 0, //四壞
+
+      sacrificeFlies: 0, //犧飛
+      sacrificeHits: 0, //犧觸
+      hitByPitch: 0, //觸身
+    };
+
+    playersData.forEach(player => {
+      const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
+      totals.plateAppearances += playerPlateAppearances[player.p_id] || 0;
+      totals.atBats += playerPlateAppearances[player.p_id] - (playerHits[player.p_id]?.bb || 0) - (playerHits[player.p_id]?.touchball || 0) - (playerHits[player.p_id]?.sf || 0) - (playerHits[player.p_id]?.bunt || 0);
+      totals.hits += playerHits[player.p_id]?.single + playerHits[player.p_id]?.double + playerHits[player.p_id]?.triple + playerHits[player.p_id]?.homerun || 0;
+      totals.totalBases += stats.totalBases;
+      totals.onBaseCount += stats.onBaseCount;
+
+      totals.trbi += playerHits[player.p_id]?.rbi;
+      totals.singles += playerHits[player.p_id]?.single;
+      totals.doubles += playerHits[player.p_id]?.double;
+      totals.triples += playerHits[player.p_id]?.triple;
+      totals.homeruns += playerHits[player.p_id]?.homerun;
+      totals.doublePlays += playerHits[player.p_id]?.doubleplay;
+
+      totals.walks += playerHits[player.p_id]?.bb || 0;
+      totals.sacrificeFlies += playerHits[player.p_id]?.sf || 0;
+      totals.sacrificeHits += playerHits[player.p_id]?.bunt || 0;
+      totals.hitByPitch += playerHits[player.p_id]?.touchball || 0;
+
+    });
+
+    // 以下是基於團隊總和數據計算的正確打擊率、上壘率和長打率
+    totals.battingAverage = (totals.atBats > 0) ? (totals.hits / totals.atBats).toFixed(3) : '0.000';
+    totals.onBasePercentage = (totals.plateAppearances > 0) ? ((totals.hits + totals.walks + totals.hitByPitch) / (totals.atBats + totals.walks + totals.hitByPitch + totals.sacrificeFlies)).toFixed(3) : '0.000';
+    totals.sluggingPercentage = (totals.atBats > 0) ? (totals.totalBases / totals.atBats).toFixed(3) : '0.000';
+    totals.t_ops = (parseFloat(totals.onBasePercentage) + parseFloat(totals.sluggingPercentage)).toFixed(3);
+
+    setTeamTotals(totals);
+  }, [playersData, playerHits, playerPlateAppearances]);
+
+
   // 渲染組件
   return (
     <Card>
@@ -322,9 +406,35 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         <Box sx={{ minWidth: 2500 }}>
           <Table>
             <TableHead>
+
               <TableRow>
-              <TableCell size="small" style={{ position: 'sticky', left: 0, zIndex: 1 }}>查看細節</TableCell>
-              <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
+                <TableCell colSpan={2}>團隊成績</TableCell>
+                <TableCell>{teamTotals.plateAppearances}</TableCell>
+                <TableCell>{teamTotals.atBats}</TableCell>
+                <TableCell>{teamTotals.hits}</TableCell>
+                <TableCell>{teamTotals.totalBases}</TableCell>
+                <TableCell>{teamTotals.onBaseCount}</TableCell>
+
+                <TableCell>{teamTotals.trbi}</TableCell>
+                <TableCell>{teamTotals.singles}</TableCell>
+                <TableCell>{teamTotals.doubles}</TableCell>
+                <TableCell>{teamTotals.triples}</TableCell>
+                <TableCell>{teamTotals.homeruns}</TableCell>
+                <TableCell>{teamTotals.doublePlays}</TableCell>
+
+                <TableCell>{teamTotals.walks}</TableCell>
+                <TableCell>{teamTotals.sacrificeFlies}</TableCell>
+                <TableCell>{teamTotals.sacrificeHits}</TableCell>
+                <TableCell>{teamTotals.hitByPitch}</TableCell>
+                <TableCell>{teamTotals.battingAverage}</TableCell>
+                <TableCell>{teamTotals.onBasePercentage}</TableCell>
+                <TableCell>{teamTotals.sluggingPercentage}</TableCell>
+                <TableCell>{teamTotals.t_ops}</TableCell>
+              </TableRow>
+
+              <TableRow>
+                <TableCell size="small" style={{ position: 'sticky', left: 0, zIndex: 1 }}>查看細節</TableCell>
+                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
                 {selectedColumns.includes('打席') && (
                   <TableCell>打席</TableCell>
                 )}
@@ -430,11 +540,11 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
                     {selectedColumns.includes('上壘數') && (
                       <TableCell>{stats.onBaseCount}</TableCell>
                     )}
-                   {selectedColumns.includes('打點') && (
-                    <TableCell>
-                      {playerHits[player.p_id] ? playerHits[player.p_id].rbi : '0'}
-                    </TableCell>
-                  )}
+                    {selectedColumns.includes('打點') && (
+                      <TableCell>
+                        {playerHits[player.p_id] ? playerHits[player.p_id].rbi : '0'}
+                      </TableCell>
+                    )}
                     {selectedColumns.includes('一安') && (
                       <TableCell>{playerHits[player.p_id]?.single || '0'}</TableCell>
                     )}
@@ -485,7 +595,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         open={open}
         onClose={handleClose}
         player={selectedPlayer}
-        locations={selectedLocation} 
+        locations={selectedLocation}
       />
     </Card>
   );
@@ -495,7 +605,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
 const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
   const baseballFieldImage = 'https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
-  ; // 用实际图片URL替换此处文本
+    ; // 用实际图片URL替换此处文本
 
   // 确保此函数正确计算位置百分比
   const convertLocationToPosition = (location) => {
@@ -506,7 +616,7 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
       console.log(`Display Width: ${displayWidth}, Display Height: ${displayHeight}`); // 这将输出当前的宽度和高度
       const originalWidth = 400;
       const scaleFactor = displayWidth / originalWidth;
-      
+
       return {
         left: `${(location.x * scaleFactor / displayWidth) * 100}%`,
         top: `${(location.y * scaleFactor / displayHeight) * 100}%`
@@ -550,10 +660,10 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
           })}
         </div>
         <img
-            src='pic.png'
-            width={'400px'}
-            
-          />
+          src='pic.png'
+          width={'400px'}
+
+        />
       </DialogContent>
     </Dialog>
   );
