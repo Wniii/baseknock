@@ -47,7 +47,6 @@ export const HitrecordSearch = ({ onConfirm }) => {
     { label: '上壘率', checked: false },
     { label: '長打率', checked: false },
     { label: 'OPS', checked: false },
-    { label: '三圍', checked: false },
   ]);
 
 
