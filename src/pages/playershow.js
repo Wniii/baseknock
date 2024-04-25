@@ -17,6 +17,12 @@ const ALLPlayerPage = () => {
   const { teamId } = router.query;
 
   useEffect(() => {
+    // 恢复本地存储中的选定的球员列表
+    const storedSelectedPlayers = localStorage.getItem('selectedPlayers');
+    if (storedSelectedPlayers) {
+      setSelectedPlayers(JSON.parse(storedSelectedPlayers));
+    }
+  
     const fetchTeamGames = async () => {
       try {
         const teamCollection = collection(firestore, 'team');
@@ -44,18 +50,22 @@ const ALLPlayerPage = () => {
     const updatedPlayers = { ...players };
     delete updatedPlayers[playerKey];
     setPlayers(updatedPlayers);
-
+  
     setSelectedPlayers([...selectedPlayers, playerKey]);
+  
+    // 将选定的球员列表保存到本地存储
+    localStorage.setItem('selectedPlayers', JSON.stringify([...selectedPlayers, playerKey]));
   };
-
   const handleRemoveFromSelectedPlayers = (playerKey) => {
     const updatedSelectedPlayers = selectedPlayers.filter((selectedPlayer) => selectedPlayer !== playerKey);
     setSelectedPlayers(updatedSelectedPlayers);
-
+  
     const updatedPlayers = { ...players, [playerKey]: true };
     setPlayers(updatedPlayers);
+  
+    // 更新本地存储中的选定的球员列表
+    localStorage.setItem('selectedPlayers', JSON.stringify(updatedSelectedPlayers));
   };
-
   const handleReturnClick = () => {
     router.push('/your-other-page');
   };
@@ -66,6 +76,10 @@ const ALLPlayerPage = () => {
     console.log('handleSaveAndNavigate function called');
 
     try {
+      if (selectedPlayers.length < 9) {
+        alert("请选择九个球员才能保存！");
+        return;
+      }
         console.log('timestamp', timestamp);
         console.log('codeName', codeName);
 
@@ -83,14 +97,15 @@ const ALLPlayerPage = () => {
             console.log("Game data:", gameDocSnapshot.data());
             
             // 创建要更新的攻击列表副本
-            const updatedAttackList = [...selectedPlayers];
-            console.log('updatedAttackList:', updatedAttackList);
+            const updatedmainAttackList = [...selectedPlayers];
+            console.log('updatedAttackList:', updatedmainAttackList);
         
             // 更新游戏文档，保留其他字段的值
             const promise = updateDoc(gameDocRef, {
-                attacklist: updatedAttackList
+                mainattacklist: updatedmainAttackList
             }, { merge: true });
             promises.push(promise);
+
         } else {
             console.log("No matching game document found with ID:", timestamp);
         }
