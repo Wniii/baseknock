@@ -114,46 +114,55 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
   useEffect(() => {
     const fetchGamesAndCalculatePlateAppearances = async () => {
       if (!selectedTeam || !playersData.length) return;
-
+  
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
       try {
         const querySnapshot = await getDocs(gamesRef);
         let playersStats = {};
-
+  
+        if (querySnapshot.empty) {
+          console.log('No games data found.');
+          return;
+        }
+  
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
-
+          console.log('Game Data:', gameData); // 查看每场游戏的数据
+  
+          // 处理 ordermain
           if (gameData.ordermain) {
-          gameData.ordermain.forEach((playerStat) => {
-            const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
-            if (playerEntry) {
-              playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
-            }
-          });
-        }else {
-          // 可能想要在这里处理没有ordermain的情况
-          console.log('No ordermain for this game:', docSnapshot.id);
-        }
-
-        if (gameData.orderoppo) {
-          gameData.orderoppo.forEach((playerStat) => {
-            const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
-            if (playerEntry) {
-              playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
-            }
-          });
-        }else {
-          // 可能想要在这里处理没有orderoppo的情况
-          console.log('No orderoppo for this game:', docSnapshot.id);
-        }
-        
+            gameData.ordermain.forEach((playerStat) => {
+              const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
+              if (playerEntry) {
+                console.log(`Processing main order for player ${playerStat.p_name}`);
+                playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
+              }
+            });
+          } else {
+            console.log('No ordermain for this game:', docSnapshot.id);
+          }
+  
+          // 处理 orderoppo
+          if (gameData.orderoppo) {
+            gameData.orderoppo.forEach((playerStat) => {
+              const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
+              if (playerEntry) {
+                console.log(`Processing oppo order for player ${playerStat.o_p_name}`);
+                playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
+              }
+            });
+          } else {
+            console.log('No orderoppo for this game:', docSnapshot.id);
+          }
         });
+  
         setPlayerPlateAppearances(playersStats);
+        console.log('Player plate appearances calculated:', playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
     };
-
+  
     fetchGamesAndCalculatePlateAppearances();
   }, [selectedTeam, playersData]);
 
@@ -170,13 +179,20 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
           const gameData = docSnapshot.data();
           
           // Process ordermain
-          gameData.ordermain.forEach(playerStat => {
-            const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
-            if (playerEntry) {
-              if (!newPlayerHits[playerEntry.p_id]) {
-                newPlayerHits[playerEntry.p_id] = { single: 0, double: 0, triple: 0, homerun: 0, doubleplay: 0, bb: 0, sf: 0, bunt: 0, touchball: 0, rbi: 0 };
-              }
-              if (playerStat.content && playerStat.content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
+          if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
+            gameData.ordermain.forEach(playerStat => {
+              const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
+              if (playerEntry) {
+                if (!newPlayerHits[playerEntry.p_id]) {
+                  newPlayerHits[playerEntry.p_id] = { single: 0, double: 0, triple: 0, homerun: 0, doubleplay: 0, bb: 0, sf: 0, bunt: 0, touchball: 0, rbi: 0 };
+                }
+                if (playerStat.rbi) {
+                  const rbiValue = parseInt(playerStat.rbi, 10);
+                  if (!isNaN(rbiValue)) {
+                    newPlayerHits[playerEntry.p_id].rbi = (newPlayerHits[playerEntry.p_id].rbi || 0) + rbiValue;
+                  }
+                }
+                if (playerStat.content && playerStat.content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
               if (playerStat.content && playerStat.content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
               if (playerStat.content && playerStat.content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
               if (playerStat.content && playerStat.content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
@@ -185,18 +201,28 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
               if (playerStat.content && playerStat.content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
               if (playerStat.content && playerStat.content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
               if (playerStat.content && playerStat.content.includes("觸身")) newPlayerHits[playerEntry.p_id].touchball += 1;
-              if (playerStat.rbi && playerStat.rbi.includes("打點")) newPlayerHits[playerEntry.p_id].rbi += 1;
             }
-          });
-  
+
+            });
+          } else {
+            console.log('No ordermain for this game:', docSnapshot.id);
+          }
+    
           // Process orderoppo and check for o_content
-          gameData.orderoppo.forEach(playerStat => {
-            const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
-            if (playerEntry) {
-              if (!newPlayerHits[playerEntry.p_id]) {
-                newPlayerHits[playerEntry.p_id] = { single: 0, double: 0, triple: 0, homerun: 0, doubleplay: 0, bb: 0, sf: 0, bunt: 0, touchball: 0, rbi: 0 };
-              }
-              if (playerStat.o_content && playerStat.o_content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
+          if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
+            gameData.orderoppo.forEach(playerStat => {
+              const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
+              if (playerEntry) {
+                if (!newPlayerHits[playerEntry.p_id]) {
+                  newPlayerHits[playerEntry.p_id] = { single: 0, double: 0, triple: 0, homerun: 0, doubleplay: 0, bb: 0, sf: 0, bunt: 0, touchball: 0, rbi: 0 };
+                }
+                if (playerStat.o_rbi) {
+                  const oRbiValue = parseInt(playerStat.o_rbi, 10);
+                  if (!isNaN(oRbiValue)) {
+                    newPlayerHits[playerEntry.p_id].rbi = (newPlayerHits[playerEntry.p_id].rbi || 0) + oRbiValue;
+                  }
+                }
+                if (playerStat.o_content && playerStat.o_content.includes("一安")) newPlayerHits[playerEntry.p_id].single += 1;
               if (playerStat.o_content && playerStat.o_content.includes("二安")) newPlayerHits[playerEntry.p_id].double += 1;
               if (playerStat.o_content && playerStat.o_content.includes("三安")) newPlayerHits[playerEntry.p_id].triple += 1;
               if (playerStat.o_content && playerStat.o_content.includes("全壘打")) newPlayerHits[playerEntry.p_id].homerun += 1;
@@ -204,12 +230,17 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
               if (playerStat.o_content && playerStat.o_content.includes("四壞")) newPlayerHits[playerEntry.p_id].bb += 1;
               if (playerStat.o_content && playerStat.o_content.includes("犧飛")) newPlayerHits[playerEntry.p_id].sf += 1;
               if (playerStat.o_content && playerStat.o_content.includes("犧觸")) newPlayerHits[playerEntry.p_id].bunt += 1;
-              if (playerStat.o_content && playerStat.o_content.includes("觸身")) newPlayerHits[playerEntry.p_id].touchball += 1;
             }
-          });
+
+            });
+          } else {
+            console.log('No orderoppo for this game:', docSnapshot.id);
+          }
         });
+  
         // Update the state with the new hits
         setPlayerHits(newPlayerHits);
+        console.log('Player hits:', newPlayerHits);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
@@ -217,31 +248,40 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
   
     fetchGamesAndCalculateHits();
   }, [selectedTeam, playersData]);
+  
 
   const fetchAndSetPlayerLocations = async (playerId) => {
     const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
-    const querySnapshot = await getDocs(gamesRef);
-    const locations = [];
-  
-    querySnapshot.forEach((docSnapshot) => {
-      const gameData = docSnapshot.data();
-  
-      // Check ordermain for the player's name and location
-      gameData.ordermain.forEach((play) => {
-        if (play.p_name === playerId && play.location) {
-          locations.push(play.location);
+    try {
+      const querySnapshot = await getDocs(gamesRef);
+      const locations = [];
+    
+      querySnapshot.forEach((docSnapshot) => {
+        const gameData = docSnapshot.data();
+    
+        // Check if ordermain exists and is an array before processing
+        if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
+          gameData.ordermain.forEach((play) => {
+            if (play.p_name === playerId && play.location) {
+              locations.push(play.location);
+            }
+          });
+        }
+    
+        // Check if orderoppo exists and is an array before processing
+        if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
+          gameData.orderoppo.forEach((play) => {
+            if (play.o_p_name === playerId && play.location) {
+              locations.push(play.location);
+            }
+          });
         }
       });
-  
-      // Check orderoppo for the player's name and location
-      gameData.orderoppo.forEach((play) => {
-        if (play.o_p_name === playerId && play.location) {
-          locations.push(play.location);
-        }
-      });
-    });
-  
-    setSelectedLocation(locations); // Update state with all found locations
+    
+      setSelectedLocation(locations); // Update state with all found locations
+    } catch (error) {
+      console.error("Error fetching player locations: ", error);
+    }
   };
 
   useEffect(() => {
@@ -257,6 +297,11 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [selectedLocation]); // 依賴數組應該包括 selectedLocation，如果它預計會隨時間變化
   
+  useEffect(() => {
+    console.log('Players Data:', playersData);
+    console.log('Player Hits:', playerHits);
+    console.log('Plate Appearances:', playerPlateAppearances);
+  }, [playersData, playerHits, playerPlateAppearances]);
 
   // 打開對話框
   const handleOpen = (player) => {
@@ -385,9 +430,11 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
                     {selectedColumns.includes('上壘數') && (
                       <TableCell>{stats.onBaseCount}</TableCell>
                     )}
-                    {selectedColumns.includes('打點') && (
-                      <TableCell>{playerHits[player.p_id]?.rbi || '0'}</TableCell> // 假設你有這個變數
-                    )}
+                   {selectedColumns.includes('打點') && (
+                    <TableCell>
+                      {playerHits[player.p_id] ? playerHits[player.p_id].rbi : '0'}
+                    </TableCell>
+                  )}
                     {selectedColumns.includes('一安') && (
                       <TableCell>{playerHits[player.p_id]?.single || '0'}</TableCell>
                     )}
