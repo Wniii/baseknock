@@ -17,45 +17,73 @@ import React, { useState, useEffect } from 'react';
 import { firestore } from 'src/pages/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo }) => {
+export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo,selectedTeam }) => {
   const [playerGames, setPlayerGames] = useState([]);
 
+
+
   useEffect(() => {
+    console.log("useEffect triggered");
     const fetchPlayerGames = async () => {
-      if (selectedPlayer?.id) {
-        // 從 Firestore 獲取 'games' 集合的引用
-        const gamesRef = collection(firestore, "games");
-        // 獲取所有遊戲記錄
-        const gamesSnapshot = await getDocs(gamesRef);
-        
-        // 使用 .map() 和 .filter() 處理獲取的遊戲記錄
-        const filteredGames = gamesSnapshot.docs
-          .map(doc => {
-            const data = doc.data();
-            // 檢查 GDate 是否存在，並且是否是 Timestamp 物件
-            const formattedDate = data.GDate && typeof data.GDate.toDate === 'function' 
-                                  ? format(data.GDate.toDate(), "dd/MM/yyyy") 
-                                  : "無日期";
-            return {
-              id: doc.id,
-              ...data,
-              formattedDate
-            };
-          })
-          .filter(game => {
-            // 確保 ordermain 和 orderoppo 都被定義並且是數組
-            const isInOrderMain = Array.isArray(ordermain) && ordermain.some(order => order.p_name === selectedPlayer.id);
-            const isInOrderOppo = Array.isArray(orderoppo) && orderoppo.some(order => order.o_p_name === selectedPlayer.id);
-            return isInOrderMain || isInOrderOppo;
-          });
-        
-        // 更新 state
-        setPlayerGames(filteredGames);
+      console.log("Fetching player games...");
+      if (selectedPlayer && selectedPlayer.id) { // 添加了对 selectedPlayer 的存在性检查
+          console.log("Selected player ID:", selectedPlayer.id);
+          // 从 Firestore 获取 'games' 集合的引用
+          const gamesRef = collection(firestore, "team", selectedTeam.id, "games");
+          console.log("Games reference:", gamesRef);
+          // 获取所有游戏记录
+          const gamesSnapshot = await getDocs(gamesRef);
+          console.log("Games snapshot:", gamesSnapshot);
+  
+          // 初始化一个空数组，用于存储所有游戏记录中的 ordermain 值
+          const allOrderMainValues = [];
+  
+          // 使用 .map() 和 .filter() 处理获取的游戏记录
+          const filteredGames = gamesSnapshot.docs
+              .map(doc => {
+                  console.log("Processing game:", doc.id);
+                  const data = doc.data();
+                  // 检查 GDate 是否存在，並且是否是 Timestamp 对象
+                  const formattedDate = data.GDate && typeof data.GDate.toDate === 'function' ?
+                      format(data.GDate.toDate(), "dd/MM/yyyy") :
+                      "无日期";
+  
+                  // 将当前游戏记录的 ordermain 值存入 allOrderMainValues 数组中
+                  if (Array.isArray(data.ordermain)) {
+                      allOrderMainValues.push(...data.ordermain);
+                  }
+  
+                  return {
+                      id: doc.id,
+                      ...data,
+                      formattedDate
+                  };
+              })
+              .filter(game => {
+                  console.log("Filtering game:", game.id);
+                  
+                  // 确保 ordermain 和 orderoppo 都被定义且是数组
+                  const isInOrderMain = Array.isArray(game.ordermain) && game.ordermain.some(order => order.p_name === selectedPlayer.id);
+
+                  const isInOrderOppo = Array.isArray(game.orderoppo) && game.orderoppo.some(order => order.o_p_name === selectedPlayer.id);
+                  return isInOrderMain || isInOrderOppo;
+              });
+  
+          // 输出所有游戏记录中的 ordermain 值
+          console.log("All ordermain values:", allOrderMainValues);
+  
+          // 更新 state
+          console.log("Filtered games:", filteredGames);
+          setPlayerGames(filteredGames);
       }
-    };
+  };
+  
   
     fetchPlayerGames();
   }, [selectedPlayer, ordermain, orderoppo]);
+  
+  
+  
   
   useEffect(() => {
     console.log('更新後的遊戲數據:', playerGames);

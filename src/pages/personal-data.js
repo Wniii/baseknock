@@ -31,11 +31,8 @@ import { AccountProfile } from "src/sections/data/account-profile";
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  // const customers = useCustomers(page, rowsPerPage);
-  // const customersIds = useCustomerIds(customers);
-  // const customersSelection = useSelection(customersIds);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [selectedTeam, setSelectedTeam] = useState(null); // 添加這行
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
@@ -44,6 +41,8 @@ const Page = () => {
   const handleRowsPerPageChange = useCallback((event) => {
     setRowsPerPage(event.target.value);
   }, []);
+
+  // 定義函數來更新 selectedPlayer 和 selectedTeam 狀態
 
   return (
     <>
@@ -66,6 +65,7 @@ const Page = () => {
             <Bdata
               // count={data.length}
               // items={customers}
+
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}

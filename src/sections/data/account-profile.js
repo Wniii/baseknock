@@ -70,26 +70,33 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
   // 获取选中球员的比赛记录
   const fetchGameRecordsForPlayer = async (playerName) => {
     const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
+    console.log(gamesRef)
     const gamesSnapshot = await getDocs(gamesRef);
+    console.log("dff",gamesSnapshot)
     const games = [];
 
     gamesSnapshot.forEach(doc => {
       const game = doc.data();
+      console.log('Gada:', game); // 打印遊戲數據
       const isPlayerIncluded = 
         (Array.isArray(game.ordermain) && game.ordermain.some(entry => entry.p_name === playerName)) ||
         (Array.isArray(game.orderoppo) && game.orderoppo.some(entry => entry.o_p_name === playerName));
+      console.log('Is player included:', isPlayerIncluded); // 打印球員是否包含在比賽中
 
       if (isPlayerIncluded) {
         const gameDate = game.date?.toDate();
+        console.log('Game date:', gameDate); // 打印比賽日期
         games.push({
           id: doc.id,
-          date: gameDate, // 此处确保 game.date 是一个 Timestamp 类型
+          date: gameDate,
         });
       }
     });
 
-    setGameRecords(games); // 存储获取的比赛数据
-  };
+    console.log('Gamesds:', games); // 打印所有比賽數據
+    setGameRecords(games);
+};
+
 
   // 确认按钮处理函数
   const handleConfirm = () => {
@@ -138,9 +145,6 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
         )}
       </CardContent>
       <Divider />
-      <CardActions>
-        <Button fullWidth variant="text" onClick={handleConfirm}>確認</Button>
-      </CardActions>
     </Card>
   );
 };
