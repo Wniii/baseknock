@@ -210,7 +210,7 @@ const DefencePlacePage = () => {
         console.error('保存位置信息時出錯:', error);
     }
     console.log('無法保存位置信息，導航到 /schedule 頁面');
-    router.push('/schedule');
+    router.push('/awayplayershow');
 };
 
 
