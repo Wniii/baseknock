@@ -102,7 +102,7 @@ const ALLPlayerPage = () => {
         
             // 更新游戏文档，保留其他字段的值
             const promise = updateDoc(gameDocRef, {
-                mainattacklist: updateAttackList
+                attacklist: updatedAttackList
             }, { merge: true });
             promises.push(promise);
 
