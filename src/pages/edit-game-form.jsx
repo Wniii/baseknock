@@ -355,10 +355,10 @@ export const EditGame = () => {
       });
   
       router.push("/schedule");
-      alert("比赛已删除!");
+      alert("比賽已刪除!");
     } catch (error) {
-      console.error("发生错误:", error);
-      alert("删除失败!");
+      console.error("發生錯誤:", error);
+      alert("刪除失敗!");
     }
   };
 
