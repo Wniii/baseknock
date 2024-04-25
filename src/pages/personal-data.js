@@ -57,6 +57,11 @@ const Page = () => {
         }}
       >
         <Container maxWidth="xl">
+        <Stack spacing={1}>
+                <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
+                  球員個人數據
+                </Typography>
+              </Stack>
           <Stack spacing={3}>
             <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam}/>
             <div>
