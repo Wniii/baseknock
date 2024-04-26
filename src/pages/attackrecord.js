@@ -29,6 +29,7 @@ const Page = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
+  const [pitcher, setPitcher] = useState(''); // 儲存投手名稱
   const [alertInfo, setAlertInfo] = useState({
     open: false,
     severity: 'info',
@@ -98,7 +99,7 @@ const Page = () => {
                 hometeam: gameData.hometeam || "",
                 awayteam: gameData.awayteam || "",
               }));
-              
+
               console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
               if (gameData.outs) {
                 setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
@@ -113,6 +114,17 @@ const Page = () => {
                 const inningsCompleted = Math.floor(outs / 3) + 1;
                 setCurrentInning(inningsCompleted);
 
+              }
+
+              if (gameSnap.exists()) {
+                // 獲取遊戲文檔數據
+                const gameData = gameSnap.data();
+
+                // 更新狀態以保存投手名稱
+                setPitcher(gameData.awayposition.P);
+                console.log("Fetched pitcher name:", gameData.awayposition.P);
+              } else {
+                console.log("No such game document!");
               }
 
             }
@@ -204,8 +216,10 @@ const Page = () => {
           'rbi': rbiCount,
           'markers': markers,
           'pitcher': {
+            name: pitcher,
             ball: balls.filter(Boolean).length,
-            strike: strikes.filter(Boolean).length
+            strike: strikes.filter(Boolean).length,
+            name: pitcher
           },
         }),
         'outs': outs
@@ -238,10 +252,11 @@ const Page = () => {
           'markers': markers,
           'pitcher': {
             ball: balls.filter(Boolean).length,
-            strike: strikes.filter(Boolean).length
+            strike: strikes.filter(Boolean).length,
+            name: pitcher
           },
         }),
-        
+
         'outs': outs
       });
       console.log('Document successfully updated!');
@@ -309,7 +324,7 @@ const Page = () => {
     }
     const currentBallsCount = balls.filter(Boolean).length;
     const currentStrikesCount = strikes.filter(Boolean).length;
-}
+  }
 
   const handleOutChange = (baseOuts, hitType = null) => {
     let additionalOuts = 1; // 預設增加一個出局
@@ -491,15 +506,15 @@ const Page = () => {
                               }}
                             >
                               <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                <InputLabel id="pitcher-label">投手</InputLabel>
                                 <Select
                                   labelId="pitcher-label"
-                                  autoFocus
-                                  value="0" // 默认选中 value="0" 对应的 MenuItem
-                                  label="投手" // 为 Select 组件指定 label
+                                  id="pitcher-select"
+                                  value={pitcher} // 使用 state 中的值
+                                  label="投手"
+                                  onChange={(e) => setPitcher(e.target.value)}
                                 >
-                                  <InputLabel>投手</InputLabel>
-                                  <MenuItem value="0">加西</MenuItem>
-                                  <MenuItem value="1">tsanggg</MenuItem>
+                                  <MenuItem value={pitcher}>{pitcher}</MenuItem>
                                 </Select>
                               </FormControl>
                             </Box>
