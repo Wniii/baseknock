@@ -40,7 +40,6 @@ import { CircularProgress } from "@mui/material";
 import { runTransaction } from "firebase/firestore";
 import { parseISO } from "date-fns";
 
-
 const gNameOptions = [
   { value: "friendly", label: "友誼賽" },
   { value: "ubl", label: "大專盃" },
@@ -108,26 +107,67 @@ export const EditGame = () => {
   }, [codeName]);
 
   useEffect(() => {
-    const userTeamsString = localStorage.getItem("userTeam");
-    let initialHomeTeams = [];
-    let initialAwayTeams = [];
+    // 定義一個異步函數來獲取所有隊伍的名稱和代碼
+    const fetchTeams = async () => {
+      const teamsData = await getDocs(collection(firestore, "team"));
+      const teamNameCodeMap = {};
+      teamsData.forEach((doc) => {
+        const data = doc.data();
+        teamNameCodeMap[data.codeName] = data.Name;
+      });
 
-    if (userTeamsString) {
-      const userTeams = userTeamsString.split(",");
-      initialHomeTeams = userTeams.map((team) => ({ value: team, label: team }));
-      initialAwayTeams = userTeams.map((team) => ({ value: team, label: team }));
-    } else {
-      initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
-      initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
-    }
+      // 解析LocalStorage中的userTeam數據
+      const userTeamsString = localStorage.getItem("userTeam");
+      let initialHomeTeams = [];
+      let initialAwayTeams = [];
 
-    setHometeamOptions(initialHomeTeams);
-    setAwayteamOptions(initialAwayTeams);
+      if (userTeamsString) {
+        const userTeams = userTeamsString.split(",");
+        initialHomeTeams = userTeams.map((teamCode) => ({
+          value: teamCode,
+          // 使用codeName獲取隊伍的全名
+          label: teamNameCodeMap[teamCode] || "隊伍名稱未找到",
+        }));
+        initialAwayTeams = [...initialHomeTeams]; // 如果主隊和客隊選項是相同的
+      } else {
+        initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
+        initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
+      }
+
+      setHometeamOptions(initialHomeTeams);
+      setAwayteamOptions(initialAwayTeams);
+    };
+
+    fetchTeams(); // 調用函數以獲取數據和更新狀態
   }, []);
 
   // 在組件外部定義初始 prevhteam 和 prevateam 狀態
   const [prevhteam, setPrevHteam] = useState("");
   const [prevateam, setPrevAteam] = useState("");
+  const [prevhteamname, setPrevHteamName] = useState("");
+  const [prevateamname, setPrevAteamName] = useState("");
+
+  useEffect(() => {
+    const fetchTeamNames = async () => {
+      const teamsData = await getDocs(collection(firestore, "team"));
+      const teamNameMap = {};
+      teamsData.forEach((doc) => {
+        const data = doc.data();
+        teamNameMap[data.codeName] = data.Name;
+      });
+
+      // 檢查是否存在prevhteam和prevateam對應的隊伍名稱
+      if (prevhteam && teamNameMap[prevhteam]) {
+        setPrevHteamName(teamNameMap[prevhteam]);
+      }
+
+      if (prevateam && teamNameMap[prevateam]) {
+        setPrevAteamName(teamNameMap[prevateam]);
+      }
+    };
+
+    fetchTeamNames();
+  }, [prevhteam, prevateam]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,9 +217,7 @@ export const EditGame = () => {
       ...prevState,
       [name]: value,
     }));
-
   };
-  
 
   const handleDateChange = (date) => {
     setValues((prevState) => ({
@@ -219,26 +257,26 @@ export const EditGame = () => {
         query(collection(firestore, "team"), where("codeName", "==", prevhteam))
       );
       let phteam = prevhquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-      
+
       // 查询客队ID
       const prevaquerySnapshot = await getDocs(
         query(collection(firestore, "team"), where("codeName", "==", prevateam))
       );
       let pateam = prevaquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-      
+
       if (!phteam || !pateam) {
         console.error("未找到相应的主队或客队");
         alert("未找到相应的主队或客队");
         return; // 如果没有找到队伍，就中止操作
       }
-      
+
       // 更新原主隊的比賽資料和比賽日期
       await deleteDoc(doc(firestore, "team", phteam, "games", g_id));
       await deleteGamesField(phteam, g_id);
-      
+
       // 更新原客隊的比賽資料和比賽日期
       await deleteDoc(doc(firestore, "team", pateam, "games", g_id));
-      await deleteGamesField(pateam, g_id);      
+      await deleteGamesField(pateam, g_id);
 
       // 新增新主隊的比賽資料和比賽日期
       await setDoc(doc(firestore, "team", hteam, "games", g_id), values);
@@ -255,7 +293,6 @@ export const EditGame = () => {
     }
   };
 
-
   async function deleteGamesField(tId, g_id) {
     const teamDocRef = doc(firestore, "team", tId);
     const teamDocSnapshot = await getDoc(teamDocRef);
@@ -263,7 +300,7 @@ export const EditGame = () => {
       console.log("找不到或不存在球队文件。");
       return;
     }
-  
+
     const teamData = teamDocSnapshot.data();
     console.log("原始 games 数据:", teamData.games);
 
@@ -277,9 +314,7 @@ export const EditGame = () => {
     // 重新获取文档来确认删除
     const updatedTeamDocSnapshot = await getDoc(teamDocRef);
     console.log("更新后的 games 数据:", updatedTeamDocSnapshot.data().games);
-}
-
-  
+  }
 
   async function updateGamesField(tId, g_id, GDate) {
     const teamDocRef = doc(firestore, "team", tId);
@@ -308,19 +343,19 @@ export const EditGame = () => {
           query(collection(firestore, "team"), where("codeName", "==", prevhteam))
         );
         let phteam = prevhquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-        
+
         // 获取客队ID
         const prevaquerySnapshot = await getDocs(
           query(collection(firestore, "team"), where("codeName", "==", prevateam))
         );
         let pateam = prevaquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-        
+
         if (!phteam || !pateam) {
           console.error("未找到相应的主队或客队");
           alert("未找到相应的主队或客队");
           return; // 如果没有找到队伍，就中止操作
         }
-        
+
         // 获取主队和客队的文档引用
         const phTeamDocRef = doc(firestore, "team", phteam);
         const paTeamDocRef = doc(firestore, "team", pateam);
@@ -328,32 +363,32 @@ export const EditGame = () => {
         // 获取主队和客队的文档数据
         const phTeamDoc = await transaction.get(phTeamDocRef);
         const paTeamDoc = await transaction.get(paTeamDocRef);
-        
+
         if (!phTeamDoc.exists() || !paTeamDoc.exists()) {
           throw new Error("主队或客队文件不存在!");
         }
-        
+
         // 处理主队文档数据
         const phTeamData = phTeamDoc.data();
         if (phTeamData.games && phTeamData.games[g_id]) {
           delete phTeamData.games[g_id];
           transaction.update(phTeamDocRef, { games: phTeamData.games });
         }
-  
+
         // 处理客队文档数据
         const paTeamData = paTeamDoc.data();
         if (paTeamData.games && paTeamData.games[g_id]) {
           delete paTeamData.games[g_id];
           transaction.update(paTeamDocRef, { games: paTeamData.games });
         }
-  
+
         // 删除主队和客队的游戏记录
         const phgameDocRef = doc(firestore, "team", phteam, "games", g_id);
         const pagameDocRef = doc(firestore, "team", pateam, "games", g_id);
         transaction.delete(phgameDocRef);
         transaction.delete(pagameDocRef);
       });
-  
+
       router.push("/schedule");
       alert("比賽已刪除!");
     } catch (error) {
@@ -362,8 +397,6 @@ export const EditGame = () => {
     }
   };
 
-  
-
   return (
     <div>
       <form autoComplete="off" noValidate onSubmit={handleSubmit}>
@@ -371,11 +404,13 @@ export const EditGame = () => {
           <CardContent>
             <Grid item xs={12} md={4}>
               <Stack spacing={1}>
-                <Typography variant="h6">賽後資訊</Typography>
+                <Typography variant="h5">賽後資訊</Typography>
+                <Stack></Stack>
                 <Stack></Stack>
               </Stack>
               <Stack spacing={1}>
-                <Typography variant="h9">卡皮巴拉</Typography>
+              <Typography variant="h6">比分</Typography>
+                <Typography variant="h9">{prevhteamname}</Typography>
                 <Stack>
                   <div>
                     <TextField
@@ -454,7 +489,7 @@ export const EditGame = () => {
                 </Stack>
               </Stack>
               <Stack spacing={1}>
-                <Typography variant="h9">輔仁大學</Typography>
+                <Typography variant="h9">{prevateamname}</Typography>
                 <Stack>
                   <div>
                     <TextField
@@ -532,7 +567,87 @@ export const EditGame = () => {
                   </div>
                 </Stack>
                 <Stack spacing={1}>
-                  <Typography variant="h9">失誤</Typography>
+                <Typography variant="h6">失誤</Typography>
+                  <Typography variant="h9">{prevhteamname}</Typography>
+                  <Stack>
+                    <div>
+                      <TextField
+                        label="1"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="2"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="3"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="4"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="5"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="6"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="7"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="8"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                      <TextField
+                        label="9"
+                        id="standard-size-normal"
+                        defaultValue="0"
+                        size="normal"
+                        variant="standard"
+                        sx={{ width: "50px" }}
+                      />
+                    </div>
+                  </Stack>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography variant="h9">{prevateamname}</Typography>
                   <Stack>
                     <div>
                       <TextField
@@ -651,7 +766,7 @@ export const EditGame = () => {
                 <Stack></Stack>
               </Stack>
               <Stack spacing={1}>
-                <Typography variant="h6">賽前資訊</Typography>
+                <Typography variant="h5">賽前資訊</Typography>
                 <Stack></Stack>
               </Stack>
               <Stack spacing={4}>

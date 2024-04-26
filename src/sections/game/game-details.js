@@ -54,22 +54,40 @@ export const AddGame = () => {
   ]);
 
   useEffect(() => {
-    const userTeamsString = localStorage.getItem("userTeam");
-    let initialHomeTeams = [];
-    let initialAwayTeams = [];
-
-    if (userTeamsString) {
-      const userTeams = userTeamsString.split(",");
-      initialHomeTeams = userTeams.map((team) => ({ value: team, label: team }));
-      initialAwayTeams = userTeams.map((team) => ({ value: team, label: team }));
-    } else {
-      initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
-      initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
-    }
-
-    setHometeamOptions(initialHomeTeams);
-    setAwayteamOptions(initialAwayTeams);
+    // 定義一個異步函數來獲取所有隊伍的名稱和代碼
+    const fetchTeams = async () => {
+      const teamsData = await getDocs(collection(firestore, "team"));
+      const teamNameCodeMap = {};
+      teamsData.forEach((doc) => {
+        const data = doc.data();
+        teamNameCodeMap[data.codeName] = data.Name;
+      });
+  
+      // 解析LocalStorage中的userTeam數據
+      const userTeamsString = localStorage.getItem("userTeam");
+      let initialHomeTeams = [];
+      let initialAwayTeams = [];
+  
+      if (userTeamsString) {
+        const userTeams = userTeamsString.split(",");
+        initialHomeTeams = userTeams.map((teamCode) => ({
+          value: teamCode,
+          // 使用codeName獲取隊伍的全名
+          label: teamNameCodeMap[teamCode] || "隊伍名稱未找到",
+        }));
+        initialAwayTeams = [...initialHomeTeams]; // 如果主隊和客隊選項是相同的
+      } else {
+        initialHomeTeams = [{ value: "noHome", label: "无可选主队" }];
+        initialAwayTeams = [{ value: "noAway", label: "无可选客队" }];
+      }
+  
+      setHometeamOptions(initialHomeTeams);
+      setAwayteamOptions(initialAwayTeams);
+    };
+  
+    fetchTeams(); // 調用函數以獲取數據和更新狀態
   }, []);
+  
 
   const AddGameSx = {
     backgroundColor: "#d3d3d3",
