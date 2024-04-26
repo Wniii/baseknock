@@ -27,6 +27,12 @@ export const HitrecordSearch = ({ onConfirm }) => {
   const [selectedTeam, setSelectedTeam] = useState('');
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
 
+  const [gameTypes, setGameTypes] = useState([
+    { name: '友誼賽', checked: false, dbName: 'friendly' },
+    { name: '大專盃', checked: false, dbName: 'ubl' },
+    { name: '梅花旗', checked: false, dbName: 'mei' }
+  ]);
+
   const [checkboxStates, setCheckboxStates] = useState([
     { label: '打席', checked: false },
     { label: '打數', checked: false },
@@ -74,6 +80,8 @@ export const HitrecordSearch = ({ onConfirm }) => {
       .map((checkbox) => checkbox.label);
     console.log('Selected Team before onConfirm:', selectedTeam); // Added log
     onConfirm(selectedColumns, selectedTeam); // Passing selected team
+    fetchGames(selectedTeam, gameTypes);
+    onConfirm(selectedTeam, gameTypes.filter(gt => gt.checked).map(gt => gt.name));
   };
 
   const handleTeamChange = (event) => {
@@ -109,6 +117,28 @@ export const HitrecordSearch = ({ onConfirm }) => {
     };
     fetchTeams();
   }, []);
+  
+
+  const fetchGames = async (teamId, gameTypes) => {
+    const gamesCollectionRef = collection(firestore, `team/${teamId}/games`);
+    const activeGameTypes = gameTypes.filter(gt => gt.checked).map(gt => gt.dbName);
+    const gamesQuery = query(gamesCollectionRef, where("gName", "in", activeGameTypes));
+    try {
+      const querySnapshot = await getDocs(gamesQuery);
+      const gamesData = querySnapshot.docs.map(doc => doc.data().gName);
+      console.log('Games data:', gamesData);
+    } catch (error) {
+      console.error("提取比賽數據時發生錯誤：", error);
+    }
+  };
+
+  const handleGameTypeChange = (index) => (event) => {
+    const updatedGameTypes = [...gameTypes];
+    updatedGameTypes[index].checked = event.target.checked;
+    setGameTypes(updatedGameTypes);
+  };
+
+
 
 
   return (
@@ -143,16 +173,11 @@ export const HitrecordSearch = ({ onConfirm }) => {
               比賽性質
             </Typography>
             <Grid container spacing={1}>
-              {[
-                '季賽',
-                '季後賽',
-                '盃賽',
-                '友誼賽',
-              ].map((label, index) => (
+              {gameTypes.map((gt, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
-                    control={<Checkbox defaultChecked />}
-                    label={label}
+                    control={<Checkbox checked={gt.checked} onChange={handleGameTypeChange(index)} />}
+                    label={gt.name}
                   />
                 </Grid>
               ))}

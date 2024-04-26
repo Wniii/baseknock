@@ -90,10 +90,16 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
   useEffect(() => {
     const fetchPlayers = async () => {
       if (!selectedTeam) return;
-
+  
+      // 確保 selectedTeam 是一個字符串
+      if (typeof selectedTeam !== 'string') {
+        console.error("selectedTeam must be a string", selectedTeam);
+        return;
+      }
+  
       const teamDocRef = doc(firestore, "team", selectedTeam);
       const teamDocSnap = await getDoc(teamDocRef);
-
+  
       if (teamDocSnap.exists()) {
         const teamData = teamDocSnap.data();
         const playersList = Object.keys(teamData.players).map(key => ({
@@ -107,9 +113,10 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
         setPlayersData([]);
       }
     };
-
+  
     fetchPlayers();
   }, [selectedTeam]);
+  
 
 
 
