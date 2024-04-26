@@ -8,7 +8,7 @@ import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
 import { green,blue, red } from '@mui/material/colors';
 
-export const CustomersTable = (props) => {
+export const AwayCustomersTable = (props) => {
   const {
     count = 0,
     onPageChange = () => {},
@@ -20,8 +20,8 @@ export const CustomersTable = (props) => {
     timestamp,
     outs
   } = props;
-  const [attackListData, setAttackListData] = useState([]);
-  const [ordermain, setordermain] = useState([]);
+  const [awayattackListData, setAwayAttackListData] = useState([]);
+  const [orderoppo, setorderoppo] = useState([]);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [displayedButton, setDisplayedButton] = useState(false);
   const router = useRouter(); // 初始化router
@@ -51,12 +51,12 @@ export const CustomersTable = (props) => {
         const gameDocSnapshot = await getDoc(doc(gamesCollectionRef, timestamp));
   
         if (gameDocSnapshot.exists()) {
-          // console.log("Game document ID:", timestamp);
-          // console.log("Game data:", gameDocSnapshot.data());
+        //   console.log("Game document ID:", timestamp);
+        //   console.log("Game data:", gameDocSnapshot.data());
           
           // 更新状态
-          setAttackListData(gameDocSnapshot.data().attacklist || []);
-          setordermain(gameDocSnapshot.data().ordermain || []);
+          setAwayAttackListData(gameDocSnapshot.data().awayattacklist || []);
+          setorderoppo(gameDocSnapshot.data().orderoppo || []);
           setGameDocSnapshot(gameDocSnapshot);
         } else {
           console.log("No matching game document with ID:", timestamp);
@@ -105,19 +105,19 @@ let buttonPlaced = false;
           </TableRow>
         </TableHead>
         <TableBody>
-  {attackListData.map((attack, index) => {
-    // 在 ordermain 中查找具有相同 p_name 的对象
-    const orderMainItems = ordermain.filter(item => item.p_name === attack);
+  {awayattackListData.map((attack, index) => {
+    // 在 orderoppo 中查找具有相同 p_name 的对象
+    const orderOppoItems = orderoppo.filter(item => item.p_name === attack);
 
     // 获取当前攻击者的内容
      // 初始化存放内容的数组
      const contentArray = new Array(9).fill('');
 
      // 將每個攻擊者的內容添加到相應的列中
-     orderMainItems.forEach(orderMainItem => {
-       if (orderMainItem && orderMainItem.inn) {
-         const innContent = orderMainItem.inn;
-         contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
+     orderOppoItems.forEach(orderOppoItem => {
+       if (orderOppoItem && orderOppoItem.inn) {
+         const innContent = orderOppoItem.inn;
+         contentArray[innContent - 1] = orderOppoItem.content.split(',')[0];
        }
      });
 
@@ -242,7 +242,7 @@ return (
   );
 };
 
-CustomersTable.propTypes = {
+AwayCustomersTable.propTypes = {
   count: PropTypes.number,
   onPageChange: PropTypes.func,
   onRowsPerPageChange: PropTypes.func,
@@ -253,5 +253,5 @@ CustomersTable.propTypes = {
   timestamp: PropTypes.string,
 };
 
-export default CustomersTable;
+export default AwayCustomersTable;
 

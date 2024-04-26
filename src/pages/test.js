@@ -1,63 +1,72 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import Head from 'next/head';
-import { subDays, subHours } from 'date-fns';
 import { useRouter } from 'next/router';
-import { Box, Container, Stack, Typography } from '@mui/material';
-import { useSelection } from 'src/hooks/use-selection';
+import { Box, Container, Stack, Typography } from '@mui/material';  // 移除了 TableComponent 的導入
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { CustomersTable } from 'src/sections/customer/customers-table';
-import { applyPagination } from 'src/utils/apply-pagination';
+import AwayCustomersTable from 'src/sections/customer/awaycustomers-table';
+import CustomersTable from 'src/sections/customer/customers-table';
 import { Score } from 'src/sections/gamerecord/Score';
-const now = new Date();
+import { doc, getDoc, collection } from 'firebase/firestore';
+import { firestore } from './firebase'; // 你的 Firebase 配置和初始化
 
-const data = [
-  {
-    id: '5e887ac47eed253091be10cb',
-    address: {
-      city: 'Cleveland',
-      country: 'USA',
-      state: 'Ohio',
-      street: '2849 Fulton Street'
-    },
-    avatar: '/assets/avatars/avatar-carson-darrin.png',
-    createdAt: subDays(subHours(now, 7), 1).getTime(),
-    email: 'carson.darrin@devias.io',
-    name: '陳姿禔',
-    phone: '304-428-3097'
-  }
-];
-
-const useCustomers = (page, rowsPerPage) => {
-  return useMemo(
-    () => {
-      return applyPagination(data, page, rowsPerPage);
-    },
-    [page, rowsPerPage]
-  );
-};
-
-const useCustomerIds = (customers) => {
-  return useMemo(
-    () => {
-      return customers.map((customer) => customer.id);
-    },
-    [customers]
-  );
-};
 
 const Page = () => {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const customers = useCustomers(page, rowsPerPage);
-  const customersIds = useCustomerIds(customers);
-  const customersSelection = useSelection(customersIds);
-  const { codeName } = router.query; // 从路由参数获取值
-  const { timestamp } = router.query;
-  const { teamId } = router.query;
+  const { codeName, timestamp, teamId } = router.query; // 从路由参数获取值
+  const [outs, setOuts] = useState(0);
+  const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
 
-console.log("code111",codeName)
-console.log("111",timestamp)
+  useEffect(() => {
+    const fetchGames = async () => {
+      if (!teamId || !timestamp) {
+        return; // 如果没有提供团队文档ID或游戏文档ID，直接返回
+      }
+
+      console.log('Fetching games...');
+
+      try {
+        // 获取指定团队文档
+        const teamDocRef = doc(firestore, "team", teamId);
+        const teamDocSnapshot = await getDoc(teamDocRef);
+
+        if (teamDocSnapshot.exists()) {
+          console.log("Team document ID:", teamId);
+
+          // 获取指定团队文档中的游戏子集合
+          const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
+
+          // 获取指定游戏文档
+          const gameDocRef = doc(gamesCollectionRef, timestamp);
+          const gameDocSnapshot = await getDoc(gameDocRef);
+
+          if (gameDocSnapshot.exists()) {
+            console.log("Game document ID:", timestamp);
+            console.log("Game data:", gameDocSnapshot.data());
+
+            // 假设游戏数据中有一个名为 'outs' 的字段
+            const gameData = gameDocSnapshot.data();
+            const newOuts = gameData.outs || 0; // 确保 outs 有个默认值
+            setOuts(newOuts); // 更新状态
+          } else {
+            console.log("No matching game document with ID:", timestamp);
+          }
+        } else {
+          console.log("No team document found with ID:", teamId);
+        }
+      } catch (error) {
+        console.error("Error fetching games:", error);
+      }
+    };
+
+    fetchGames();
+  }, [teamId, timestamp]);
+
+
+
+  // console.log("code111",codeName)
+  // console.log("111",timestamp)
   const handlePageChange = useCallback(
     (event, value) => {
       setPage(value);
@@ -71,6 +80,37 @@ console.log("111",timestamp)
     },
     []
   );
+
+
+  // 定義每個範圍對應的表格類型
+  const renderTableComponent = () => {
+    const numericOuts = Number(outs); // 確保outs是一個數字
+    const tableComponents = [AwayCustomersTable, CustomersTable];
+    const rangeIndex = Math.floor(numericOuts / 3) % 2;
+
+    // 確保選擇的組件在範圍內，並檢查是否為 undefined
+    const TableComponent = tableComponents[rangeIndex];
+    if (!TableComponent) {
+      console.error('TableComponent is undefined. Check the rangeIndex and outs value:', rangeIndex, outs);
+      return <div>Error: Table component not found.</div>;  // 或其他錯誤處理方式
+    }
+
+    return (
+      <TableComponent
+        teamId={teamId}
+        timestamp={timestamp}
+        codeName={codeName}
+        outs={numericOuts}
+        onPageChange={handlePageChange}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        page={page}
+        rowsPerPage={rowsPerPage}
+      />
+    );
+  };
+
+
+
 
   return (
     <>
@@ -88,36 +128,36 @@ console.log("111",timestamp)
       >
         <Container maxWidth="xl">
           <Stack spacing={3}>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              
-            >
-            <div>
-              <Typography variant="h3">
-                比賽紀錄
-              </Typography>
-            </div>
-            </Stack>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+
+              >
+                <div>
+                  <Typography variant="h3">
+                    比賽紀錄
+                  </Typography>
+                </div>
+              </Stack>
             </div>
             <div style={{ display: 'flex', flexDirection: 'row' }}>
-            <div style={{ marginRight: '10px' }}>
-                <Box 
+              <div style={{ marginRight: '10px' }}>
+                <Box
                   border={2}
                   borderRadius={5}
                   borderColor="#84C1FF"
                   padding={1}
-                  width={100} 
+                  width={100}
                   display="flex"
-                  alignItems="center" 
-                  justifyContent="center" 
+                  alignItems="center"
+                  justifyContent="center"
                   bgcolor="#84C1FF"
                 >
                   <Typography
                     variant="button"
-                    display="flex" 
-                    alignItems="center" 
+                    display="flex"
+                    alignItems="center"
                     fontWeight="bold"
                     color="#005AB5"
                   >
@@ -126,21 +166,21 @@ console.log("111",timestamp)
                 </Box>
               </div>
               <div style={{ marginRight: '10px' }}>
-                <Box 
+                <Box
                   border={2}
                   borderRadius={5}
                   borderColor="#84C1FF"
                   padding={1}
-                  width={100} 
+                  width={100}
                   display="flex"
-                  alignItems="center" 
-                  justifyContent="center" 
+                  alignItems="center"
+                  justifyContent="center"
                   bgcolor="#84C1FF"
                 >
                   <Typography
                     variant="button"
-                    display="flex" 
-                    alignItems="center" 
+                    display="flex"
+                    alignItems="center"
                     fontWeight="bold"
                     color="#005AB5"
                   >
@@ -149,21 +189,21 @@ console.log("111",timestamp)
                 </Box>
               </div>
               <div>
-                <Box 
+                <Box
                   border={2}
                   borderRadius={5}
                   borderColor="#84C1FF"
                   padding={1}
-                  width={100} 
+                  width={100}
                   display="flex"
-                  alignItems="center" 
-                  justifyContent="center" 
+                  alignItems="center"
+                  justifyContent="center"
                   bgcolor="#84C1FF"
                 >
                   <Typography
                     variant="button"
                     display="flex"
-                    alignItems="center" 
+                    alignItems="center"
                     fontWeight="bold"
                     color="#005AB5"
                   >
@@ -172,29 +212,15 @@ console.log("111",timestamp)
                 </Box>
               </div>
             </div>
-            <Score  
-            teamId={teamId}
-            timestamp={timestamp}
-            codeName={codeName}
-            />
-            <CustomersTable
+            <Score
               teamId={teamId}
               timestamp={timestamp}
-              codeName={codeName} // 将 codeName 传递给子组件
-              count={data.length}
-              items={customers}
-              onDeselectAll={customersSelection.handleDeselectAll}
-              onDeselectOne={customersSelection.handleDeselectOne}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              onSelectAll={customersSelection.handleSelectAll}
-              onSelectOne={customersSelection.handleSelectOne}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              selected={customersSelection.selected}
+              codeName={codeName}
             />
+            {renderTableComponent()}
+
           </Stack>
-          
+
         </Container>
       </Box>
     </>

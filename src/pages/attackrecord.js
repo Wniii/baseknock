@@ -63,6 +63,8 @@ const Page = () => {
   const [outs, setOuts] = useState(0);
   const [currentInning, setCurrentInning] = useState(0);
   const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
+  const [values, setValues] = useState({ hometeam: '', awayteam: '' });
+
 
 
 
@@ -85,8 +87,6 @@ const Page = () => {
           const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
           const gamesQuerySnapshot = await getDocs(gamesCollectionRef);
 
-
-
           if (!gamesQuerySnapshot.empty) {
             const gameIds = gamesQuerySnapshot.docs.map(doc => doc.id);
             setGameDocIds(gameIds);
@@ -95,6 +95,13 @@ const Page = () => {
             const gameSnap = await getDoc(gameRef);
             if (gameSnap.exists()) {
               const gameData = gameSnap.data();
+              setValues(prevValues => ({
+                ...prevValues,
+                hometeam: gameData.hometeam || "",
+                awayteam: gameData.awayteam || "",
+              }));
+              
+              console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
               if (gameData.pitcher) {
                 setInitialBalls(gameData.pitcher.ball || 0); // 確保沒有數據時返回 0
                 setInitialStrikes(gameData.pitcher.strike || 0);
@@ -135,7 +142,9 @@ const Page = () => {
   }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
 
 
-
+  useEffect(() => {
+    console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
+  }, [values]);
 
 
   const handleSubmit = useCallback((event) => {
@@ -162,7 +171,24 @@ const Page = () => {
       .join(', ');
 
     let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
-    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
+    const hquerySnapshot = await getDocs(
+      query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
+    );
+    let hteam = hquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+
+    // 查询客队ID
+    const aquerySnapshot = await getDocs(
+      query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
+    );
+    let ateam = aquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+
+    if (!hteam || !ateam) {
+      console.error("未找到相应的主队或客队");
+      alert("未找到相应的主队或客队");
+      return; // 如果没有找到队伍，就中止操作
+    }
+    const HgameRef = doc(firestore, 'team', hteam, 'games', timestamp);
+    const AgameRef = doc(firestore, 'team', ateam, 'games', timestamp);
 
     // Calculate RBIs from selected run scoring hits
     let rbiCount = 0;
@@ -177,7 +203,7 @@ const Page = () => {
     };
 
     try {
-      await updateDoc(gameRef, {
+      await updateDoc(HgameRef, {
         'ordermain': arrayUnion({
           'content': selectedContent,
           'inn': currentInning,
@@ -204,6 +230,39 @@ const Page = () => {
       });
       setOpenDialog(false);
       setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
+    } catch (error) {
+      console.error('Error updating document:', error);
+      alert('Error updating document: ' + error.message);
+    }
+
+    try {
+      await updateDoc(AgameRef, {
+        'ordermain': arrayUnion({
+          'content': selectedContent,
+          'inn': currentInning,
+          'onbase': bases,
+          'p_name': attackData,
+          'rbi': rbiCount,
+          'markers': markers
+        }),
+        pitcher: {
+          ball: initialBalls + balls.filter(Boolean).length,
+          strike: initialStrikes + strikes.filter(Boolean).length
+        },
+        'outs': outs
+      });
+      console.log('Document successfully updated!');
+      alert('Document successfully updated!');
+      router.push({
+        pathname: '/test',
+        query: {
+          timestamp: timestamp,
+          codeName: codeName,
+          teamId: teamId
+        },
+      });
+      setOpenDialog(false);
+      // setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
     } catch (error) {
       console.error('Error updating document:', error);
       alert('Error updating document: ' + error.message);
@@ -253,8 +312,8 @@ const Page = () => {
         const currentBallCount = balls.filter(Boolean).length;
         if (currentBallCount === 3) {
           // 已经有三个壞球，只需加一个到总计
-          return prev ;
-        } 
+          return prev;
+        }
       });
     } else if (hitType === '三振') {
       console.log('進入三振情況'); // 输出进入四壞情况
@@ -273,8 +332,8 @@ const Page = () => {
         const currentStrikeCount = strikes.filter(Boolean).length;
         if (currentStrikeCount === 2) {
           // 已经有三个壞球，只需加一个到总计
-          return prev ;
-        } 
+          return prev;
+        }
       });
     } else {
       console.log('普通情況'); // 輸出普通情況
@@ -456,9 +515,29 @@ const Page = () => {
                             <Typography variant='body1'>
                               第{currentBattingOrder}棒次
                             </Typography>
-                            <Typography style={{ marginLeft: '120px' }}>
-                              投手：
-                            </Typography>
+                            <Box
+                              noValidate
+                              component="form"
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                m: 'auto',
+                                width: 'fit-content',
+                              }}
+                            >
+                              <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                <Select
+                                  labelId="pitcher-label"
+                                  autoFocus
+                                  value="0" // 默认选中 value="0" 对应的 MenuItem
+                                  label="投手" // 为 Select 组件指定 label
+                                >
+                                  <InputLabel>投手</InputLabel>
+                                  <MenuItem value="0">加西</MenuItem>
+                                  <MenuItem value="1">tsanggg</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Box>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
                           </div>
@@ -724,7 +803,7 @@ const Page = () => {
                                 handleBallTypeChange(balls, 'ball', '四壞')
                               }
                               }
-                              
+
                             >
                               四壞
                             </Button>
