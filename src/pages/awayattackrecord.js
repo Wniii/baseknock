@@ -20,11 +20,10 @@ import {
   Paper
 } from '@mui/material';
 import { useCallback } from 'react';
-// Import YourComponent
 
 const Page = () => {
   const router = useRouter();
-  const attackData = router.query.attack;
+  const awayattackData = router.query.attack;
   const { codeName, timestamp, teamId } = router.query;
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
@@ -56,6 +55,7 @@ const Page = () => {
     觸身: false,
     四分: false,
   });
+  
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
   const [outs, setOuts] = useState(0);
@@ -107,7 +107,7 @@ const Page = () => {
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
+                setCurrentBattingOrder(gameData.orderoppo.length % 9 + 1);
                 // 計算局數和上下半局
                 const outs = gameData.outs || 0;
                 const inningsCompleted = Math.floor(outs / 3) + 1;
@@ -196,13 +196,13 @@ const Page = () => {
 
     try {
       await updateDoc(HgameRef, {
-        'ordermain': arrayUnion({
-          'content': selectedContent,
-          'inn': currentInning,
-          'onbase': bases,
-          'p_name': attackData,
-          'rbi': rbiCount,
-          'markers': markers,
+        'orderoppo': arrayUnion({
+          'o_content': selectedContent,
+          'o_inn': currentInning,
+          'o_onbase': bases,
+          'o_p_name': awayattackData,
+          'o_rbi': rbiCount,
+          'o_markers': markers,
           'pitcher': {
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length
@@ -229,19 +229,18 @@ const Page = () => {
 
     try {
       await updateDoc(AgameRef, {
-        'ordermain': arrayUnion({
-          'content': selectedContent,
-          'inn': currentInning,
-          'onbase': bases,
-          'p_name': attackData,
-          'rbi': rbiCount,
-          'markers': markers,
+        'orderoppo': arrayUnion({
+          'o_content': selectedContent,
+          'o_inn': currentInning,
+          'o_onbase': bases,
+          'o_p_name': awayattackData,
+          'o_rbi': rbiCount,
+          'o_markers': markers,
           'pitcher': {
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length
-          },
+        },
         }),
-        
         'outs': outs
       });
       console.log('Document successfully updated!');
@@ -437,7 +436,7 @@ const Page = () => {
                                 textAlign: 'center',
                               }}
                             >
-                              {attackData}
+                              {awayattackData}
                             </Paper>
                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: '100px' }}>
                               <Typography variant='h5'>B</Typography>

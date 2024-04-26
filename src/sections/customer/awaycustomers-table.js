@@ -71,7 +71,7 @@ export const AwayCustomersTable = (props) => {
   
   const handleClick = (attack) => {
     router.push({
-      pathname: '/attackrecord',
+      pathname: '/awayattackrecord',
       query: {
         attack: attack,
         timestamp: timestamp,

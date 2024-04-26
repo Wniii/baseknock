@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Box, Container, Stack, Typography } from '@mui/material';  // 移除了 TableComponent 的導入
@@ -95,6 +95,7 @@ const Page = () => {
       return <div>Error: Table component not found.</div>;  // 或其他錯誤處理方式
     }
 
+
     return (
       <TableComponent
         teamId={teamId}
@@ -108,6 +109,12 @@ const Page = () => {
       />
     );
   };
+
+  const teamType = useMemo(() => {
+    const rangeIndex = Math.floor(Number(outs) / 3) % 2;
+    return rangeIndex === 0 ? "客隊" : "主隊";
+  }, [outs]);
+  
 
 
 
@@ -161,7 +168,7 @@ const Page = () => {
                     fontWeight="bold"
                     color="#005AB5"
                   >
-                    比數
+                    {teamType}
                   </Typography>
                 </Box>
               </div>
