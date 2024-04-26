@@ -100,6 +100,7 @@ const Page = () => {
               rowsPerPage={rowsPerPage}
               selected={playerSelection.selected}
               selectedColumns={selectedColumns}
+              selectedTeam={selectedTeam}
             />
           </Stack>
         </Container>
