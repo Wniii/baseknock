@@ -19,8 +19,8 @@ export const DefendSelect = ({ onConfirm }) => {
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
 
   const [checkboxStates, setCheckboxStates] = useState([
-    { label: '勝投', checked: false },
-    { label: '敗投', checked: false },
+    { label: '好球數', checked: false },
+    { label: '壞球數', checked: false },
     { label: 'ERA', checked: false },
     { label: '出賽', checked: false },
     { label: '先發', checked: false },

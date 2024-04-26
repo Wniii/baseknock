@@ -12,7 +12,7 @@ import {
 import { Scrollbar } from 'src/components/scrollbar';
 import SearchIcon from '@mui/icons-material/Search';
 import { firestore } from 'src/pages/firebase';
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 
 // 定義 DefendTable 組件
 export const DefendTable = ({ selectedTeam, selectedColumns }) => {
@@ -20,29 +20,69 @@ export const DefendTable = ({ selectedTeam, selectedColumns }) => {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playersData, setPlayersData] = useState([]);
 
-  // 使用 useEffect 鉤子獲取球隊球員數據
+  // 使用 useEffect 钩子获取球队球员数据
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchPlayersAndGamesData = async () => {
       if (!selectedTeam) return;
-
+    
       const teamDocRef = doc(firestore, "team", selectedTeam);
       const teamDocSnap = await getDoc(teamDocRef);
-
-      if (teamDocSnap.exists()) {
-        const teamData = teamDocSnap.data();
-        const playersList = Object.keys(teamData.players).map(key => ({
-          p_id: key,
-          ...teamData.players[key]
-        }));
-        setPlayersData(playersList);
-        console.log('Player IDs:', playersList.map(player => player.p_id));
-      } else {
-        console.log("No such document!");
+  
+      if (!teamDocSnap.exists()) {
+        console.log("No such team document!");
         setPlayersData([]);
+        return;
       }
-    };
+  
+      const teamData = teamDocSnap.data();
+      const playersKeys = Object.keys(teamData.players);
+      console.log("Team Data:", teamData);
+  
+      const gamesCollectionRef = collection(teamDocRef, "games");
+      const gamesQuerySnapshot = await getDocs(gamesCollectionRef);
+  
+      let gamesDataByPlayer = {};
+  gamesQuerySnapshot.forEach((gameDocSnap) => {
+    const gameData = gameDocSnap.data();
 
-    fetchPlayers();
+    ['ordermain', 'orderoppo'].forEach((orderKey) => {
+      const orders = gameData[orderKey];
+      if (Array.isArray(orders)) {
+        orders.forEach((order) => {
+          const pitcherName = order.pitcher?.name; // 從 pitcher 物件中獲取名字
+          if (pitcherName && playersKeys.includes(pitcherName)) {
+            const playerKey = pitcherName; // 使用 pitcher 的名字作為 playerKey
+            if (!gamesDataByPlayer[playerKey]) {
+              gamesDataByPlayer[playerKey] = { totalBalls: 0, totalStrikes: 0 };
+            }
+            console.log(`Before adding: Player - ${playerKey}, Balls - ${gamesDataByPlayer[playerKey].totalBalls}, Strikes - ${gamesDataByPlayer[playerKey].totalStrikes}`);
+            const balls = Number(order.pitcher.ball) || 0;
+            const strikes = Number(order.pitcher.strike) || 0;
+    
+            gamesDataByPlayer[playerKey].totalBalls += balls;
+            gamesDataByPlayer[playerKey].totalStrikes += strikes;
+            console.log(`After adding: Player - ${playerKey}, Balls - ${gamesDataByPlayer[playerKey].totalBalls}, Strikes - ${gamesDataByPlayer[playerKey].totalStrikes}`);
+          }
+        });
+      }
+    });
+  })
+  
+      const playersList = playersKeys.map((playerKey) => {
+        const player = teamData.players[playerKey];
+        const stats = gamesDataByPlayer[playerKey] || { totalBalls: 0, totalStrikes: 0 };
+  
+        return {
+          p_id: playerKey, // 使用 playerKey 作為唯一ID
+          ...player,
+          ...stats
+        };
+      });
+  
+      setPlayersData(playersList);
+    };
+  
+    fetchPlayersAndGamesData();
   }, [selectedTeam]);
 
   // 渲染組件
@@ -54,11 +94,11 @@ export const DefendTable = ({ selectedTeam, selectedColumns }) => {
             <TableHead>
               <TableRow>
                 <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
-                {selectedColumns.includes('勝投') && (
-                  <TableCell>勝投</TableCell>
+                {selectedColumns.includes('好球數') && (
+                  <TableCell>好球數</TableCell>
                 )}
-                {selectedColumns.includes('敗投') && (
-                  <TableCell>敗投</TableCell>
+                {selectedColumns.includes('壞球數') && (
+                  <TableCell>壞球數</TableCell>
                 )}
                 {selectedColumns.includes('ERA') && (
                   <TableCell>ERA</TableCell>
@@ -106,19 +146,18 @@ export const DefendTable = ({ selectedTeam, selectedColumns }) => {
             </TableHead>
             <TableBody>
               {playersData.map((player, index) => {
-                const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
                 return (
                   <TableRow hover key={player.p_id}>
                     <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>{player.p_id}</TableCell>
-                    {selectedColumns.includes('勝投') && (
-                      <TableCell>
-                       
-                      </TableCell>
+                    {selectedColumns.includes('好球數') && (
+                       <TableCell>
+                       {player.totalStrikes}
+                     </TableCell>
                     )}
-                    {selectedColumns.includes('敗投') && (
+                    {selectedColumns.includes('壞球數') && (
                       <TableCell>
-                       
-                      </TableCell>
+                      {player.totalBalls}
+                    </TableCell>
                     )}
                     {selectedColumns.includes('ERA') && (
                       <TableCell>
