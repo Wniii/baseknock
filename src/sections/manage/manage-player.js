@@ -70,6 +70,9 @@ export const ManagePlayer = ({ teamInfo }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [dialogTitle, setDialogTitle] = useState('');
 
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [playerToDelete, setPlayerToDelete] = useState(null);
+
     
 
     useEffect(() => {
@@ -143,24 +146,31 @@ export const ManagePlayer = ({ teamInfo }) => {
     const isMediumScreen = useMediaQuery('(min-width:400px)');
     let cols = isLargeScreen ? 8 : (isMediumScreen ? 3 : 2);
 
-    const handleDelete = (key) => {
-        const teamRef = doc(firestore, `team/${teamInfo.id}`);
-    
-        // Prepare the update object to remove the player key using deleteField
-        const updates = {};
-        updates[`players.${key}`] = deleteField();
-    
-        updateDoc(teamRef, updates)
-            .then(() => {
-                console.log(`Player with key ${key} successfully deleted from the document.`);
-                // 更新本地状态以反映更改
-                const updatedKeys = playerKeys.filter(k => k !== key);
-                setPlayerKeys(updatedKeys);
-            })
-            .catch(error => {
-                console.error('Error removing player: ', error);
-            });
+
+    const handleDelete = (key, event) => {
+        event.stopPropagation(); 
+        setPlayerToDelete(key);
+        setConfirmDeleteOpen(true);
     };
+
+    const confirmDelete = async () => {
+        const teamRef = doc(firestore, `team/${teamInfo.id}`);
+        const updates = { [`players.${playerToDelete}`]: deleteField() };
+
+        try {
+            await updateDoc(teamRef, updates);
+            console.log(`Player ${playerToDelete} successfully deleted.`);
+            setPlayerKeys(playerKeys.filter(k => k !== playerToDelete));
+            setConfirmDeleteOpen(false);
+        } catch (error) {
+            console.error('Error removing player: ', error);
+        }
+    };
+
+    const cancelDelete = () => {
+        setConfirmDeleteOpen(false);
+    };
+
     
     // 根据获取的 player 键名生成 itemData
     const itemData = playerKeys.map(key => ({
@@ -195,7 +205,7 @@ export const ManagePlayer = ({ teamInfo }) => {
                         <ImageListItem key={item.img} sx={{ width: '100px', height: '50px', marginLeft: '16px' }} onClick={() => handleClick(item)}>
                             <img src={`${item.img}?w=248&fit=crop&auto=format`} alt={item.title} loading="lazy"/>
                             <ImageListItemBar position="below" title={item.author} sx={{ textAlign: 'center' }} />
-                            <Button onClick={() => handleDelete(item.title)}>刪除</Button>
+                            <Button onClick={(event) => handleDelete(item.title, event)}>刪除</Button>
                         </ImageListItem>
                     ))}
                 </ImageList>
@@ -213,6 +223,16 @@ export const ManagePlayer = ({ teamInfo }) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDialog}>關閉</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={confirmDeleteOpen} onClose={cancelDelete}>
+                <DialogTitle>確認刪除</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>您確定要刪除這位球員嗎？</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={cancelDelete}>取消</Button>
+                    <Button onClick={confirmDelete} color="error">確認</Button>
                 </DialogActions>
             </Dialog>
         </Card>
