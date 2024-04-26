@@ -23,64 +23,127 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
 
 
   useEffect(() => {
-    console.log("useEffect triggered");
     const fetchPlayerGames = async () => {
-      console.log("Fetching player games...");
-      if (selectedPlayer && selectedPlayer.id) { // 添加了对 selectedPlayer 的存在性检查
-          console.log("Selected player ID:", selectedPlayer.id);
-          // 从 Firestore 获取 'games' 集合的引用
-          const gamesRef = collection(firestore, "team", selectedTeam.id, "games");
-          console.log("Games reference:", gamesRef);
-          // 获取所有游戏记录
-          const gamesSnapshot = await getDocs(gamesRef);
-          console.log("Games snapshot:", gamesSnapshot);
+      if (selectedPlayer && selectedPlayer.id && selectedTeam && selectedTeam.id) {
+        const gamesRef = collection(firestore, "team", selectedTeam.id, "games");
+        const gamesSnapshot = await getDocs(gamesRef);
+        const gamesData = gamesSnapshot.docs.map(doc => {
+          const game = doc.data();
+          const isPlayerInMain = game.ordermain?.some(order => order.p_name === selectedPlayer.id);
+          const isPlayerInOppo = game.orderoppo?.some(order => order.o_p_name === selectedPlayer.id);
   
-          // 初始化一个空数组，用于存储所有游戏记录中的 ordermain 值
-          const allOrderMainValues = [];
+          if (!isPlayerInMain && !isPlayerInOppo) return null; // 球員沒有參與該場比賽
   
-          // 使用 .map() 和 .filter() 处理获取的游戏记录
-          const filteredGames = gamesSnapshot.docs
-              .map(doc => {
-                  console.log("Processing game:", doc.id);
-                  const data = doc.data();
-                  // 检查 GDate 是否存在，並且是否是 Timestamp 对象
-                  const formattedDate = data.GDate && typeof data.GDate.toDate === 'function' ?
-                      format(data.GDate.toDate(), "dd/MM/yyyy") :
-                      "无日期";
+          // 初始化統計數據
+          const stats = {
+            plate_appearances: 0,
+            at_bats: 0,
+            hits: 0,
+            total_bases: 0,
+            runs: 0,
+            rbi: 0,
+            single_hits: 0,
+            double_hits: 0,
+            triple_hits: 0,
+            home_runs: 0,
+            double_plays: 0,
+            walks: 0,
+            sac_fly: 0,
+            sac_bunt: 0,
+            hit_by_pitch: 0
+          };
   
-                  // 将当前游戏记录的 ordermain 值存入 allOrderMainValues 数组中
-                  if (Array.isArray(data.ordermain)) {
-                      allOrderMainValues.push(...data.ordermain);
-                  }
+          // 計算打席次數
+          game.ordermain.forEach(order => {
+            if (order.p_name === selectedPlayer.id) {
+              stats.plate_appearances += 1;
+              countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
+            }
+          });
   
-                  return {
-                      id: doc.id,
-                      ...data,
-                      formattedDate
-                  };
-              })
-              .filter(game => {
-                  console.log("Filtering game:", game.id);
-                  
-                  // 确保 ordermain 和 orderoppo 都被定义且是数组
-                  const isInOrderMain = Array.isArray(game.ordermain) && game.ordermain.some(order => order.p_name === selectedPlayer.id);
-
-                  const isInOrderOppo = Array.isArray(game.orderoppo) && game.orderoppo.some(order => order.o_p_name === selectedPlayer.id);
-                  return isInOrderMain || isInOrderOppo;
-              });
+          game.orderoppo.forEach(order => {
+            if (order.o_p_name === selectedPlayer.id) {
+              stats.plate_appearances += 1;
+              countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
+            }
+          });
   
-          // 输出所有游戏记录中的 ordermain 值
-          console.log("All ordermain values:", allOrderMainValues);
+          // 計算打數
+          stats.at_bats = stats.plate_appearances - (stats.walks + stats.sac_fly + stats.sac_bunt + stats.hit_by_pitch);
   
-          // 更新 state
-          console.log("Filtered games:", filteredGames);
-          setPlayerGames(filteredGames);
+          return {
+            ...stats,
+            formattedDate: format(game.GDate.toDate(), "dd/MM/yyyy")
+          };
+        }).filter(game => game != null);
+  
+        setPlayerGames(gamesData);
       }
-  };
-  
+    };
   
     fetchPlayerGames();
-  }, [selectedPlayer, ordermain, orderoppo]);
+  }, [selectedPlayer, selectedTeam]);
+  
+  const countPlayerStats = (content, stats, additionalStats = {}) => {
+    // content 可以是 'single', 'double', 'triple', 'home_run', 'walk', 'hit_by_pitch' 等
+    switch(content) {
+      case '一安':
+        stats.hits += 1;
+        stats.single_hits += 1;
+        stats.total_bases += 1;
+        break;
+      case '二安':
+        stats.hits += 1;
+        stats.double_hits += 1;
+        stats.total_bases += 2;
+        break;
+      case '三安':
+        stats.hits += 1;
+        stats.triple_hits += 1;
+        stats.total_bases += 3;
+        break;
+      case '全壘打':
+        stats.hits += 1;
+        stats.home_runs += 1;
+        stats.total_bases += 4;
+        break;
+      case '雙殺':
+        stats.double_plays += 1;
+      break;
+      case '四壞':
+        stats.walks += 1;
+        break;
+      case '觸身':
+        stats.hit_by_pitch += 1;
+        break;
+      case '犧飛':
+        stats.sac_fly += 1;
+        break;
+      case '犧觸':
+        stats.sac_bunt += 1;
+        break;
+    }
+    if (additionalStats.rbi) {
+      stats.rbi += additionalStats.rbi;
+    }
+  };
+  
+  const calculateBattingAverage = (hits, plate_appearances) => {
+    return plate_appearances > 0 ? (hits / plate_appearances).toFixed(3) : '.000';
+  };
+  
+  const calculateOnBasePercentage = (hits, walks, hitByPitch, plate_appearances) => {
+    const totalChances = plate_appearances + walks + hitByPitch;
+    return totalChances > 0 ? ((hits + walks + hitByPitch) / totalChances).toFixed(3) : '.000';
+  };
+  
+  const calculateSluggingPercentage = (totalBases, plate_appearances) => {
+    return plate_appearances > 0 ? (totalBases / plate_appearances).toFixed(3) : '.000';
+  };
+  
+  const calculateOPS = (onBasePct, sluggingPct) => {
+    return (parseFloat(onBasePct) + parseFloat(sluggingPct)).toFixed(3);
+  };
   
   
   
@@ -91,14 +154,12 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
 
   useEffect(() => {
     console.log('Bdata 組件收到的球員信息:', selectedPlayer);
-    // ...
   }, [selectedPlayer]);
 
 
   useEffect(() => {
     console.log('ordermain:', ordermain);
     console.log('orderoppo:', orderoppo);
-    // ...
   }, [ordermain, orderoppo]);
 
   return (
@@ -108,39 +169,56 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>比賽日期</TableCell>
+                <TableCell style={{ position: 'sticky'}}>比賽日期</TableCell>
                 <TableCell>打席</TableCell>
                 <TableCell>打數</TableCell>
                 <TableCell>安打</TableCell>
                 <TableCell>壘打數</TableCell>
-                <TableCell>得分</TableCell>
                 <TableCell>打點</TableCell>
                 <TableCell>一安</TableCell>
                 <TableCell>二安</TableCell>
                 <TableCell>三安</TableCell>
                 <TableCell>全壘打</TableCell>
+                <TableCell>雙殺</TableCell>
+                <TableCell>四壞</TableCell>
+                <TableCell>犧飛</TableCell>
+                <TableCell>犧觸</TableCell>
+                <TableCell>觸身</TableCell>
+                <TableCell>打擊率</TableCell>
+                <TableCell>上壘率</TableCell>
+                <TableCell>長打率</TableCell>
+                <TableCell>OPS</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-            {playerGames.length > 0 ? playerGames.map((game) => (
-                <TableRow hover key={game.id}>
+  {playerGames.length > 0 ? playerGames.map((game) => (
+    <TableRow hover key={game.id}>
       <TableCell>{game.formattedDate}</TableCell>
-      <TableCell>{game.at_bat}</TableCell>
+      <TableCell>{game.plate_appearances}</TableCell>
+      <TableCell>{game.at_bats}</TableCell>
       <TableCell>{game.hits}</TableCell>
       <TableCell>{game.total_bases}</TableCell>
-      <TableCell>{game.runs}</TableCell>
       <TableCell>{game.rbi}</TableCell>
       <TableCell>{game.single_hits}</TableCell>
       <TableCell>{game.double_hits}</TableCell>
       <TableCell>{game.triple_hits}</TableCell>
       <TableCell>{game.home_runs}</TableCell>
+      <TableCell>{game.double_plays}</TableCell>
+      <TableCell>{game.walks}</TableCell>
+      <TableCell>{game.sac_fly}</TableCell>
+      <TableCell>{game.sac_bunt}</TableCell>
+      <TableCell>{game.hit_by_pitch}</TableCell>
+      <TableCell>{calculateBattingAverage(game.hits, game.plate_appearances)}</TableCell>
+      <TableCell>{calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.plate_appearances)}</TableCell>
+      <TableCell>{calculateSluggingPercentage(game.total_bases, game.plate_appearances)}</TableCell>
+      <TableCell>{calculateOPS(calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.plate_appearances), calculateSluggingPercentage(game.total_bases, game.at_bat))}</TableCell>
     </TableRow>
-    )) : (
-      <TableRow>
-        <TableCell colSpan={10}>沒有找到數據</TableCell>
-      </TableRow>
-    )}
-            </TableBody>
+  )) : (
+    <TableRow>
+      <TableCell colSpan={19}>沒有找到數據</TableCell>
+    </TableRow>
+  )}
+</TableBody>
           </Table>
         </Box>
       </Scrollbar>
