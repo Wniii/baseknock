@@ -122,23 +122,42 @@ export const OverviewLatestOrders = () => {
 
   const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
 
+  const [teamCodeNameToNameMap, setTeamCodeNameToNameMap] = useState(new Map());
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      const teamsSnapshot = await getDocs(collection(firestore, 'team'));
+      const codeNameToName = new Map();
+
+      teamsSnapshot.forEach(doc => {
+        const teamData = doc.data();
+        codeNameToName.set(teamData.codeName, teamData.Name);
+      });
+
+      setTeamCodeNameToNameMap(codeNameToName);
+    };
+
+    fetchTeams();
+  }, []);
+
+
 
 
   useEffect(() => {
     const fetchGames = async () => {
       try {
         const teamsQuerySnapshot = await getDocs(collection(firestore, 'team'));
-        
+
         const teams = teamsQuerySnapshot.docs.map(doc => doc.data());
         let filteredGames = [];
         let futureGames = [];
         let gameIds = new Set(); // 用來存儲已經加入的 g_id
-        
-  
+
+
         for (const teamDoc of teamsQuerySnapshot.docs) {
           const teamData = teamDoc.data();
           const teamId = teamDoc.id;
-  
+
           const teamGamesQuerySnapshot = await getDocs(collection(firestore, 'team', teamId, 'games'));
           for (const doc of teamGamesQuerySnapshot.docs) {
             const gameData = doc.data();
@@ -156,21 +175,21 @@ export const OverviewLatestOrders = () => {
             const futureDate = new Date();
             futureDate.setDate(futureDate.getDate() + 6);
 
-            
-  
+
+
             if (formattedGameDate === formattedToday) {
               filteredGames.push({
                 id: doc.id,
-                hometeam: gameData.hometeam,
-                awayteam: gameData.awayteam,
+                hometeam: teamCodeNameToNameMap.get(gameData.hometeam),
+                awayteam: teamCodeNameToNameMap.get(gameData.awayteam),
                 ...gameData
               });
             } else if (gameDate > currentDate && gameDate < futureDate) {
               futureGames.push({
                 GDate: gameDate,
                 id: doc.id,
-                hometeam: gameData.hometeam,
-                awayteam: gameData.awayteam,
+                hometeam: teamCodeNameToNameMap.get(gameData.hometeam),
+                awayteam: teamCodeNameToNameMap.get(gameData.awayteam),
                 ...gameData
               });
             }
@@ -184,10 +203,10 @@ export const OverviewLatestOrders = () => {
         console.error('Error fetching games:', error);
       }
     };
-  
+
     fetchGames();
   }, []);
-  
+
 
   const isTeamInUserTeams = (hometeam, awayteam) => {
     return userTeam.includes(hometeam) && userTeam.includes(awayteam);
@@ -227,11 +246,17 @@ export const OverviewLatestOrders = () => {
                 </ListItem>
               );
             } else {
-              return filteredGames.map((game, index) => (
-                <ListItem key={index}>
-                  <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold" >{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
-                </ListItem>
-              ));
+              return filteredGames.map((game, index) => {
+                // 使用映射将 codeName 转换为 Name
+                const homeTeamName = teamCodeNameToNameMap.get(game.hometeam) || game.hometeam;
+                const awayTeamName = teamCodeNameToNameMap.get(game.awayteam) || game.awayteam;
+
+                return (
+                  <ListItem key={index}>
+                    <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold" >{`${homeTeamName}`} &nbsp;&nbsp;&nbsp;vs &nbsp;&nbsp;&nbsp;{`${awayTeamName}`}</Typography>} />
+                  </ListItem>
+                );
+              });
             }
           })()}
         </List>
@@ -257,14 +282,24 @@ export const OverviewLatestOrders = () => {
                 </ListItem>
               );
             } else {
-              return sortedAndFilteredFutureGames.map((game, index) => (
-                <div key={index} style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <ListItem style={{ alignItems: 'flex-start' }}>
-                    <ListItemText primary={<Typography align="center" fontWeight='500'>{`${formatDate(game.GDate)}`}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{`${game.hometeam} vs ${game.awayteam}`}</Typography>} />
-                  </ListItem>
-                </div>
-
-              ));
+              return sortedAndFilteredFutureGames.map((game, index) => {
+                // 在这里也同样使用映射转换 codeName 为 Name
+                const homeTeamName = teamCodeNameToNameMap.get(game.hometeam) || game.hometeam;
+                const awayTeamName = teamCodeNameToNameMap.get(game.awayteam) || game.awayteam;
+                
+                return (
+                  <div key={index} style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <ListItem style={{ alignItems: 'flex-start' }}>
+                      <ListItemText primary={
+                        <Typography align="center" fontWeight='500'>
+                          {`${formatDate(game.GDate)}`}&nbsp;&nbsp;&nbsp;
+                          {`${homeTeamName}`}&nbsp;&nbsp;vs&nbsp;&nbsp;{`${awayTeamName}`}
+                        </Typography>
+                      } />
+                    </ListItem>
+                  </div>
+                );
+              });
             }
           })()}
         </List>
