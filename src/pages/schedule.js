@@ -42,6 +42,15 @@ const SchedulePage = () => {
     hometeam: "",
     awayteam: "",
   });
+  const [userTeam, setUserTeam] = useState([]);
+
+  useEffect(() => {
+    const userTeamString = localStorage.getItem("userTeam");
+    if (userTeamString) {
+      setUserTeam(userTeamString.split(",")); // 将字符串解析为数组
+    }
+  }, []);
+
 
   const fetchGames = async () => {
     try {
@@ -85,11 +94,16 @@ const SchedulePage = () => {
                         const ateam = teamIdMap.get(gameData.awayteam);
                         const homeTeamName = teamNameMap.get(gameData.hometeam);
                         const awayTeamName = teamNameMap.get(gameData.awayteam);
-                        const title = `${homeTeamName} v.s. ${awayTeamName}`;
+                        const title = `${homeTeamName} v.s. ${awayTeamName}`; //Name
+                        //const title = `${gameData.hometeam} v.s. ${gameData.awayteam}`; //codeName
 
                         if (!hteam || !ateam) {
                             console.error("未找到相应的主队或客队");
                             continue;  // 如果没有找到队伍，就跳过这场比赛
+                        }
+
+                        if (userTeam.includes(gameData.hometeam) && userTeam.includes(gameData.awayteam)) {
+                          continue;
                         }
 
                         if (!addedTimestamps.has(timestamp)) {
