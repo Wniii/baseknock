@@ -19,13 +19,11 @@ const Page = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [playersData, setPlayersData] = useState([]);
   const [selectedColumns, setSelectedColumns] = useState([]); // 将 setSelectedColumns 添加到 Page 组件中
-
+  const [selectedGameTypes, setSelectedGameTypes] = useState([]);
   const player = useMemo(() => applyPagination(playersData, page, rowsPerPage), [playersData, page, rowsPerPage]);
   const playerId = useMemo(() => player.map(player => player.id), [player]);
   const playerSelection = useSelection(playerId);
-
   const [selectedTeam, setSelectedTeam] = useState(null);
-
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
   }, []);
@@ -76,11 +74,13 @@ const Page = () => {
   
   
 
-  const handleSearchConfirm = useCallback((columns, team) => {
+  const handleSearchConfirm = useCallback((columns, team, gameTypes) => {
     console.log('Team received on confirm:', team); // Added log
     setSelectedColumns(columns);
     setSelectedTeam(team);
+    setSelectedGameTypes(gameTypes); // Set selectedGameTypes state in the parent component
   }, []);
+  
 
   return (
     <>
@@ -123,7 +123,9 @@ const Page = () => {
               rowsPerPage={rowsPerPage}
               selected={playerSelection.selected}
               selectedColumns={selectedColumns} // 将 selectedColumns 传递给 HitrecordTable 组件
+              selectedGameTypes={selectedGameTypes}
             />
+
           </Stack>
         </Container>
       </Box>

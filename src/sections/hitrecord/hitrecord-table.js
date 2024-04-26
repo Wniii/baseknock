@@ -19,10 +19,10 @@ import {
 import { Scrollbar } from 'src/components/scrollbar';
 import SearchIcon from '@mui/icons-material/Search';
 import { firestore } from 'src/pages/firebase';
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs,query,where } from "firebase/firestore";
 
 // 定義 HitrecordTable 組件
-export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
+export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameTypes }) => {
   const [open, setOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playersData, setPlayersData] = useState([]);
@@ -143,29 +143,31 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     sluggingPercentage: 0,
     t_ops: 0,
   });
-
-
-
+  
+  
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
   useEffect(() => {
     const fetchGamesAndCalculatePlateAppearances = async () => {
-      if (!selectedTeam || !playersData.length) return;
-
+      // 確保 selectedGameTypes 不是 undefined 且有元素
+      if (!selectedTeam || !playersData.length || !selectedGameTypes || !selectedGameTypes.length) return;
+  
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
+      const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
+  
       try {
-        const querySnapshot = await getDocs(gamesRef);
+        const querySnapshot = await getDocs(gamesQuery);
         let playersStats = {};
-
+  
         if (querySnapshot.empty) {
           console.log('No games data found.');
           return;
         }
-
+  
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
-          console.log('Game Data:', gameData); // 查看每场游戏的数据
-
-          // 处理 ordermain
+          console.log('Game Data:', gameData);
+  
+          // 处理 ordermain 和 orderoppo
           if (gameData.ordermain) {
             gameData.ordermain.forEach((playerStat) => {
               const playerEntry = playersData.find(player => player.p_id === playerStat.p_name);
@@ -177,8 +179,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
           } else {
             console.log('No ordermain for this game:', docSnapshot.id);
           }
-
-          // 处理 orderoppo
+  
           if (gameData.orderoppo) {
             gameData.orderoppo.forEach((playerStat) => {
               const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
@@ -191,26 +192,28 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
             console.log('No orderoppo for this game:', docSnapshot.id);
           }
         });
-
+  
         setPlayerPlateAppearances(playersStats);
         console.log('Player plate appearances calculated:', playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
     };
-
+  
     fetchGamesAndCalculatePlateAppearances();
-  }, [selectedTeam, playersData]);
+  }, [selectedTeam, playersData, selectedGameTypes]);
+  
+  
 
   useEffect(() => {
     const fetchGamesAndCalculateHits = async () => {
-      if (!selectedTeam || !playersData.length) return;
+      if (!selectedTeam || !playersData.length || !selectedGameTypes || !selectedGameTypes.length) return;
 
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
+      const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
       try {
-        const querySnapshot = await getDocs(gamesRef);
+        const querySnapshot = await getDocs(gamesQuery);
         let newPlayerHits = {}; // 使用一個新的變量來存儲計算結果
-
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
 
@@ -283,7 +286,39 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns }) => {
     };
 
     fetchGamesAndCalculateHits();
-  }, [selectedTeam, playersData]);
+  }, [selectedTeam, playersData,selectedGameTypes]);
+
+  useEffect(() => {
+    if (!selectedGameTypes || selectedGameTypes.length === 0) {
+      console.error("selectedGameTypes is undefined or empty");
+      return;
+    }
+  
+    const fetchGamesAndCalculateStats = async () => {
+      // 調用API之前檢查 selectedTeam 和 selectedGameTypes
+      if (!selectedTeam) {
+        console.error("selectedTeam is undefined");
+        return;
+      }
+  
+      const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
+      const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
+  
+      try {
+        const querySnapshot = await getDocs(gamesQuery);
+        let playersStats = {};
+        querySnapshot.forEach(doc => {
+          const gameData = doc.data();
+          // 處理每個游戲的數據，更新狀態等...
+        });
+      } catch (error) {
+        console.error("Error fetching games data: ", error);
+      }
+    };
+  
+    fetchGamesAndCalculateStats();
+  }, [selectedTeam, selectedGameTypes]);
+  
 
 
   const fetchAndSetPlayerLocations = async (playerId) => {
@@ -734,6 +769,10 @@ PlayerDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   player: PropTypes.string // 假設 player 是一個字符串
+};
+HitrecordTable.propTypes = {
+  selectedTeam: PropTypes.string,
+  selectedColumns: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default HitrecordTable;

@@ -28,10 +28,10 @@ export const HitrecordSearch = ({ onConfirm }) => {
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
 
   const [gameTypes, setGameTypes] = useState([
-    { name: '友誼賽', checked: false, dbName: 'friendly' },
-    { name: '大專盃', checked: false, dbName: 'ubl' },
-    { name: '梅花旗', checked: false, dbName: 'mei' }
-  ]);
+    { name: '友誼賽', checked: true, dbName: 'friendly' },
+    { name: '大專盃', checked: true, dbName: 'ubl' },
+    { name: '梅花旗', checked: true, dbName: 'mei' }
+  ]);  
 
   const [checkboxStates, setCheckboxStates] = useState([
     { label: '打席', checked: false },
@@ -75,14 +75,25 @@ export const HitrecordSearch = ({ onConfirm }) => {
   };
 
   const handleConfirm = () => {
-    const selectedColumns = checkboxStates
-      .filter((checkbox) => checkbox.checked)
-      .map((checkbox) => checkbox.label);
-    console.log('Selected Team before onConfirm:', selectedTeam); // Added log
-    onConfirm(selectedColumns, selectedTeam); // Passing selected team
-    fetchGames(selectedTeam, gameTypes);
-    onConfirm(selectedTeam, gameTypes.filter(gt => gt.checked).map(gt => gt.name));
-  };
+    const selectedColumns = checkboxStates.filter(checkbox => checkbox.checked).map(checkbox => checkbox.label);
+    const selectedGameTypes = gameTypes.filter(gt => gt.checked).map(gt => gt.dbName);
+
+    if (selectedGameTypes.length === 0) {
+        alert('請至少選擇一個比賽類型！');
+        return;  // 如果没有选择任何比赛类型，则不执行任何操作
+    }
+    if (selectedColumns.length === 0) {
+      alert('請至少選擇一個欄位！');
+      return;  // 如果没有选择任何比赛类型，则不执行任何操作
+  }
+
+    // 执行游戏数据的获取
+    fetchGames(selectedTeam, selectedGameTypes);
+
+    // 调用 onConfirm 函数传递选中的列、球队和比赛类型
+    onConfirm(selectedColumns, selectedTeam, selectedGameTypes);
+};
+
 
   const handleTeamChange = (event) => {
     console.log('Selected Team changed:', event.target.value); // Added log
@@ -120,23 +131,35 @@ export const HitrecordSearch = ({ onConfirm }) => {
   
 
   const fetchGames = async (teamId, gameTypes) => {
-    const gamesCollectionRef = collection(firestore, `team/${teamId}/games`);
-    const activeGameTypes = gameTypes.filter(gt => gt.checked).map(gt => gt.dbName);
-    const gamesQuery = query(gamesCollectionRef, where("gName", "in", activeGameTypes));
-    try {
-      const querySnapshot = await getDocs(gamesQuery);
-      const gamesData = querySnapshot.docs.map(doc => doc.data().gName);
-      console.log('Games data:', gamesData);
-    } catch (error) {
-      console.error("提取比賽數據時發生錯誤：", error);
+    if (gameTypes.length === 0) {
+        console.error('没有选中的比赛类型进行查询');
+        alert('请至少选择一个比赛类型进行查询。');  // 给用户显示一个弹窗提示
+        return;
     }
-  };
 
+    const gamesCollectionRef = collection(firestore, `team/${teamId}/games`);
+    const gamesQuery = query(gamesCollectionRef, where("gName", "in", gameTypes));
+
+    try {
+        const querySnapshot = await getDocs(gamesQuery);
+        const gamesData = querySnapshot.docs.map(doc => doc.data().gName);
+        console.log('Games data:', gamesData);
+    } catch (error) {
+        console.error("提取比赛数据时发生错误：", error);
+    }
+};
+
+
+  
   const handleGameTypeChange = (index) => (event) => {
     const updatedGameTypes = [...gameTypes];
-    updatedGameTypes[index].checked = event.target.checked;
+    updatedGameTypes[index] = {
+      ...updatedGameTypes[index],
+      checked: event.target.checked,
+    };
     setGameTypes(updatedGameTypes);
   };
+  
 
 
 
