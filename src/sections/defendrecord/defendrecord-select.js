@@ -17,6 +17,9 @@ import { firestore } from 'src/pages/firebase'; // 確保路徑與您的配置�
 export const DefendSelect = ({ onConfirm }) => {
   const [selectedTeam, setSelectedTeam] = useState('');
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
+  const [selectedGameType, setSelectedGameType] = useState([
+    'friendly', 'ubl', 'mei'
+  ]);
 
   const [checkboxStates, setCheckboxStates] = useState([
     { label: '好球數', checked: false },
@@ -38,6 +41,7 @@ export const DefendSelect = ({ onConfirm }) => {
     { label: 'H/9', checked: false },
   ]);
 
+
   const handleSelectAllChange = (event) => {
     const isChecked = event.target.checked;
     const updatedCheckboxStates = checkboxStates.map((checkbox) => ({
@@ -47,6 +51,25 @@ export const DefendSelect = ({ onConfirm }) => {
     setCheckboxStates(updatedCheckboxStates);
   };
 
+  // 這是一個新的對應對象，將UI上的比賽性質映射到Firebase中的gName
+  const gameTypeToGNameMapping = {
+    '友誼賽': 'friendly',
+    '大專盃': 'ubl',
+    '梅花盃': 'mei',
+  };
+
+  const handleGameTypeChange = (gameType) => (event) => {
+    const { checked } = event.target;
+    const gName = gameTypeToGNameMapping[gameType]; // 從對應關係中獲取gName
+    setSelectedGameType(prevSelectedGameType => {
+      if (checked) {
+        return [...prevSelectedGameType, gName];
+      } else {
+        return prevSelectedGameType.filter(type => type !== gName);
+      }
+    });
+  };
+
   const handleCheckboxChange = (index) => (event) => {
     const { checked } = event.target;
     const updatedCheckboxStates = [...checkboxStates];
@@ -54,12 +77,12 @@ export const DefendSelect = ({ onConfirm }) => {
     setCheckboxStates(updatedCheckboxStates);
   };
 
+  // 更新handleConfirm函數
   const handleConfirm = () => {
     const selectedColumns = checkboxStates
       .filter((checkbox) => checkbox.checked)
       .map((checkbox) => checkbox.label);
-    console.log('選擇的團隊是：', selectedTeam); // 添加日志
-    onConfirm(selectedColumns, selectedTeam); // 傳遞選擇的團隊
+    onConfirm(selectedColumns, selectedTeam, selectedGameType); // 傳遞選擇的團隊和比賽性質
   };
 
   const handleTeamChange = (event) => {
@@ -92,7 +115,7 @@ export const DefendSelect = ({ onConfirm }) => {
     fetchTeams();
   }, []);
 
-
+  
   return (
     <Card>
       <CardContent sx={{ pt: 2 }}>
@@ -122,14 +145,20 @@ export const DefendSelect = ({ onConfirm }) => {
               比賽性質
             </Typography>
             <Grid container spacing={1}>
-              {['友誼賽', '大專盃', '梅花盃'].map((label, index) => (
-                <Grid item xs={4} key={index}>
-                  <FormControlLabel
-                    control={<Checkbox defaultChecked />}
-                    label={label}
-                  />
-                </Grid>
-              ))}
+            {['友誼賽', '大專盃', '梅花盃'].map((gameTypeName, index) => (
+              <Grid item xs={4} key={index}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedGameType.includes(gameTypeToGNameMapping[gameTypeName])}
+                      onChange={handleGameTypeChange(gameTypeName)}
+                      name={gameTypeName}
+                    />
+                  }
+                  label={gameTypeName}
+                />
+              </Grid>
+            ))}
             </Grid>
           </Grid>
           <Grid item xs={12}>

@@ -88,37 +88,58 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
 
   // 使用 useEffect 鉤子獲取球隊球員數據
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchPlayersAndGamesData = async () => {
       if (!selectedTeam) return;
-  
-      // 確保 selectedTeam 是一個字符串
-      if (typeof selectedTeam !== 'string') {
-        console.error("selectedTeam must be a string", selectedTeam);
-        return;
-      }
   
       const teamDocRef = doc(firestore, "team", selectedTeam);
       const teamDocSnap = await getDoc(teamDocRef);
   
-      if (teamDocSnap.exists()) {
-        const teamData = teamDocSnap.data();
-        const playersList = Object.keys(teamData.players).map(key => ({
-          p_id: key,
-          ...teamData.players[key]
-        }));
-        setPlayersData(playersList);
-        console.log('Player IDs:', playersList.map(player => player.p_id));
-      } else {
-        console.log("No such document!");
+      if (!teamDocSnap.exists()) {
+        console.log("No such team document!");
         setPlayersData([]);
+        return;
       }
+  
+      const teamData = teamDocSnap.data();
+      const playersInGames = new Set();
+  
+      let gamesQuery;
+      if (selectedGameTypes && selectedGameTypes.length > 0) {
+        gamesQuery = query(collection(teamDocRef, "games"), where("gName", "in", selectedGameTypes));
+      } else {
+        gamesQuery = query(collection(teamDocRef, "games"));
+      }
+      const gamesQuerySnapshot = await getDocs(gamesQuery);
+  
+      gamesQuerySnapshot.docs.forEach((doc) => {
+        const gameData = doc.data();
+        ['ordermain', 'orderoppo'].forEach((orderKey) => {
+          if (Array.isArray(gameData[orderKey])) { // 確認這是一個數組
+            gameData[orderKey].forEach((order) => {
+              if (order.p_name) {
+                playersInGames.add(order.p_name);
+              }
+              if (order.o_p_name) {
+                playersInGames.add(order.o_p_name);
+              }
+            });
+          }
+        });
+      });
+  
+      const filteredPlayers = Object.keys(teamData.players)
+        .filter(playerKey => playersInGames.has(playerKey))
+        .map(playerKey => ({
+          ...teamData.players[playerKey],
+          p_id: playerKey,
+        }));
+  
+      setPlayersData(filteredPlayers);
     };
   
-    fetchPlayers();
-  }, [selectedTeam]);
+    fetchPlayersAndGamesData();
+  }, [selectedTeam, selectedGameTypes]);
   
-
-
 
   const [teamTotals, setTeamTotals] = useState({
     plateAppearances: 0,

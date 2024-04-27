@@ -21,6 +21,7 @@ const Page = () => {
 
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedColumns, setSelectedColumns] = useState([]); // 将 setSelectedColumns 添加到 Page 组件中
+  const [selectedGameType, setSelectedGameType] = useState([]);
 
   const handlePageChange = useCallback(
     (event, value) => {
@@ -53,10 +54,11 @@ const Page = () => {
   }, []);
 
   
-  const handleSearchConfirm = useCallback((columns, team) => {
-    console.log('Team received on confirm:', team); // Added log
+  const handleSearchConfirm = useCallback((columns, team, gameType) => {
     setSelectedColumns(columns);
     setSelectedTeam(team);
+    // 儲存所選的比賽性質
+    setSelectedGameType(gameType);
   }, []);
 
   return (
@@ -101,6 +103,7 @@ const Page = () => {
               selected={playerSelection.selected}
               selectedColumns={selectedColumns}
               selectedTeam={selectedTeam}
+              selectedGameType={selectedGameType} 
             />
           </Stack>
         </Container>
