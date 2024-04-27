@@ -22,8 +22,8 @@ export const DefendSelect = ({ onConfirm }) => {
     { label: '好球數', checked: false },
     { label: '壞球數', checked: false },
     { label: 'ERA', checked: false },
-    { label: '出賽', checked: false },
     { label: '先發', checked: false },
+    { label: '出賽', checked: false },
     { label: '局數', checked: false },
     { label: '安打', checked: false },
     { label: '失分', checked: false },
@@ -122,7 +122,7 @@ export const DefendSelect = ({ onConfirm }) => {
               比賽性質
             </Typography>
             <Grid container spacing={1}>
-              {['季賽', '季後賽', '盃賽', '友誼賽'].map((label, index) => (
+              {['友誼賽', '大專盃', '梅花盃'].map((label, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
