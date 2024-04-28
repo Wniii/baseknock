@@ -152,40 +152,38 @@ const Page = () => {
     }, []);
 
     useEffect(() => {
-        const fetchPlayers = async () => {
-            if (!codeName || !firestore) {
+        const fetchHomeTeamPlayers = async () => {
+            if (!values.hometeam || !firestore) {
                 return;
             }
-
+    
             try {
                 const teamQuerySnapshot = await getDocs(
-                    query(collection(firestore, 'team'), where('codeName', '==', codeName))
+                    query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
-
+    
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
-                    const teamId = teamDocSnapshot.id;
-                    const teamRef = doc(firestore, 'team', teamId);
-                    const teamSnap = await getDoc(teamRef);
-
-                    if (teamSnap.exists() && teamSnap.data().players) {
-                        // 提取玩家鍵（key）數組
-                        const playerKeys = Object.keys(teamSnap.data().players);
-                        setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
-                        console.log('Player keys:', playerKeys);
-                    } else {
-                        console.log('No players data found for team:', teamId);
+                    const teamData = teamDocSnapshot.data();
+    
+                    if (teamData && teamData.players) {
+                        const playerKeys = Object.keys(teamData.players);
+                        setPlayers(playerKeys); // 更新玩家鍵的狀態
+                        console.log('Home team player keys:', playerKeys);
+                        console.log('home team code name:', values.hometeam);
+                        console.log('No players data found for home team with codeName:', values.hometeam);
                     }
                 } else {
-                    console.log('No team document found with codeName:', codeName);
+                    console.log('No home team document found with codeName:', values.hometeam);
                 }
             } catch (error) {
-                console.error('Error fetching players:', error);
+                console.error('Error fetching home team players:', error);
             }
         };
-
-        fetchPlayers();
-    }, [codeName, firestore]);
+    
+        fetchHomeTeamPlayers();
+    }, [values.hometeam, firestore]); // 依賴於 values.hometeam
+    
 
 
 

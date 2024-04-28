@@ -29,7 +29,7 @@ const Page = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
-  const [pitcher, setPitcher] = useState(''); // 儲存投手名稱
+  const [pitcher, setPitcher] = useState('');// 儲存投手名稱
   const [players, setPlayers] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
     open: false,
@@ -116,16 +116,18 @@ const Page = () => {
                 setCurrentInning(inningsCompleted);
 
               }
-
               if (gameSnap.exists()) {
-                // 獲取遊戲文檔數據
                 const gameData = gameSnap.data();
+                // ... 你之前的代码 ...
 
-                // 更新狀態以保存投手名稱
-                setPitcher(gameData.awayposition.P);
-                console.log("Fetched pitcher name:", gameData.awayposition.P);
-              } else {
-                console.log("No such game document!");
+                // 检查是否存在 awayposition 字段，并且它是一个对象，然后获取 P 的内容
+                if (gameData.awayposition && typeof gameData.awayposition === 'object') {
+                  const positionPContent = gameData.awayposition.P;
+                  setPitcher(positionPContent);
+                  console.log('Position P Content:', positionPContent);
+
+                  // 根据你的需求，这里可以将 positionPContent 存储在 state 中或执行其他操作
+                }
               }
 
             }
@@ -176,6 +178,7 @@ const Page = () => {
             const playerKeys = Object.keys(teamSnap.data().players);
             setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
             console.log('Player keys:', playerKeys);
+            console.log('code name:', codeName)
           } else {
             console.log('No players data found for team:', teamId);
           }
