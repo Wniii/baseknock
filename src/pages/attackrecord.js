@@ -30,6 +30,7 @@ const Page = () => {
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
   const [pitcher, setPitcher] = useState(''); // 儲存投手名稱
+  const [players, setPlayers] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
     open: false,
     severity: 'info',
@@ -146,14 +147,49 @@ const Page = () => {
   }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
 
 
-  useEffect(() => {
-    console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
-  }, [values]);
+
 
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
   }, []);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      if (!codeName || !firestore) {
+        return;
+      }
+
+      try {
+        const teamQuerySnapshot = await getDocs(
+          query(collection(firestore, 'team'), where('codeName', '==', codeName))
+        );
+
+        if (!teamQuerySnapshot.empty) {
+          const teamDocSnapshot = teamQuerySnapshot.docs[0];
+          const teamId = teamDocSnapshot.id;
+          const teamRef = doc(firestore, 'team', teamId);
+          const teamSnap = await getDoc(teamRef);
+
+          if (teamSnap.exists() && teamSnap.data().players) {
+            // 提取玩家鍵（key）數組
+            const playerKeys = Object.keys(teamSnap.data().players);
+            setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
+            console.log('Player keys:', playerKeys);
+          } else {
+            console.log('No players data found for team:', teamId);
+          }
+        } else {
+          console.log('No team document found with codeName:', codeName);
+        }
+      } catch (error) {
+        console.error('Error fetching players:', error);
+      }
+    };
+
+    fetchPlayers();
+  }, [codeName, firestore]);
+
 
 
   const saveData = async () => {
@@ -515,6 +551,9 @@ const Page = () => {
                                   onChange={(e) => setPitcher(e.target.value)}
                                 >
                                   <MenuItem value={pitcher}>{pitcher}</MenuItem>
+                                  {players.map((playerKey, index) => (
+                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                  ))}
                                 </Select>
                               </FormControl>
                             </Box>
