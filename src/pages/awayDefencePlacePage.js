@@ -49,7 +49,7 @@ const DefencePlacePage = () => {
             console.log("codeName",codeName)
             console.log("gameId",gameId)
             const teamsCollectionRef = collection(firestore, 'team');
-            const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', hcodeName)));
+            const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', codeName)));
 
             if (!querySnapshot.empty) {
                 // 获取第一个匹配到的文档（假设每个 codeName 只对应一个文档）
@@ -65,7 +65,7 @@ const DefencePlacePage = () => {
                     console.log('游戏文档存在');
 
                     const gameData = gameDocSnapshot.data();
-                    const attackList = gameData.attacklist;
+                    const attackList = gameData.awayattacklist;
                     setAttackList(attackList);
 
                     if (teamDocSnapshot.exists()) {
@@ -190,11 +190,11 @@ const DefencePlacePage = () => {
                     console.log("Game data:", gameDocSnapshot.data());
 
                     // 更新游戏文档，保留其他字段的值
-                    await updateDoc(gameDocRef, { position: positionDataWithKeys }, { merge: true });
+                    await updateDoc(gameDocRef, { awayposition: positionDataWithKeys }, { merge: true });
                 } else {
                     console.log("No matching game document found with ID:", timestamp);
                     // 创建游戏文档并添加守备位置数据，保留其他字段的值
-                    await setDoc(gameDocRef, { position: positionDataWithKeys }, { merge: true });
+                    await setDoc(gameDocRef, { awayposition: positionDataWithKeys }, { merge: true });
                 }
             } else {
                 console.log("CodeName does not match:", teamData.codeName);

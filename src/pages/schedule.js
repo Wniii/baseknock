@@ -166,25 +166,23 @@ const SchedulePage = () => {
   const playerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
-
+        
     // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-
+    
     // 从团队数据中提取codeName 和 hometeam
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
     const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
-
-
-    // 获取选定游戏的团队ID
-    const teamId = selectedGameData ? selectedGameData.teamId : null;
-
+    const codeName = selectedGameData ? selectedGameData.acodeName: null;
+    // 获取选定游戏的团队I    
     // 导航到新页面，同时将codeName、hometeam和teamId添加到查询参数中
     router.push({
       pathname: "/playershow",
-      query: {
+      query: { 
         timestamp: selectedGame.timestamp,
-        codeName: hcodeName, // Add codeName to the query
-        teamId: hometeamId // Add teamId to the query
+        hcodeName: hcodeName, // Add codeName to the query
+        teamId: hometeamId, // Add teamId to the query
+        codeName: codeName, // Add codeName to the query
       }
     });
   };
@@ -192,69 +190,80 @@ const SchedulePage = () => {
   const playerdefence = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
-
+        
     // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
     const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
+    const codeName = selectedGameData ? selectedGameData.acodeName: null;
 
 
+    
     // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/playershow",
-      query: {
+      query: { 
         timestamp: selectedGame.timestamp,
-        codeName: hcodeName, // Add codeName to the query
-        teamId: hometeamId // Add teamId to the query
+        hcodeName: hcodeName, // Add codeName to the query
+        teamId: hometeamId, // Add teamId to the query
+        codeName: codeName, // Add codeName to the query
+
       }
     });
   };
   const awayplayerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
-
+        
     // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-
+    
     // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.codeName : null;
+    const codeName = selectedGameData ? selectedGameData.acodeName: null;
+    const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
 
     // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
-
+    
     // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
-      pathname: "/playershow",
-      query: {
+      pathname: "/awayplayershow",
+      query: { 
         timestamp: selectedGame.timestamp,
         codeName: codeName, // Add codeName to the query
-        teamId: teamId // Add teamId to the query
+        teamId: teamId, // Add teamId to the query
+        hcodeName: hcodeName, // Add codeName to the query
+
       }
     });
   };
   const awayplayerdefence = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
     setDialogOpen(false); // Close the dialog after action
-
+        
     // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-
+    
     // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.codeName : null;
+    const codeName = selectedGameData ? selectedGameData.acodeName : null;
+    const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
 
     // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
-
+    
     // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
-      pathname: "/playershow",
-      query: {
+      pathname: "/awayplayershow",
+      query: { 
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        teamId: teamId // Add teamId to the query
+        codeName: codeName, // 客隊
+        teamId: teamId, // Add teamId to the query
+        hcodeName: hcodeName, // 主隊
+
       }
     });
   };
+  
 
 
   const recordattack = (action) => {

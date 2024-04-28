@@ -15,35 +15,57 @@ const ALLPlayerPage = () => {
   const { timestamp } = router.query;
   const { codeName } = router.query;
   const { teamId } = router.query;
+  const { hcodeName } = router.query;
+  const [teamname, setteamname] = useState('');
 
   useEffect(() => {
     // 恢复本地存储中的选定的球员列表
-    const storedSelectedPlayers = localStorage.getItem('selectedPlayers');
-    if (storedSelectedPlayers) {
-      setSelectedPlayers(JSON.parse(storedSelectedPlayers));
-    }
-  
+
+
     const fetchTeamGames = async () => {
       try {
-        const teamCollection = collection(firestore, 'team');
-        const teamSnapshot = await getDocs(teamCollection);
+          // 获取团队集合的引用
+          const teamCollectionRef = collection(firestore, 'team');
+          console.log("Team collection reference:", teamCollectionRef);
   
-        for (const doc of teamSnapshot.docs) {
-          const teamData = doc.data();
+          // 获取团队文档的快照
+          const teamSnapshot = await getDocs(teamCollectionRef);
+          console.log("Team snapshot:", teamSnapshot);
   
-          if (teamData.codeName === codeName && teamData.games && teamData.games[timestamp]) {
-            setPlayers(teamData.players || {});
-            console.log(teamData.players)
-            return;
+          // 遍历团队文档
+          for (const doc of teamSnapshot.docs) {
+              const teamData = doc.data();
+              console.log("Team data:", teamData);
+  
+              // 检查团队文档的 codeName 字段是否与给定的 codeName 变量匹配，
+              // 并且检查团队文档是否包含 games 子集合以及该子集合中是否存在与给定时间戳相匹配的文档
+              const gamesCollectionRef = collection(doc.ref, 'games');
+              const gamesSnapshot = await getDocs(gamesCollectionRef);
+  
+              const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
+              if (teamData.codeName === hcodeName && gameDoc) {
+                  // 找到了符合条件的团队文档和游戏文档
+                  console.log("Game document found:", gameDoc.data());
+                  setteamname(teamData.Name || {});
+                  // 更新玩家状态
+                  setPlayers(teamData.players || '');
+                  console.log("Players set to:", teamData.players);
+                  
+                  // 更新选定的球员列表并保存到本地存储
+                  
+                  return;
+              }
           }
-        }
       } catch (error) {
-        console.error('Error fetching team games:', error);
+          console.error('Error fetching team games:', error);
       }
-    };
+  };
   
+
     fetchTeamGames();
-  }, [codeName, timestamp]);
+}, [codeName, timestamp]);
+
+
   
 
   const handleAddToSelectedPlayers = (playerKey) => {
@@ -54,7 +76,6 @@ const ALLPlayerPage = () => {
     setSelectedPlayers([...selectedPlayers, playerKey]);
   
     // 将选定的球员列表保存到本地存储
-    localStorage.setItem('selectedPlayers', JSON.stringify([...selectedPlayers, playerKey]));
   };
   const handleRemoveFromSelectedPlayers = (playerKey) => {
     const updatedSelectedPlayers = selectedPlayers.filter((selectedPlayer) => selectedPlayer !== playerKey);
@@ -64,57 +85,82 @@ const ALLPlayerPage = () => {
     setPlayers(updatedPlayers);
   
     // 更新本地存储中的选定的球员列表
-    localStorage.setItem('selectedPlayers', JSON.stringify(updatedSelectedPlayers));
   };
+
+
   const handleReturnClick = () => {
-    router.push('/your-other-page');
+    router.push('/schedule');
   };
   console.log(codeName)
 
 
-  const handleSaveAndNavigate = async () => {
+  const addAttackListToGame = async (teamCollectionRef, codeName, timestamp, selectedPlayers) => {
+    console.log('Adding attack list to game for codeName:', codeName);
+
+    // 获取团队文档数据
+    const teamsQuerySnapshot = await getDocs(teamCollectionRef);
+
+    // 遍历团队文档
+    for (const teamDoc of teamsQuerySnapshot.docs) {
+        const teamData = teamDoc.data();
+        console.log("Team data:", teamData);
+
+        // 检查团队文档中的 codeName 字段是否与传入的 codeName 值匹配
+        if (teamData.codeName === codeName) {
+            console.log("CodeName matches:", codeName);
+
+            // 创建游戏文档的引用
+            const gameDocRef = doc(teamDoc.ref, "games", timestamp);
+            console.log("Game document reference:", gameDocRef);
+
+            // 获取游戏文档
+            const gameDocSnapshot = await getDoc(gameDocRef);
+
+            // 设置游戏文档的数据
+            const gameData = {
+                // 这里根据需要设置游戏文档的字段
+                attacklist: selectedPlayers,
+                // 其他字段...
+            };
+
+            // 添加游戏文档到团队文档的游戏子集合
+            if (gameDocSnapshot.exists()) {
+                console.log("Game document found with ID:", timestamp);
+                console.log("Game data:", gameDocSnapshot.data());
+
+                // 更新游戏文档，保留其他字段的值
+                await updateDoc(gameDocRef, gameData);
+            } else {
+                console.log("No matching game document found with ID:", timestamp);
+                await setDoc(gameDocRef, gameData);
+            }
+        } else {
+            console.log("CodeName does not match:", teamData.codeName);
+        }
+    }
+};
+
+const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
 
     try {
-      if (selectedPlayers.length < 9) {
-        alert("请选择九个球员才能保存！");
-        return;
-      }
-        console.log('timestamp', timestamp);
-        console.log('codeName', codeName);
-
-        // 创建一个空数组来存储所有的异步更新操作
-        const promises = [];
-
-        // 创建游戏文档的引用
-        const gameDocRef = doc(firestore, "team", teamId, "games", timestamp);
-
-        // 获取指定游戏文档
-        const gameDocSnapshot = await getDoc(gameDocRef);
-
-        if (gameDocSnapshot.exists()) {
-            console.log("Game document found with ID:", timestamp);
-            console.log("Game data:", gameDocSnapshot.data());
-            
-            // 创建要更新的攻击列表副本
-            const updatedAttackList = [...selectedPlayers];
-            console.log('updatedAttackList:', updatedAttackList);
-        
-            // 更新游戏文档，保留其他字段的值
-            const promise = updateDoc(gameDocRef, {
-                attacklist: updatedAttackList
-            }, { merge: true });
-            promises.push(promise);
-
-        } else {
-            console.log("No matching game document found with ID:", timestamp);
+        if (selectedPlayers.length < 9) {
+            alert("请选择九个球员才能保存！");
+            return;
         }
+        
+        console.log('timestamp:', timestamp);
+        console.log('codeName:', codeName);
 
-        console.log('Promises:', promises);
+        // 获取所有团队文档的引用
+        const teamsCollectionRef = collection(firestore, "team");
+        console.log("Teams collection reference:", teamsCollectionRef);
 
-        // 等待所有的更新操作完成
-        await Promise.all(promises);
-        console.log('All promises resolved');
+        // 在 codeName 相匹配的团队集合中添加攻击列表到游戏子集合
+        await addAttackListToGame(teamsCollectionRef, codeName, timestamp, selectedPlayers);
+
+        // 在 hcodeName 相匹配的团队集合中添加攻击列表到游戏子集合
+        await addAttackListToGame(teamsCollectionRef, hcodeName, timestamp, selectedPlayers);
 
         // 导航到防守页面
         navigatetodefence(timestamp, codeName);
@@ -137,8 +183,10 @@ const navigatetodefence = (gameId, codeName) => {
     pathname: "/DefencePlacePage",
     query: { 
       gameId: gameId,
-      codeName: codeName, // 将codeName作为查询参数传递
-      teamId: teamId // 将teamId作为查询参数传递
+      hcodeName: hcodeName, // 将codeName作为查询参数传递
+      teamId: teamId, // 将teamId作为查询参数传递
+      codeName: codeName,
+      timestamp: timestamp
     }
   });
 };
@@ -165,11 +213,12 @@ const navigatetodefence = (gameId, codeName) => {
       >
         <Container maxWidth="xl">
           <div style={{ textAlign: 'center' }}>
-            <Typography variant="h4" mb={4}>
-              攻擊位
-            </Typography>
+          <Typography variant="h4" mb={4}>
+            {teamname}
+            主隊攻擊隊
+          </Typography>
           </div>
-          <Grid container spacing={3} justifyContent="center">
+          <Grid container spacing={1} justifyContent="center">
             {/* 左侧所有球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -177,6 +226,8 @@ const navigatetodefence = (gameId, codeName) => {
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
                     {Object.keys(players).map((playerKey) => (
+                    // 检查当前球员是否已经在选定的球员列表中，如果是则不渲染
+                    !selectedPlayers.includes(playerKey) && (
                       <ListItem
                         key={playerKey}
                         divider
@@ -199,14 +250,16 @@ const navigatetodefence = (gameId, codeName) => {
                           primaryTypographyProps={{ variant: 'body2' }}
                         />
                       </ListItem>
-                    ))}
+                    )
+                  ))}
+
                   </List>
                 </div>
               </Card>
             </Grid>
-
+  
             {/* 中间的按钮 */}
-            <Grid item xs={12} md={6} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Grid item xs={10} md={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ marginBottom: '10px' }}>
                 <Button variant="contained" color="primary" style={{ width: '200px', height: '50px' }}>
                   自動填滿
@@ -232,46 +285,46 @@ const navigatetodefence = (gameId, codeName) => {
                   返回
                 </Button>
                 <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleSaveAndNavigate(codeName)}
-                style={{ width: '100px', height: '50px' }}
-              >
-                储存
-              </Button>
-
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleSaveAndNavigate(codeName)}
+                  style={{ width: '100px', height: '50px' }}
+                >
+                  储存
+                </Button>
               </div>
             </Grid>
-
+  
             {/* 右侧先发球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardHeader title="先发球员" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
-                    {selectedPlayers.map((playerKey, index) => (
-                      <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)}>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <div style={{ marginRight: '16px' }}>{index + 1}</div> {/* 显示序列 */}
-                        <ListItemAvatar>
-                          <Box
-                            component="img"
-                            src=''
-                            sx={{
-                              borderRadius: 1,
-                              height: 48,
-                              width: 48
-                            }}
-                          />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={`Name: ${playerKey}`}
-                          primaryTypographyProps={{ variant: 'body2' }}
-                        />
-                      </div>
-                    </ListItem>
-                    ))}
-                  </List>
+  {selectedPlayers.map((playerKey, index) => (
+    <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)} style={{ whiteSpace: 'nowrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ marginRight: '16px' }}>{index + 1}</div>
+        <ListItemAvatar>
+          <Box
+            component="img"
+            src=''
+            sx={{
+              borderRadius: 1,
+              height: 48,
+              width: 48
+            }}
+          />
+        </ListItemAvatar>
+        <ListItemText
+          primary={`Name: ${playerKey}`}
+          primaryTypographyProps={{ variant: 'body2' }}
+        />
+      </div>
+    </ListItem>
+  ))}
+</List>
+
                 </div>
               </Card>
             </Grid>
@@ -279,7 +332,7 @@ const navigatetodefence = (gameId, codeName) => {
         </Container>
       </Box>
     </>
-  );
+  );  
 };
 
 ALLPlayerPage.getLayout = (page) => (
