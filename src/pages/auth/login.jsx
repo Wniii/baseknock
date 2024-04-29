@@ -103,21 +103,16 @@ const LoginPage = () => {
 
         // 用户存在，尝试进行登录
         await auth.signIn(values.u_email, values.u_password);
-        const user = auth.currentUser; // Get the currently signed-in user
-        if (user) {
-          // Set the user ID in state
-          setUserId(user.uid);
-          // Send the user ID to the server
-          await 
-          fetchUserTeam(auth.user.id);
+        if (auth.user.id) { // Check if the user object and id are defined
+          setUserId(auth.user.id);
+          await fetchUserTeam(auth.user.id);
           sendUserIdToServer(auth.user.id);
           storeUserIdInLocalStorage(auth.user.id);
-
           storeUserEmailInLocalStorage(values.u_email);
-          // Redirect to home page with userId query parameter
           router.push(`/?userId=${auth.user.id}`);
         } else {
-          throw new Error('User not found');
+          // Handle case where auth.user is undefined
+          throw new Error('Authentication state was not set correctly.');
         }
 
       } catch (err) {
