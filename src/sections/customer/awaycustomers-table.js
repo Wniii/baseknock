@@ -8,6 +8,38 @@ import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
 import { green, blue, red } from '@mui/material/colors';
 
+const determineButtonProps = (content, index) => {
+    let buttonColor;
+    switch (content) {
+      case '一安':
+      case '二安':
+      case '三安':
+      case '全打':
+        buttonColor = green[300]; // 绿色
+        break;
+      case '三振':
+      case '飛球':
+      case '滾地':
+      case '失誤':
+      case '野選':
+      case '雙殺':
+      case '違規':
+        buttonColor = red[300]; // 红色
+        break;
+      case '四壞':
+      case '犧飛':
+      case '犧觸':
+      case '觸身':
+        buttonColor = 'lightblue'; // 淡蓝色
+        break;
+      default:
+        buttonColor = 'black'; // 黑色
+    }
+    return {
+      color: buttonColor,
+      text: content
+    };
+  };
 export const AwayCustomersTable = (props) => {
     const {
         count = 0,
@@ -83,162 +115,138 @@ export const AwayCustomersTable = (props) => {
     };
     // 函数来确定应该放置按钮的列数
     let buttonPlaced = false;
-
-
+    let allPlayersHaveContent = false;
+    
     return (
-        <Card>
-            <Scrollbar>
-                <Box sx={{ minWidth: 800 }}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>打者</TableCell>
-                                <TableCell>1</TableCell>
-                                <TableCell>2</TableCell>
-                                <TableCell>3</TableCell>
-                                <TableCell>4</TableCell>
-                                <TableCell>5</TableCell>
-                                <TableCell>6</TableCell>
-                                <TableCell>7</TableCell>
-                                <TableCell>8</TableCell>
-                                <TableCell>9</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {awayattackListData.map((attack, index) => {
-                                // 在 orderoppo 中查找具有相同 o_p_name 的对象
-                                const orderOppoItems = orderoppo.filter(item => item.o_p_name === attack);
-
-                                // 初始化存放内容的数组
-                                const contentArray = new Array(9).fill('');
-
-                                // 將每個攻擊者的內容添加到相應的列中
-                                orderOppoItems.forEach(orderOppoItem => {
-                                    if (orderOppoItem && orderOppoItem.o_inn >= 0) { // 假設 o_inn 是一個數字，且可能為0
-                                        contentArray[orderOppoItem.o_inn] = orderOppoItem.o_content || ""; // 使用正確的字段名
-                                    }
-                                });
-
-                                // 根据 outs 数字计算按钮所在的列数
-                                let buttonColumn = -1;
-                                if (gameDocSnapshot && gameDocSnapshot.data()) {
-                                    const outs = gameDocSnapshot.data().outs || 0;
-                                    buttonColumn = Math.floor(outs / 3) + 1;
-                                }
-
-
-                                // 检查是否已经放置了按钮
-
-
-                                return (
-                                    <TableRow hover key={index}>
-                                        {/* 攻击者信息 */}
-                                        <TableCell>{attack}</TableCell>
-
-                                        {/* 根据当前列数决定是否显示内容或按钮 */}
-                                        {contentArray.map((content, i) => {
-                                            if (!buttonPlaced && content === '') {
-                                                // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
-                                                if (buttonColumn === i + 1) {
-                                                    buttonPlaced = true;
-                                                    console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
-                                                    return (
-                                                        <TableCell key={i}>
-                                                            <Button
-                                                                variant="outlined"
-                                                                color="inherit"
-                                                                sx={{ height: '30px', padding: 0 }}
-                                                                type="button"
-                                                                onClick={() => handleClick(attack)}
-                                                            >
-                                                                <AddIcon />
-                                                            </Button>
-                                                        </TableCell>
-                                                    );
-                                                }
-                                            }
-                                            // 显示内容
-
-                                            const determineButtonProps = (content) => {
-                                                let buttonColor;
-                                                switch (content) {
-                                                    case '一安':
-                                                    case '二安':
-                                                    case '三安':
-                                                    case '全打':
-                                                        buttonColor = green[300]; // 绿色
-                                                        break;
-                                                    case '三振':
-                                                    case '飛球':
-                                                    case '滾地':
-                                                    case '失誤':
-                                                    case '野選':
-                                                    case '雙殺':
-                                                    case '違規':
-                                                        buttonColor = red[300]; // 红色
-                                                        break;
-                                                    case '四壞':
-                                                    case '犧飛':
-                                                    case '犧觸':
-                                                    case '觸身':
-                                                        buttonColor = 'lightblue'; // 淡蓝色
-                                                        break;
-                                                    default:
-                                                        buttonColor = 'black'; // 黑色
-                                                }
-                                                return {
-                                                    color: buttonColor,
-                                                    text: content
-                                                };
-                                            };
-
-                                            // 根据当前内容确定按钮颜色
-                                            const buttonProps = determineButtonProps(content);
-
-                                            // 渲染按钮
-                                            return (
-                                                <TableCell key={i}>
-                                                    {content && (
-                                                        <div
-                                                            style={{
-                                                                height: '30px',
-                                                                padding: 0,
-                                                                backgroundColor: buttonProps.color,
-                                                                color: 'white',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                            }}
-                                                        >
-                                                            {buttonProps.text}
-                                                        </div>
-                                                    )}
-                                                </TableCell>
-                                            )
-                                        })}
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-
-                    </Table>
-                </Box>
-            </Scrollbar>
-            <TablePagination
-                component="div"
-                count={count}
-                onPageChange={onPageChange}
-                onRowsPerPageChange={onRowsPerPageChange}
-                page={page}
-                rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={[5, 10, 25]}
-            />
-        </Card>
-
-
-
-
+      <Card>
+        <Scrollbar>
+          <Box sx={{ minWidth: 800 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>打者</TableCell>
+                  <TableCell>1</TableCell>
+                  <TableCell>2</TableCell>
+                  <TableCell>3</TableCell>
+                  <TableCell>4</TableCell>
+                  <TableCell>5</TableCell>
+                  <TableCell>6</TableCell>
+                  <TableCell>7</TableCell>
+                  <TableCell>8</TableCell>
+                  <TableCell>9</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {awayattackListData.map((attack, index) => {
+                  // 在 orderoppo 中查找具有相同 o_p_name 的对象
+                  const orderOppoItems = orderoppo.filter(item => item.o_p_name === attack);
+    
+                  // 初始化存放内容的数组
+                  const contentArray = new Array(9).fill('');
+    
+                  // 將每個攻擊者的內容添加到相應的列中
+                  orderOppoItems.forEach(orderOppoItem => {
+                    if (orderOppoItem && orderOppoItem.o_inn) {
+                      const innContent = orderOppoItem.o_inn;
+                      contentArray[innContent - 1] = orderOppoItem.o_content.split(',')[0]; // 使用正確的字段名
+                    }
+                  });
+    
+                  // 根据 outs 数字计算按钮所在的列数
+                  let buttonColumn = -1;
+                  if (gameDocSnapshot && gameDocSnapshot.data()) {
+                    const outs = gameDocSnapshot.data().outs || 0;
+                    buttonColumn = Math.floor(outs / 6) + 1;
+                  }
+    
+                  // 检查是否已经放置了按钮
+                  const hasContent = contentArray.some(content => content !== '');
+    
+                  // 检查是否所有球员都有内容
+                  allPlayersHaveContent = allPlayersHaveContent || hasContent;
+    
+                  // 如果所有球员都有内容，则重置按钮状态
+                  if (allPlayersHaveContent) {
+                    buttonPlaced = false;
+                    allPlayersHaveContent = false;
+                  }
+    
+                  return (
+                    <TableRow hover key={index}>
+                      {/* 攻击者信息 */}
+                      <TableCell>{attack}</TableCell>
+                    
+                      {/* 根据当前列数决定是否显示内容或按钮 */}
+                      {contentArray.map((content, i) => {
+                        // 如果当前行有内容，则直接显示内容
+                        if (content) {
+                          const buttonProps = determineButtonProps(content, i);
+                          return (
+                            <TableCell key={i}>
+                              <div
+                                style={{
+                                  height: '30px',
+                                  padding: 0,
+                                  backgroundColor: buttonProps.color,
+                                  color: 'white',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                {buttonProps.text}
+                              </div>
+                            </TableCell>
+                          );
+                        }
+    
+                        // 如果当前行没有内容，并且没有放置按钮，则尝试放置按钮
+                        if (!buttonPlaced && content === '') {
+                          // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
+                          if (buttonColumn === i + 1) {
+                            buttonPlaced = true;
+                            console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
+                            return (
+                              <TableCell key={i}>
+                                <Button
+                                  variant="outlined"
+                                  color="inherit"
+                                  sx={{ height: '30px', padding: 0 }}
+                                  type="button"
+                                  onClick={() => handleClick(attack)}
+                                >
+                                  <AddIcon />
+                                </Button>
+                              </TableCell>
+                            );
+                          } else {
+                            // 在 else 分支中返回一个空的 TableCell，以确保每一行都有相同数量的单元格
+                            return <TableCell key={i} />;
+                          }
+                        }
+                        
+                        // 如果当前行没有内容，但还未找到适合放置按钮的行，则显示空单元格
+                        return <TableCell key={i}></TableCell>;
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Box>
+        </Scrollbar>
+        <TablePagination
+          component="div"
+          count={count}
+          onPageChange={onPageChange}
+          onRowsPerPageChange={onRowsPerPageChange}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[5, 10, 25]}
+        />
+      </Card>
     );
+    
 };
 
 AwayCustomersTable.propTypes = {

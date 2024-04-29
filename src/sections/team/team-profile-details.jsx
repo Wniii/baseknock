@@ -16,7 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 import { firestore, storage } from "src/pages/firebase";
-import { doc, updateDoc, setDoc } from "firebase/firestore"; // 添加这行导入语句
+import { doc, updateDoc, setDoc, getDocs, query, where } from "firebase/firestore"; // 添加这行导入语句
 import { getDoc } from "firebase/firestore";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -43,10 +43,10 @@ const position = [
 
 const habit = [
   { value: "", label: "" },
-  { value: "LL", label: "左投/左打" },
-  { value: "LR", label: "左投/右打" },
-  { value: "RR", label: "右投/右打" },
-  { value: "RL", label: "右投/左打" },
+  { value: "左投/左打", label: "左投/左打" },
+  { value: "左投/右打", label: "左投/右打" },
+  { value: "右投/右打", label: "右投/右打" },
+  { value: "右投/左打", label: "右投/左打" },
 ];
 
 export const TeamManagement = () => {
@@ -122,10 +122,16 @@ export const TeamManagement = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("提交开始");
-
+  
     // 从LocalStorage中获取u_id
     const u_id = localStorage.getItem("userId");
-
+  
+    const querySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", values.codeName)));
+    if (!querySnapshot.empty) {
+      alert("球隊代號已被使用！請重新輸入");
+      return;
+    }
+  
     let photoURL = "";
     try {
       if (file) {
@@ -135,10 +141,10 @@ export const TeamManagement = () => {
       }
     } catch (error) {
       console.error("上传文件错误:", error);
-      alert("图片上传失败");
+      alert("圖片上傳失敗");
       return;
     }
-
+  
     const playersToSave = {};
     values.players.forEach((playerData, id) => {
       const playerName = playerData.PName.trim();
@@ -150,7 +156,7 @@ export const TeamManagement = () => {
         };
       }
     });
-
+  
     try {
       // 将团队文档添加到Firestore
       const newTeamDocRef = await addDoc(collection(firestore, "team"), {
@@ -160,10 +166,10 @@ export const TeamManagement = () => {
         photo: photoURL,
         players: playersToSave,
       });
-
+  
       const newTeamId = newTeamDocRef.id;
       console.log("团队添加成功，ID:", newTeamId);
-
+  
       // 使用团队信息更新用户文档
       try {
         // 獲取用戶文檔的引用
@@ -175,11 +181,15 @@ export const TeamManagement = () => {
           const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
           // 將新隊伍名稱推送到陣列中
           userTeamArray.push(values.codeName);
-      
+  
           try {
             // 使用Array的方式更新用戶文檔的u_team字段
             await updateDoc(userRef, { u_team: userTeamArray });
             console.log("用户文档更新成功");
+            // Update localStorage with the new team list
+            localStorage.setItem('userTeam', userTeamArray.join(','));
+            setDialogMessage("球隊新增成功！");
+            setOpenDialog(true);
           } catch (error) {
             console.error("更新用户文档错误:", error);
             alert("更新用戶文檔時出現錯誤");
@@ -192,17 +202,16 @@ export const TeamManagement = () => {
         console.error("处理用户文档时出现错误:", error);
         alert("處理用戶文檔時出現錯誤");
       }
-      setDialogMessage("球隊新增成功！");
-      setOpenDialog(true);
     } catch (error) {
       console.error("添加团队文档错误:", error);
       setDialogMessage("球對新增失敗！");
       setOpenDialog(true);
     }
-};
+  };  
+  
 
-  
-  
+
+
 
   const handleAddPlayer = () => {
     setValues((prevState) => {
@@ -227,27 +236,33 @@ export const TeamManagement = () => {
     });
   };
 
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    // 重置表单状态到初始状态
+    setValues({
+      Name: "",
+      codeName: "",
+      introduction: "",
+      players: initialPlayers,
+    });
+    setFile(null);
+    setPreviewUrl(null);
+  };
+
   return (
     <div>
       <Container maxWidth="lg" sx={{ my: 4, mx: "auto" }}>
-        <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={2} justifyContent="center">
             <Grid item xs={12} sm={6} md={4}>
               <Card>
                 <CardContent>
-                  <Box
-                    sx={{
-                      alignItems: "center",
-                      display: "flex",
-                      flexDirection: "column",
-                      width: 120,
-                      height: 120,
-                    }}
-                  >
+                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column" }}>
                     {previewUrl && (
-                      <Avatar
+                      <img
                         src={previewUrl}
-                        sx={{ height: 120, mb: 80, width: 120, md: 2, borderRadius: 0 }}
+                        alt="Uploaded image"
+                        style={{ height: "200px", width: "200px" }}
                       />
                     )}
                   </Box>
@@ -300,7 +315,7 @@ export const TeamManagement = () => {
                           name="introduction"
                           type="text"
                           onChange={(e) => setValues({ ...values, introduction: e.target.value })}
-                          required
+                          // required
                           value={values.introduction}
                         />
                       </Grid>
@@ -401,7 +416,7 @@ export const TeamManagement = () => {
               <div style={{ textAlign: "center", marginTop: "16px" }}>
                 <Button onClick={handleAddPlayer} variant="contained">
                   新增
-                </Button>
+                </Button>&nbsp;&nbsp;
                 <Button type="submit" variant="contained">
                   確認新增
                 </Button>
@@ -410,13 +425,13 @@ export const TeamManagement = () => {
           </div>
         </Box>
         <Box>
-          <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
             <DialogTitle>提示</DialogTitle>
             <DialogContent>
               <Typography>{dialogMessage}</Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setOpenDialog(false)}>確定</Button>
+              <Button onClick={handleCloseDialog}>確定</Button>
             </DialogActions>
           </Dialog>
         </Box>

@@ -112,7 +112,7 @@ const Page = () => {
                 setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
                 // 計算局數和上下半局
                 const outs = gameData.outs || 0;
-                const inningsCompleted = Math.floor(outs / 3) + 1;
+                const inningsCompleted = Math.floor(outs / 6) + 1;
                 setCurrentInning(inningsCompleted);
 
               }

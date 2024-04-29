@@ -8,72 +8,40 @@ import { ManageProfileDetails } from 'src/sections/manage/manage-profile-details
 import { ManagePlayer } from 'src/sections/manage/manage-player';
 
 const Page = () => {
-    // 在组件函数内部声明状态变量
     const [selectedTeam, setSelectedTeam] = useState(null);
+    const [teams, setTeams] = useState([]); // Assuming you will fetch teams similar to what is done in Manage
+
+    // Assume fetchTeams is a function that fetches teams data and sets it
+    // This is just for illustration; implement the fetch logic as needed
 
     return (
         <>
             <Head>
-                <title>
-                    管理
-                </title>
+                <title>管理</title>
             </Head>
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    py: 0
-                }}
-            >
+            <Box component="main" sx={{ flexGrow: 1, py: 0 }}>
                 <Container maxWidth="lg">
                     <Stack spacing={3}>
-
                         <div>
-                            <Grid
-                                container
-                                spacing={3}
-                            >
-                                <Grid
-                                    xs={12}
-                                    md={12}
-                                    lg={12}
-                                >
+                            <Grid container spacing={3}>
+                                <Grid xs={12} md={12} lg={12}>
                                     <Manage onTeamSelect={setSelectedTeam} />
                                 </Grid>
                             </Grid>
-                            <br></br>
+                            <br />
                             <div>
-                                <Typography variant="h4">
-                                    管理球隊
-                                </Typography>
+                                <Typography variant="h4">管理球隊</Typography>
                             </div>
                             <Divider />
-                            <br></br>
-                            <Grid
-                                container
-                                spacing={3}
-
-                            >
-                                <Grid
-                                    xs={12}
-                                    md={6}
-                                    lg={4}
-                                    sx={{ justifyContent: 'center' }}
-                                >
-                                    <ManageProfile />
+                            <br />
+                            <Grid container spacing={3}>
+                                <Grid xs={12} md={6} lg={4} sx={{ justifyContent: 'center' }}>
+                                    <ManageProfile teams={teams} selectedTeam={selectedTeam} />
                                 </Grid>
-                                <Grid
-                                    xs={12}
-                                    md={6}
-                                    lg={8}
-                                >
+                                <Grid xs={12} md={6} lg={8}>
                                     <ManageProfileDetails teamInfo={selectedTeam} />
                                 </Grid>
-                                <Grid
-                                    xs={12}
-                                    md={12}
-                                    lg={12}
-                                >
+                                <Grid xs={12} md={12} lg={12}>
                                     <ManagePlayer teamInfo={selectedTeam} />
                                 </Grid>
                             </Grid>
@@ -84,6 +52,7 @@ const Page = () => {
         </>
     );
 };
+
 Page.getLayout = (page) => (
     <DashboardLayout>
         {page}
