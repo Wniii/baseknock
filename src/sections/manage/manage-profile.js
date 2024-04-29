@@ -30,14 +30,18 @@ export const ManageProfile = ({ selectedTeam }) => (
                   style={{ height: '200px', width: '200px' }} 
                 />
               ) : (
-                <Typography>No team selected</Typography>
+                <Typography></Typography>
               )}
             </Grid>
           </Grid>
           <CardActions>
+          {selectedTeam ? (
             <Button fullWidth variant="text">
               Upload picture
             </Button>
+             ) : (
+                <Typography>請選擇隊伍</Typography>
+            )}
           </CardActions>
         </Box>
       </Card>
