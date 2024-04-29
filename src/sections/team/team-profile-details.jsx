@@ -252,24 +252,17 @@ export const TeamManagement = () => {
   return (
     <div>
       <Container maxWidth="lg" sx={{ my: 4, mx: "auto" }}>
-        <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={2} justifyContent="center">
             <Grid item xs={12} sm={6} md={4}>
               <Card>
                 <CardContent>
-                  <Box
-                    sx={{
-                      alignItems: "center",
-                      display: "flex",
-                      flexDirection: "column",
-                      width: 120,
-                      height: 120,
-                    }}
-                  >
+                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column" }}>
                     {previewUrl && (
-                      <Avatar
+                      <img
                         src={previewUrl}
-                        sx={{ height: 120, mb: 80, width: 120, md: 2, borderRadius: 0 }}
+                        alt="Uploaded image"
+                        style={{ height: "200px", width: "200px" }}
                       />
                     )}
                   </Box>
