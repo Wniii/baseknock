@@ -163,7 +163,7 @@ export const AwayCustomersTable = (props) => {
                   const hasContent = contentArray.some(content => content !== '');
     
                   // 检查是否所有球员都有内容
-                  allPlayersHaveContent = allPlayersHaveContent || hasContent;
+                  allPlayersHaveContent = allPlayersHaveContent && hasContent;
     
                   // 如果所有球员都有内容，则重置按钮状态
                   if (allPlayersHaveContent) {
