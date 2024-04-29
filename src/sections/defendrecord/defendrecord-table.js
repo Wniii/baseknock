@@ -24,7 +24,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
 
   const calculateHits = (gamesData, playerNames) => {
     const hitsByPitcher = playerNames.reduce((acc, name) => {
-      acc[name] = { hits: 0, walks: 0, strikeouts: 0, totalBalls: 0, totalStrikes: 0 };
+      acc[name] = { hits: 0, walks: 0, strikeouts: 0, totalBalls: 0, totalStrikes: 0 ,runsBattedIn: 0, };
       return acc;
     }, {});
   
@@ -106,7 +106,16 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       });
   
       const hitsByPitcher = playerNames.reduce((acc, name) => {
-        acc[name] = { hits: 0, walks: 0, strikeouts: 0, totalBalls: 0, totalStrikes: 0, gamesPlayed: 0, gamesStarted: 0 };
+        acc[name] = {
+          hits: 0,
+          walks: 0,
+          strikeouts: 0,
+          totalBalls: 0,
+          totalStrikes: 0,
+          runsBattedIn: 0, // 确保这里初始化为 0
+          gamesPlayed: 0,
+          gamesStarted: 0
+        };
         return acc;
       }, {});
   
@@ -131,6 +140,9 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               const strikes = Number(order.pitcher?.strike) || 0;
               hitsByPitcher[pitcherName].totalBalls += balls;
               hitsByPitcher[pitcherName].totalStrikes += strikes;
+              const orderRBI = Number(order.rbi) || 0;
+        const orderORBI = Number(order.o_rbi) || 0;
+        hitsByPitcher[pitcherName].runsBattedIn += orderRBI + orderORBI;
             }
           });
         });
@@ -153,7 +165,8 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
             totalStrikes: playerStats.totalStrikes,
             gamesPlayed: playerStats.gamesPlayed,
             gamesStarted: playerStats.gamesStarted,
-            strikeBallRatio: (playerStats.totalStrikes + playerStats.totalBalls > 0) ? (playerStats.totalStrikes / (playerStats.totalStrikes + playerStats.totalBalls)).toFixed(2) : "0.00"
+            strikeBallRatio: playerStats.totalBalls > 0 ? (playerStats.totalStrikes /  playerStats.totalBalls).toFixed(2) : "0.00",
+            runsBattedIn: playerStats.runsBattedIn,
             // ...其他您可能需要的統計數據...
           };
         });
@@ -260,7 +273,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                       <TableCell>{player.totalHits}</TableCell>
                     )}
                     {selectedColumns.includes('失分') && (
-                      <TableCell></TableCell>
+                      <TableCell>{player.runsBattedIn}</TableCell>
                     )}
                     {selectedColumns.includes('球數') && (
                       <TableCell></TableCell>
