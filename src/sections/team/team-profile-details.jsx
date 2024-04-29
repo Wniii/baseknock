@@ -16,7 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
 import { firestore, storage } from "src/pages/firebase";
-import { doc, updateDoc, setDoc } from "firebase/firestore"; // 添加这行导入语句
+import { doc, updateDoc, setDoc, getDocs, query, where } from "firebase/firestore"; // 添加这行导入语句
 import { getDoc } from "firebase/firestore";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -126,6 +126,12 @@ export const TeamManagement = () => {
     // 从LocalStorage中获取u_id
     const u_id = localStorage.getItem("userId");
 
+    const querySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", values.codeName)));
+    if (!querySnapshot.empty) {
+      alert("球隊代號已被使用！請重新輸入");
+      return;
+    }
+
     let photoURL = "";
     try {
       if (file) {
@@ -135,7 +141,7 @@ export const TeamManagement = () => {
       }
     } catch (error) {
       console.error("上传文件错误:", error);
-      alert("图片上传失败");
+      alert("圖片上傳失敗");
       return;
     }
 
@@ -161,8 +167,11 @@ export const TeamManagement = () => {
         players: playersToSave,
       });
 
+
+
       const newTeamId = newTeamDocRef.id;
       console.log("团队添加成功，ID:", newTeamId);
+
 
       // 使用团队信息更新用户文档
       try {
@@ -175,7 +184,7 @@ export const TeamManagement = () => {
           const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
           // 將新隊伍名稱推送到陣列中
           userTeamArray.push(values.codeName);
-      
+
           try {
             // 使用Array的方式更新用戶文檔的u_team字段
             await updateDoc(userRef, { u_team: userTeamArray });
@@ -199,10 +208,10 @@ export const TeamManagement = () => {
       setDialogMessage("球對新增失敗！");
       setOpenDialog(true);
     }
-};
+  };
 
-  
-  
+
+
 
   const handleAddPlayer = () => {
     setValues((prevState) => {
@@ -225,6 +234,19 @@ export const TeamManagement = () => {
         players: updatedPlayers,
       };
     });
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    // 重置表单状态到初始状态
+    setValues({
+      Name: "",
+      codeName: "",
+      introduction: "",
+      players: initialPlayers,
+    });
+    setFile(null);
+    setPreviewUrl(null);
   };
 
   return (
@@ -300,7 +322,7 @@ export const TeamManagement = () => {
                           name="introduction"
                           type="text"
                           onChange={(e) => setValues({ ...values, introduction: e.target.value })}
-                          required
+                          // required
                           value={values.introduction}
                         />
                       </Grid>
@@ -401,7 +423,7 @@ export const TeamManagement = () => {
               <div style={{ textAlign: "center", marginTop: "16px" }}>
                 <Button onClick={handleAddPlayer} variant="contained">
                   新增
-                </Button>
+                </Button>&nbsp;&nbsp;
                 <Button type="submit" variant="contained">
                   確認新增
                 </Button>
@@ -410,13 +432,13 @@ export const TeamManagement = () => {
           </div>
         </Box>
         <Box>
-          <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
             <DialogTitle>提示</DialogTitle>
             <DialogContent>
               <Typography>{dialogMessage}</Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setOpenDialog(false)}>確定</Button>
+              <Button onClick={handleCloseDialog}>確定</Button>
             </DialogActions>
           </Dialog>
         </Box>
