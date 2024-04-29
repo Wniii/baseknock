@@ -262,7 +262,7 @@ export const OverviewLatestOrders = () => {
       const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
       allGames = allGames
         .filter(game => userTeam.includes(game.hometeam) && userTeam.includes(game.awayteam))
-        .sort((a, b) => a.gameDate - b.gameDate);
+        .sort((a, b) => b.gameDate - a.gameDate);
 
       // Map to an array of YouTube links
       let allYouTubeLinks = allGames.map(game => {
