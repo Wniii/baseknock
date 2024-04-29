@@ -113,154 +113,132 @@ export const CustomersTable = (props) => {
   
 // 函数来确定应该放置按钮的列数
 let buttonPlaced = false;
+let allPlayersHaveContent = false;
 
-  return (
-    <Card>
-      <Scrollbar>
-        <Box sx={{ minWidth: 800 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>打者</TableCell>
-                <TableCell>1</TableCell>
-                <TableCell>2</TableCell>
-                <TableCell>3</TableCell>
-                <TableCell>4</TableCell>
-                <TableCell>5</TableCell>
-                <TableCell>6</TableCell>
-                <TableCell>7</TableCell>
-                <TableCell>8</TableCell>
-                <TableCell>9</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {attackListData.map((attack, index) => {
-                // 在 ordermain 中查找具有相同 p_name 的对象
-                const orderMainItems = ordermain.filter(item => item.p_name === attack);
+return (
+  <Card>
+    <Scrollbar>
+      <Box sx={{ minWidth: 800 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>打者</TableCell>
+              <TableCell>1</TableCell>
+              <TableCell>2</TableCell>
+              <TableCell>3</TableCell>
+              <TableCell>4</TableCell>
+              <TableCell>5</TableCell>
+              <TableCell>6</TableCell>
+              <TableCell>7</TableCell>
+              <TableCell>8</TableCell>
+              <TableCell>9</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {attackListData.map((attack, index) => {
+              // 在 ordermain 中查找具有相同 p_name 的对象
+              const orderMainItems = ordermain.filter(item => item.p_name === attack);
 
-                // 获取当前攻击者的内容
-                const contentArray = new Array(9).fill('');
+              // 获取当前攻击者的内容
+              const contentArray = new Array(9).fill('');
 
-                // 将每个攻击者的内容添加到相应的列中
-                orderMainItems.forEach(orderMainItem => {
-                  if (orderMainItem && orderMainItem.inn) {
-                    const innContent = orderMainItem.inn;
-                    contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
-                  }
-                });
-                let buttonRowFound = false;
-
-                if (buttonRowFound) {
-                  return null;
+              // 将每个攻击者的内容添加到相应的列中
+              orderMainItems.forEach(orderMainItem => {
+                if (orderMainItem && orderMainItem.inn) {
+                  const innContent = orderMainItem.inn;
+                  contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
                 }
+              });
 
-                // 根据 outs 数字计算按钮所在的列数
-                let buttonColumn = -1;
-                if (gameDocSnapshot && gameDocSnapshot.data()) {
-                  const outs = gameDocSnapshot.data().outs || 0;
-                  buttonColumn = Math.floor(outs / 6) + 1;
-                }
-                // 检查是否已经放置了按钮
-                const hasContent = contentArray.some(content => content !== '');
+              // 根据 outs 数字计算按钮所在的列数
+              let buttonColumn = -1;
+              if (gameDocSnapshot && gameDocSnapshot.data()) {
+                const outs = gameDocSnapshot.data().outs || 0;
+                buttonColumn = Math.floor(outs / 6) + 1;
+              }
 
-                return (
-                  <TableRow hover key={index}>
-                    {/* 攻击者信息 */}
-                    <TableCell>{attack}</TableCell>
+              // 检查是否已经放置了按钮
+              const hasContent = contentArray.some(content => content !== '');
+
+              // 检查是否所有球员都有内容
+              allPlayersHaveContent = allPlayersHaveContent && hasContent;
+
+              // 如果所有球员都有内容，则重置按钮状态
+              if (allPlayersHaveContent) {
+                buttonPlaced = false;
+                allPlayersHaveContent = false;
+              }
+
+              return (
+                <TableRow hover key={index}>
+                  {/* 攻击者信息 */}
+                  <TableCell>{attack}</TableCell>
                 
-                    {/* 根据当前列数决定是否显示内容或按钮 */}
-                    {contentArray.map((content, i) => {
-                      // 如果当前行有内容，则跳过该行
-                      if (hasContent) {
-                        return (
-                          <TableCell key={i}>
-                            {content && (
-                              <div
-                                style={{
-                                  height: '30px',
-                                  padding: 0,
-                                  backgroundColor: determineButtonProps(content, i).color, 
-                                  color: 'white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                              >
-                                {determineButtonProps(content, i).text} 
-                              </div>
-                            )}
-                          </TableCell>
-                        );
-                      }
-                
-                      // 如果找到了适合放置按钮的行，则跳过该行
-                    
-                      // 在当前行找到适合放置按钮的列
-                      if (!buttonPlaced && content === '') {
-                        // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
-                        if (buttonColumn === i + 1) {
-                            buttonPlaced = true;
-                            buttonRowFound = true; // 设置buttonRowFound为true，表示找到了适合放置按钮的行
-                            console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
-                            return (
-                                <TableCell key={i}>
-                                    <Button
-                                        variant="outlined"
-                                        color="inherit"
-                                        sx={{ height: '30px', padding: 0 }}
-                                        type="button"
-                                        onClick={() => handleClick(attack)}
-                                    >
-                                        <AddIcon />
-                                    </Button>
-                                </TableCell>
-                            );
-                        }
-                      }
-                      
-                      // 显示内容
-
+                  {/* 根据当前列数决定是否显示内容或按钮 */}
+                  {contentArray.map((content, i) => {
+                    // 如果当前行有内容，则直接显示内容
+                    if (content) {
                       const buttonProps = determineButtonProps(content, i);
-
-                      // 渲染按钮
                       return (
                         <TableCell key={i}>
-                          {content && (
-                            <div
-                              style={{
-                                height: '30px',
-                                padding: 0,
-                                backgroundColor: buttonProps.color,
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              {buttonProps.text}
-                            </div>
-                          )}
+                          <div
+                            style={{
+                              height: '30px',
+                              padding: 0,
+                              backgroundColor: buttonProps.color,
+                              color: 'white',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            {buttonProps.text}
+                          </div>
                         </TableCell>
                       );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Box>
-      </Scrollbar>
-      <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
-    </Card>
-  );
+                    }
+
+                    // 如果当前行没有内容，并且没有放置按钮，则尝试放置按钮
+                    if (!buttonPlaced && buttonColumn === i + 1) {
+                      buttonPlaced = true;
+                      console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
+                      return (
+                        <TableCell key={i}>
+                          <Button
+                            variant="outlined"
+                            color="inherit"
+                            sx={{ height: '30px', padding: 0 }}
+                            type="button"
+                            onClick={() => handleClick(attack)}
+                          >
+                            <AddIcon />
+                          </Button>
+                        </TableCell>
+                      );
+                    }
+
+                    // 如果当前行没有内容，但还未找到适合放置按钮的行，则显示空单元格
+                    return <TableCell key={i}></TableCell>;
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Box>
+    </Scrollbar>
+    <TablePagination
+      component="div"
+      count={count}
+      onPageChange={onPageChange}
+      onRowsPerPageChange={onRowsPerPageChange}
+      page={page}
+      rowsPerPage={rowsPerPage}
+      rowsPerPageOptions={[5, 10, 25]}
+    />
+  </Card>
+);
+
 };
 
 CustomersTable.propTypes = {

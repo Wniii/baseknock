@@ -86,6 +86,8 @@ const Page = () => {
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
               rowsPerPage={rowsPerPage}
+              selectedPlayer={selectedPlayer}
+              selectedTeam={selectedTeam}
             />
           </Stack>
         </Container>

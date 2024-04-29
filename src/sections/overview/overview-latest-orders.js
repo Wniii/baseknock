@@ -33,7 +33,6 @@ import ImageListItemBar from '@mui/material/ImageListItemBar';
 
 import Link from '@mui/material/Link';
 
-const preventDefault = (event) => event.preventDefault();
 
 
 const style = {
@@ -50,7 +49,7 @@ const todayCardSx = {
   padding: '4px',
   //borderRadius: '4px',
   height: '100px',
-  width: 'auto',
+  width: '95%',
   margin: 'auto',
   display: 'flex',
   flexDirection: 'column',
@@ -60,8 +59,9 @@ const todayCardSx = {
 const contentCardSx = {
   backgroundColor: '#d3d3d3',
   padding: '4px',
+  height: '100px',
   //borderRadius: '4px',
-  width: 'auto',
+  width: '95%',
   margin: 'auto',
   display: 'flex',
   flexDirection: 'column',
@@ -93,7 +93,7 @@ const ytCardSx = {
   backgroundColor: '#d3d3d3',
   padding: '4px',
   //borderRadius: '4px',
-  width: 'auto',
+  width: '95%',
   margin: 'auto',
   display: 'flex',
   flexDirection: 'column',
@@ -106,6 +106,8 @@ const ytCardSx = {
 
 
 export const OverviewLatestOrders = () => {
+  const [youtubeLinks, setYoutubeLinks] = useState([]);
+
 
   const today = new Date();
   const year = today.getFullYear();
@@ -223,19 +225,67 @@ export const OverviewLatestOrders = () => {
     return `${year}/${month}/${day}`;
   };
 
+  useEffect(() => {
+    const fetchYouTubeLinks = async () => {
+      const teamsSnapshot = await getDocs(collection(firestore, 'team'));
+      let allGames = [];
+      let processedGIds = new Set(); // Set to keep track of processed g_ids
 
+      for (const teamDoc of teamsSnapshot.docs) {
+        const teamId = teamDoc.id;
+        const gamesSnapshot = await getDocs(collection(firestore, 'team', teamId, 'games'));
 
+        for (const gameDoc of gamesSnapshot.docs) {
+          const gameData = gameDoc.data();
+          const g_id = gameDoc.id; // Assuming the document ID is the g_id
+          const gameDateTimestamp = gameData.GDate;
+          const gameDate = gameDateTimestamp ? new Date(gameDateTimestamp.seconds * 1000) : null;
 
+          if (processedGIds.has(g_id)) {
+            // Skip if we have already processed this g_id
+            continue;
+          }
 
+          // Add game to allGames array with additional properties if it meets the conditions
+          if (gameData.youtubelink && gameDate && gameDate <= new Date()) {
+            allGames.push({
+              ...gameData,
+              g_id: g_id,
+              gameDate: gameDate,
+            });
+            processedGIds.add(g_id); // Add g_id to the set to avoid processing it again
+          }
+        }
+      }
+
+      // Filter and sort logic remains the same
+      const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
+      allGames = allGames
+        .filter(game => userTeam.includes(game.hometeam) && userTeam.includes(game.awayteam))
+        .sort((a, b) => b.gameDate - a.gameDate);
+
+      // Map to an array of YouTube links
+      let allYouTubeLinks = allGames.map(game => {
+        const videoIdMatch = game.youtubelink.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i);
+        return videoIdMatch && videoIdMatch[1] ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : null;
+      }).filter(link => link !== null); // Filter out any null values
+
+      setYoutubeLinks(allYouTubeLinks);
+    };
+
+    fetchYouTubeLinks();
+  }, []);
 
 
   return (
+
+
 
     <div>
       <div style={{ textAlign: 'center', padding: '8px' }}>
         <Typography variant="h5" fontWeight="bold">{formattedDate}</Typography>
       </div>
-      <Card sx={{ backgroundColor: '#d3d3d3', padding: '4px', width: 'auto', margin: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+      <Card sx={todayCardSx}>
         <List sx={{ backgroundColor: '#d3d3d3', padding: '4px', borderRadius: '4px', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', position: 'relative' }}>
           {(() => {
             const filteredGames = games.filter(game => isTeamInUserTeams(game.hometeam, game.awayteam));
@@ -263,7 +313,7 @@ export const OverviewLatestOrders = () => {
       </Card>
       <br></br>
 
-      <div style={{ textAlign: 'left', padding: '8px', marginLeft: '25px' }}>
+      <div style={{ textAlign: 'left', padding: '8px', marginLeft: '30px' }}>
         <Typography variant="h6">coming up...</Typography>
       </div>
 
@@ -286,7 +336,7 @@ export const OverviewLatestOrders = () => {
                 // 在这里也同样使用映射转换 codeName 为 Name
                 const homeTeamName = teamCodeNameToNameMap.get(game.hometeam) || game.hometeam;
                 const awayTeamName = teamCodeNameToNameMap.get(game.awayteam) || game.awayteam;
-                
+
                 return (
                   <div key={index} style={{ display: 'flex', justifyContent: 'flex-start' }}>
                     <ListItem style={{ alignItems: 'flex-start' }}>
@@ -312,11 +362,12 @@ export const OverviewLatestOrders = () => {
         <Box
           sx={{
             typography: 'body1',
+            marginRight: '20px',
             '& > :not(style) ~ :not(style)': {
               ml: 2,
             },
           }}
-          onClick={preventDefault}
+
         >
           <Link href="/schedule">
             <Button
@@ -332,75 +383,38 @@ export const OverviewLatestOrders = () => {
               View more
             </Button>
           </Link>
-
         </Box>
       </CardActions>
 
-      <div style={{ textAlign: 'left', padding: '8px', marginLeft: '25px' }}>
+      <div style={{ textAlign: 'left', padding: '8px', marginLeft: '30px' }}>
         <Typography variant="h6">YouTube Links</Typography>
       </div>
 
-      <Card sx={ytCardSx}>
-        <List sx={sx}>
-          <Scrollbar sx={{ flexGrow: 1 }}>
-            <ImageList sx={{ height: 450, width: 1150 }} cols={3}>
-              <ImageListItem key="Subheader" cols={3}>
-              </ImageListItem>
-              {itemData.map((item) => (
-                <ImageListItem key={item.img} cols={1}>
-                  <img
-                    srcSet={`${item.img}?w=248&fit=crop&auto=format&dpr=2 2x`}
-                    src={`${item.img}?w=248&fit=crop&auto=format`}
-                    //alt={item.title}
-                    loading="lazy"
-                    align="center"
-                  />
-                  <ImageListItemBar
-                    title={item.title}
-                    // subtitle={<span>by: {item.author}</span>}
-                    position="below"
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          </Scrollbar>
-        </List>
+      <Card sx={{ ...ytCardSx, overflow: 'hidden' }}> {/* 確保滾動只發生在 X 軸 */}
+        <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto' }}>
+          {youtubeLinks.map((link, index) => (
+            <div key={index} style={{ flex: '0 0 auto', width: 'calc(50% - 10px)', margin: '5px' }}> {/* 確保每個元素只占一半寬度，並且不會伸縮 */}
+              <iframe
+                width="100%"
+                height="350" // 或者您可以設定成任何固定高度
+                src={link}
+                title={`YouTube video player ${index}`}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ))}
+        </div>
       </Card>
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          color="inherit"
-          endIcon={(
-            <SvgIcon fontSize="small">
-              <ArrowRightIcon />
-            </SvgIcon>
-          )}
-          size="small"
-          variant="text"
-        >
-          View more
-        </Button>
-      </CardActions>
+
+
+
+
     </div>
+
   );
 };
-const itemData = [
-  {
-    img: 'https://www.japantimes.co.jp/uploads/imported_images/uploads/2023/06/np_file_232569.jpeg',
-    title: '230930|練習賽|v.s卡皮巴拉',
-    rows: 1,
-    cols: 3,
-    featured: true,
-  },
-  {
-    img: 'https://media.newyorker.com/photos/650c81455e099cd38ea4d9d3/master/w_2560%2Cc_limit/thomas-shohei%2520ohtani.jpg',
-    title: '231002|練習賽|v.s卡皮巴拉',
 
-  },
-  {
-    img: 'https://i.cbc.ca/1.7050798.1701907110!/fileImage/httpImage/image.JPG_gen/derivatives/16x9_780/ohtani-v-jays.JPG',
-    title: '231003|練習賽|v.s卡皮巴拉',
-    featured: true,
-  },]
 
 // OverviewLatestOrders.prototype = {
 //   orders: PropTypes.array,
