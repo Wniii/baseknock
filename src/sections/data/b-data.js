@@ -215,7 +215,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
     </TableRow>
   )) : (
     <TableRow>
-      <TableCell colSpan={19}>沒有找到數據</TableCell>
+      <TableCell colSpan={19}>該球員還沒有比賽數據</TableCell>
     </TableRow>
   )}
 </TableBody>

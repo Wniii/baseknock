@@ -141,8 +141,8 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               hitsByPitcher[pitcherName].totalBalls += balls;
               hitsByPitcher[pitcherName].totalStrikes += strikes;
               const orderRBI = Number(order.rbi) || 0;
-        const orderORBI = Number(order.o_rbi) || 0;
-        hitsByPitcher[pitcherName].runsBattedIn += orderRBI + orderORBI;
+              const orderORBI = Number(order.o_rbi) || 0;
+              hitsByPitcher[pitcherName].runsBattedIn += orderRBI + orderORBI;
             }
           });
         });
