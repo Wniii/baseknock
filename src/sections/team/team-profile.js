@@ -34,10 +34,10 @@ export const TeamProfile = () => {
     try {
       const storageRef = ref(storage, `profileImages/${file.name}`);
       await uploadBytes(storageRef, file);
-      alert('图片上传成功');
+      alert('圖片上傳成功');
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('上传失败');
+      alert('上傳失敗');
     }
   };
 
@@ -54,20 +54,17 @@ export const TeamProfile = () => {
               height: 120,
             }}
           >
-            {/* 如果有选择文件，则显示预览图片 */}
             {previewUrl && (
               <Avatar
                 src={previewUrl}
                 sx={{
                   height: 120,
-                  mb: 120,
-                  width: 80,
-                  md: 2,
+                  mb: 2, // Margin bottom is set to spacing unit 2
+                  width: 120, // Width is the same as height to keep the aspect ratio
                   borderRadius: 0,
                 }}
               />
             )}
-            {/* ... 其他用户信息 ... */}
           </Box>
         </CardContent>
         <Divider />
@@ -78,7 +75,7 @@ export const TeamProfile = () => {
             variant="text"
             onClick={handleUpload}
           >
-            上传图片
+            上傳圖片
           </Button>
         </CardActions>
       </Card>

@@ -168,26 +168,20 @@ export const HitrecordSearch = ({ onConfirm }) => {
     <Card>
       <CardContent sx={{ pt: 2 }}>
         <Grid container spacing={5}>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="球隊"
-              name="team"
-              onChange={handleTeamChange}
-              select
-              SelectProps={{ native: true }}
-              value={selectedTeam}
-            >
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.Name}
-                </option>
-              ))}
-            </TextField>
-
-           
-
-          </Grid>
+        <Grid item xs={12} md={4}>
+        <FormControl fullWidth>
+          <InputLabel>球隊</InputLabel>
+          <Select
+            value={selectedTeam}
+            label="球隊"
+            onChange={handleTeamChange}
+          >
+            {teams.map((team) => (
+              <MenuItem key={team.id} value={team.id}>{team.Name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
         </Grid>
         <br />
         <Grid container spacing={6}>

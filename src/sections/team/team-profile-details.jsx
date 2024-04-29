@@ -122,16 +122,16 @@ export const TeamManagement = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("提交开始");
-  
+
     // 从LocalStorage中获取u_id
     const u_id = localStorage.getItem("userId");
-  
+
     const querySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", values.codeName)));
     if (!querySnapshot.empty) {
       alert("球隊代號已被使用！請重新輸入");
       return;
     }
-  
+
     let photoURL = "";
     try {
       if (file) {
@@ -144,7 +144,7 @@ export const TeamManagement = () => {
       alert("圖片上傳失敗");
       return;
     }
-  
+
     const playersToSave = {};
     values.players.forEach((playerData, id) => {
       const playerName = playerData.PName.trim();
@@ -156,7 +156,7 @@ export const TeamManagement = () => {
         };
       }
     });
-  
+
     try {
       // 将团队文档添加到Firestore
       const newTeamDocRef = await addDoc(collection(firestore, "team"), {
@@ -166,10 +166,10 @@ export const TeamManagement = () => {
         photo: photoURL,
         players: playersToSave,
       });
-  
+
       const newTeamId = newTeamDocRef.id;
       console.log("团队添加成功，ID:", newTeamId);
-  
+
       // 使用团队信息更新用户文档
       try {
         // 獲取用戶文檔的引用
@@ -181,7 +181,7 @@ export const TeamManagement = () => {
           const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
           // 將新隊伍名稱推送到陣列中
           userTeamArray.push(values.codeName);
-  
+
           try {
             // 使用Array的方式更新用戶文檔的u_team字段
             await updateDoc(userRef, { u_team: userTeamArray });
@@ -207,8 +207,8 @@ export const TeamManagement = () => {
       setDialogMessage("球對新增失敗！");
       setOpenDialog(true);
     }
-  };  
-  
+  };
+
 
 
 
@@ -252,12 +252,12 @@ export const TeamManagement = () => {
   return (
     <div>
       <Container maxWidth="lg" sx={{ my: 4, mx: "auto" }}>
-      <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1 }}>
           <Grid container spacing={2} justifyContent="center">
             <Grid item xs={12} sm={6} md={4}>
-              <Card>
+              <Card style={{ height: '100%' }}> {/* or you can use a specific value like '500px' */}
                 <CardContent>
-                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column" }}>
+                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column", height:"150px"}}>
                     {previewUrl && (
                       <img
                         src={previewUrl}
@@ -268,7 +268,7 @@ export const TeamManagement = () => {
                   </Box>
                 </CardContent>
                 <Divider />
-                <CardActions>
+                <CardActions style={{ marginBottom: 'auto' }}>
                   <input
                     type="file"
                     onChange={handleFileChange}
@@ -281,6 +281,7 @@ export const TeamManagement = () => {
                 </CardActions>
               </Card>
             </Grid>
+
             <Grid item xs={12} sm={6} md={8}>
               <Card sx={{ p: 0 }}>
                 <CardHeader />

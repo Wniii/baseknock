@@ -10,7 +10,7 @@ import {
   MenuItem,
   Select,
   Typography,
-  Divider, 
+  Divider,
 } from '@mui/material';
 import { collection, getDocs } from "firebase/firestore";
 import { firestore } from 'src/pages/firebase'; // 确保路径与您的配置文件相匹配
@@ -42,10 +42,17 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
   useEffect(() => {
     const fetchTeamsAndPlayers = async () => {
       try {
+        const userTeamString = localStorage.getItem('userTeam');
+        const userTeamCodeNames = userTeamString ? userTeamString.split(',') : [];
+
         const teamsCollectionRef = collection(firestore, "team");
         const teamsSnapshot = await getDocs(teamsCollectionRef);
         const teamsData = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setTeams(teamsData);
+
+        const filteredTeams = teamsData.filter(team => userTeamCodeNames.includes(team.codeName));
+
+        setTeams(filteredTeams);
+        //setTeams(teamsData);
 
         if (selectedTeam) {
           const teamData = teamsData.find(team => team.id === selectedTeam);
@@ -72,13 +79,13 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
     const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
     console.log(gamesRef)
     const gamesSnapshot = await getDocs(gamesRef);
-    console.log("dff",gamesSnapshot)
+    console.log("dff", gamesSnapshot)
     const games = [];
 
     gamesSnapshot.forEach(doc => {
       const game = doc.data();
       console.log('Gada:', game); // 打印遊戲數據
-      const isPlayerIncluded = 
+      const isPlayerIncluded =
         (Array.isArray(game.ordermain) && game.ordermain.some(entry => entry.p_name === playerName)) ||
         (Array.isArray(game.orderoppo) && game.orderoppo.some(entry => entry.o_p_name === playerName));
       console.log('Is player included:', isPlayerIncluded); // 打印球員是否包含在比賽中
@@ -95,7 +102,7 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
 
     console.log('Gamesds:', games); // 打印所有比賽數據
     setGameRecords(games);
-};
+  };
 
 
   // 确认按钮处理函数
@@ -121,12 +128,13 @@ export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {
             ))}
           </Select>
         </FormControl>
+        
         {selectedTeam && (
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>球員</InputLabel>
             <Select
               value={selectedPlayer.id || ""}
-              label="球员"
+              label="球員"
               onChange={handlePlayerChange}
             >
               {players.map((player) => (

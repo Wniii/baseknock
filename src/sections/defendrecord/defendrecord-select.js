@@ -6,12 +6,16 @@ import {
   CardContent,
   Checkbox,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   FormControlLabel,
   TextField,
   Typography,
   Unstable_Grid2 as Grid
 } from '@mui/material';
-import { collection, getDocs, where, query } from "firebase/firestore"; 
+import { collection, getDocs, where, query } from "firebase/firestore";
 import { firestore } from 'src/pages/firebase'; // 確保路徑與您的配置文件相匹配
 
 export const DefendSelect = ({ onConfirm }) => {
@@ -102,7 +106,7 @@ export const DefendSelect = ({ onConfirm }) => {
           const querySnapshot = await getDocs(teamsQuery);
           const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setTeams(teamsData);
-          
+
           // 如果有預選隊伍，設置選中的隊伍
           if (teamsData.length > 0) {
             setSelectedTeam(teamsData[0].id); // 或其他邏輯來選擇特定隊伍
@@ -115,27 +119,25 @@ export const DefendSelect = ({ onConfirm }) => {
     fetchTeams();
   }, []);
 
-  
+
   return (
     <Card>
       <CardContent sx={{ pt: 2 }}>
         <Grid container spacing={5}>
           <Grid item xs={12} md={4}>
-          <TextField
-              fullWidth
-              label="球隊"
-              name="team"
-              onChange={handleTeamChange}
-              select
-              SelectProps={{ native: true }}
-              value={selectedTeam}
-            >
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.Name}
-                </option>
-              ))}
-            </TextField>
+            <FormControl fullWidth>
+              <InputLabel id="team-select-label">球隊</InputLabel>
+              <Select
+                labelId="team-select-label"
+                value={selectedTeam}
+                label="球隊"
+                onChange={handleTeamChange}
+              >
+                {teams.map((team) => (
+                  <MenuItem key={team.id} value={team.id}>{team.Name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
         <br />
@@ -145,20 +147,20 @@ export const DefendSelect = ({ onConfirm }) => {
               比賽性質
             </Typography>
             <Grid container spacing={1}>
-            {['友誼賽', '大專盃', '梅花盃'].map((gameTypeName, index) => (
-              <Grid item xs={4} key={index}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={selectedGameType.includes(gameTypeToGNameMapping[gameTypeName])}
-                      onChange={handleGameTypeChange(gameTypeName)}
-                      name={gameTypeName}
-                    />
-                  }
-                  label={gameTypeName}
-                />
-              </Grid>
-            ))}
+              {['友誼賽', '大專盃', '梅花盃'].map((gameTypeName, index) => (
+                <Grid item xs={4} key={index}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={selectedGameType.includes(gameTypeToGNameMapping[gameTypeName])}
+                        onChange={handleGameTypeChange(gameTypeName)}
+                        name={gameTypeName}
+                      />
+                    }
+                    label={gameTypeName}
+                  />
+                </Grid>
+              ))}
             </Grid>
           </Grid>
           <Grid item xs={12}>
