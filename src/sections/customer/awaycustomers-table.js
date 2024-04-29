@@ -146,10 +146,12 @@ export const AwayCustomersTable = (props) => {
 
                                 // 將每個攻擊者的內容添加到相應的列中
                                 orderOppoItems.forEach(orderOppoItem => {
-                                    if (orderOppoItem && orderOppoItem.o_inn >= 0) { // 假設 o_inn 是一個數字，且可能為0
-                                        contentArray[orderOppoItem.o_inn] = orderOppoItem.o_content || ""; // 使用正確的字段名
+                                    if (orderOppoItem && orderOppoItem.o_inn) {
+                                        const innContent = orderOppoItem.o_inn;
+                                        contentArray[innContent - 1] = orderOppoItem.o_content.split(',')[0]; // 使用正確的字段名
                                     }
                                 });
+
 
                                 // 根据 outs 数字计算按钮所在的列数
                                 let buttonRowFound = false;
@@ -196,26 +198,29 @@ export const AwayCustomersTable = (props) => {
                                         </TableCell>
                                         );
                                     }
-                                            if (!buttonPlaced && content === '') {
-                                                // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
-                                                if (buttonColumn === i + 1) {
-                                                    buttonPlaced = true;
-                                                    console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
-                                                    return (
-                                                        <TableCell key={i}>
-                                                            <Button
-                                                                variant="outlined"
-                                                                color="inherit"
-                                                                sx={{ height: '30px', padding: 0 }}
-                                                                type="button"
-                                                                onClick={() => handleClick(attack)}
-                                                            >
-                                                                <AddIcon />
-                                                            </Button>
-                                                        </TableCell>
-                                                    );
-                                                }
-                                            }
+                                    if (!buttonPlaced && content === '') {
+                                        // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
+                                        if (buttonColumn === i + 1) {
+                                            buttonPlaced = true;
+                                            console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
+                                            return (
+                                                <TableCell key={i}>
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="inherit"
+                                                        sx={{ height: '30px', padding: 0 }}
+                                                        type="button"
+                                                        onClick={() => handleClick(attack)}
+                                                    >
+                                                        <AddIcon />
+                                                    </Button>
+                                                </TableCell>
+                                            );
+                                        } else {
+                                            // 在 else 分支中返回一個空的 TableCell，以確保每一行都有相同數量的單元格
+                                            return <TableCell key={i} />;
+                                        }
+                                    };                                        
                                             // 显示内容
 
                                             
