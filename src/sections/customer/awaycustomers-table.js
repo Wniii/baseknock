@@ -120,23 +120,50 @@ export const AwayCustomersTable = (props) => {
                                 });
 
                                 // 根据 outs 数字计算按钮所在的列数
-                                let buttonColumn = -1;
-                                if (gameDocSnapshot && gameDocSnapshot.data()) {
-                                    const outs = gameDocSnapshot.data().outs || 0;
-                                    buttonColumn = Math.floor(outs / 3) + 1;
+                                let buttonRowFound = false;
+
+                                if (buttonRowFound) {
+                                return null;
                                 }
 
-
+                                // 根据 outs 数字计算按钮所在的列数
+                                let buttonColumn = -1;
+                                if (gameDocSnapshot && gameDocSnapshot.data()) {
+                                const outs = gameDocSnapshot.data().outs || 0;
+                                buttonColumn = Math.floor(outs / 6) + 1;
+                                }
                                 // 检查是否已经放置了按钮
-
+                                const hasContent = contentArray.some(content => content !== '');
 
                                 return (
-                                    <TableRow hover key={index}>
-                                        {/* 攻击者信息 */}
-                                        <TableCell>{attack}</TableCell>
-
-                                        {/* 根据当前列数决定是否显示内容或按钮 */}
-                                        {contentArray.map((content, i) => {
+                                <TableRow hover key={index}>
+                                    {/* 攻击者信息 */}
+                                    <TableCell>{attack}</TableCell>
+                                
+                                    {/* 根据当前列数决定是否显示内容或按钮 */}
+                                    {contentArray.map((content, i) => {
+                                    // 如果当前行有内容，则跳过该行
+                                    if (hasContent) {
+                                        return (
+                                        <TableCell key={i}>
+                                            {content && (
+                                            <div
+                                                style={{
+                                                height: '30px',
+                                                padding: 0,
+                                                backgroundColor: determineButtonProps(content, i).color, 
+                                                color: 'white',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                }}
+                                            >
+                                                {determineButtonProps(content, i).text} 
+                                            </div>
+                                            )}
+                                        </TableCell>
+                                        );
+                                    }
                                             if (!buttonPlaced && content === '') {
                                                 // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
                                                 if (buttonColumn === i + 1) {
