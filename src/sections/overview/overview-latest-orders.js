@@ -33,7 +33,6 @@ import ImageListItemBar from '@mui/material/ImageListItemBar';
 
 import Link from '@mui/material/Link';
 
-const preventDefault = (event) => event.preventDefault();
 
 
 const style = {
@@ -280,6 +279,8 @@ export const OverviewLatestOrders = () => {
 
   return (
 
+
+
     <div>
       <div style={{ textAlign: 'center', padding: '8px' }}>
         <Typography variant="h5" fontWeight="bold">{formattedDate}</Typography>
@@ -361,11 +362,12 @@ export const OverviewLatestOrders = () => {
         <Box
           sx={{
             typography: 'body1',
+            marginRight: '20px',
             '& > :not(style) ~ :not(style)': {
               ml: 2,
             },
           }}
-          onClick={preventDefault}
+
         >
           <Link href="/schedule">
             <Button
@@ -381,7 +383,6 @@ export const OverviewLatestOrders = () => {
               View more
             </Button>
           </Link>
-
         </Box>
       </CardActions>
 
@@ -389,28 +390,25 @@ export const OverviewLatestOrders = () => {
         <Typography variant="h6">YouTube Links</Typography>
       </div>
 
-      <Card sx={ytCardSx}>
-        {/* 設定外層容器以啟用橫向滾動 */}
-        <div style={{ overflowX: 'auto', width: '100%' }}>
-          <Scrollbar>
-            <ImageList sx={{ width: '100%', height: 600 }} cols={2}>
-              {youtubeLinks.map((link, index) => (
-                <ImageListItem key={index}>
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={link}
-                    title="YouTube video player"
-                    style={{ border: 'none' }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </ImageListItem>
-              ))}
-            </ImageList>
-          </Scrollbar>
+      <Card sx={{ ...ytCardSx, overflow: 'hidden' }}> {/* 確保滾動只發生在 X 軸 */}
+        <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto' }}>
+          {youtubeLinks.map((link, index) => (
+            <div key={index} style={{ flex: '0 0 auto', width: 'calc(50% - 10px)', margin: '5px' }}> {/* 確保每個元素只占一半寬度，並且不會伸縮 */}
+              <iframe
+                width="100%"
+                height="350" // 或者您可以設定成任何固定高度
+                src={link}
+                title={`YouTube video player ${index}`}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ))}
         </div>
       </Card>
+
+
+
 
     </div>
 
