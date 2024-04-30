@@ -43,6 +43,7 @@ const ALLPlayerPage = () => {
               const gamesSnapshot = await getDocs(gamesCollectionRef);
   
               const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
+              console.log('dsd',gameDoc)
               if (teamData.codeName === hcodeName && gameDoc) {
                   // 找到了符合条件的团队文档和游戏文档
                   console.log("Game document found:", gameDoc.data());
@@ -215,14 +216,14 @@ const navigatetodefence = (gameId, codeName) => {
           <div style={{ textAlign: 'center' }}>
           <Typography variant="h4" mb={4}>
             {teamname}
-            主隊攻擊隊
+            先發打序
           </Typography>
           </div>
           <Grid container spacing={1} justifyContent="center">
             {/* 左侧所有球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardHeader title="所有球员" />
+                <CardHeader title="所有球員" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
                     {Object.keys(players).map((playerKey) => (
@@ -261,9 +262,7 @@ const navigatetodefence = (gameId, codeName) => {
             {/* 中间的按钮 */}
             <Grid item xs={10} md={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ marginBottom: '10px' }}>
-                <Button variant="contained" color="primary" style={{ width: '200px', height: '50px' }}>
-                  自動填滿
-                </Button>
+                
               </div>
               <div style={{ marginBottom: '10px' }}>
                 <Button
@@ -272,7 +271,7 @@ const navigatetodefence = (gameId, codeName) => {
                   style={{ width: '200px', height: '50px' }}
                   onClick={() => setSelectedPlayers([])} // Clear selected players
                 >
-                  清除先发
+                  清除先發
                 </Button>
               </div>
               <div>
@@ -290,7 +289,7 @@ const navigatetodefence = (gameId, codeName) => {
                   onClick={() => handleSaveAndNavigate(codeName)}
                   style={{ width: '100px', height: '50px' }}
                 >
-                  储存
+                  儲存
                 </Button>
               </div>
             </Grid>
@@ -298,7 +297,7 @@ const navigatetodefence = (gameId, codeName) => {
             {/* 右侧先发球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardHeader title="先发球员" />
+                <CardHeader title="先發球員" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
   {selectedPlayers.map((playerKey, index) => (

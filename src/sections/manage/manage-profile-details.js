@@ -1,6 +1,4 @@
-// manage-profile-details.js
-
-import { useCallback, useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -10,122 +8,143 @@ import {
   CardHeader,
   Divider,
   TextField,
-  Unstable_Grid2 as Grid
-} from '@mui/material';
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-import { firestore } from "src/pages/firebase"; // 检查这个导入语句
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
-import firebase from 'firebase/app';
-import 'firebase/firestore';
+  Grid,
+  Typography,
+} from "@mui/material";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { firestore, storage } from "src/pages/firebase"; // Ensure these are correctly imported
+import { doc, updateDoc } from "firebase/firestore";
 
 export const ManageProfileDetails = ({ teamInfo }) => {
   const [values, setValues] = useState({
-    id: '',
-    Name: '',
-    codeName: '',
-    introduction: ''
+    id: "",
+    Name: "",
+    codeName: "",
+    introduction: "",
+    photo: "",
   });
+  const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    console.log('Received teamInfo:', teamInfo);
     if (teamInfo) {
-      console.log('Team ID:', teamInfo.id);
-      setValues({ ...teamInfo });
+      setValues({
+        id: teamInfo.id,
+        Name: teamInfo.Name,
+        codeName: teamInfo.codeName,
+        introduction: teamInfo.introduction,
+        photo: teamInfo.photo,
+      });
     }
   }, [teamInfo]);
 
-  const handleNameChange = (event) => {
-    setValues({ ...values, Name: event.target.value });
-  };
-
-  const handleIntroductionChange = (event) => {
-    setValues({ ...values, introduction: event.target.value });
-  };
-
-  const handleSave = async (event) => {
-    event.preventDefault();
-
-    try {
-      // 使用团队信息中的ID构建文档路径
-      const teamDocRef = doc(firestore, "team", values.id);
-      console.log(teamDocRef)
-      // 更新团队信息
-      await updateDoc(teamDocRef, {
-        Name: values.Name,
-        introduction: values.introduction
-      });
-
-      // 显示成功更新的提示框
-      alert("Team information updated successfully!");
-    } catch (error) {
-      // 如果出现错误，将错误信息记录到控制台并显示错误提示框
-      console.error("Error updating team information:", error);
-      alert("An error occurred while updating team information.");
+  const handleImageChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValues({ ...values, photo: reader.result });
+      };
+      reader.readAsDataURL(selectedFile);
     }
   };
 
+  const handleSave = async () => {
+    let photoURL = values.photo;
+
+    if (file) {
+      const storageRef = ref(storage, `teamImages/${file.name}`);
+      await uploadBytes(storageRef, file);
+      photoURL = await getDownloadURL(storageRef);
+    }
+
+    const updatedData = {
+      Name: values.Name,
+      introduction: values.introduction || '', // Ensure this is not undefined
+      photo: photoURL,
+    };
+
+    try {
+      const teamDocRef = doc(firestore, "team", values.id);
+      await updateDoc(teamDocRef, updatedData);
+      alert("Team information and photo updated successfully!");
+      window.location.reload();  // 刷新页面
+    } catch (error) {
+      console.error("Error updating team information and photo:", error);
+      alert("Failed to update team information and photo.");
+    }
+};
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Trigger the file upload and then handle saving the form data
+    await handleSave();
+  };
 
   return (
-    <form>
-      <div>
-        <Card>
-          <CardHeader />
-          <CardContent sx={{ pt: 0 }}>
-            <Box sx={{ m: -1.5 }}>
-              <Grid container spacing={2}>
-                <Grid xs={24} md={12}>
-                  <TextField
-                    fullWidth
-                    label="球隊ID"
-                    name="id"
-                    value={values.id}
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                    required
-                  />
-                </Grid>
-                <Grid xs={24} md={12}>
-                  <TextField
-                    fullWidth
-                    label="球隊名稱"
-                    name="Name"
-                    value={values.Name}
-                    onChange={handleNameChange}
-                    required
-                  />
-                </Grid>
-                <Grid xs={24} md={12}>
-                  <TextField
-                    fullWidth
-                    label="球隊代號"
-                    name="codeName"
-                    value={values.codeName}
-                    InputProps={{
-                      readOnly: true,
-                    }}
-                    required
-                  />
-                </Grid>
-                <Grid xs={24} md={12}>
-                  <TextField
-                    fullWidth
-                    label="球隊簡介"
-                    name="introduction"
-                    value={values.introduction}
-                    onChange={handleIntroductionChange}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </CardContent>
-          <CardActions style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start' }}>
-            <Button onClick={handleSave}>確認修改</Button>
-          </CardActions>
-
-        </Card>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <Card>
+        <CardHeader title="球隊資訊" />
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="球隊ID"
+                name="id"
+                value={values.id}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="球隊名稱"
+                name="Name"
+                value={values.Name}
+                onChange={(e) => setValues({ ...values, Name: e.target.value })}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+            <TextField
+                fullWidth
+                label="球隊代號"
+                name="id"
+                value={values.codeName}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="球隊簡介"
+                name="introduction"
+                value={values.introduction}
+                onChange={(e) =>
+                  setValues({ ...values, introduction: e.target.value })
+                }
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                hidden
+              />
+              {/* Removed the <img> tag */}
+            </Grid>
+          </Grid>
+        </CardContent>
+        <CardActions>
+          <Button type="submit" fullWidth variant="contained" color="primary">
+            確認修改
+          </Button>
+        </CardActions>
+      </Card>
     </form>
   );
 };
