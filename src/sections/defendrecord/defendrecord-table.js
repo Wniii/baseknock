@@ -20,6 +20,18 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playersData, setPlayersData] = useState([]);
 
+  const [teamTotals, setTeamTotals] = useState({
+    totalStrikes: 0,
+    totalBalls: 0,
+    totalGamesPlayed: 0,
+    totalGamesStarted: 0,
+    totalHits: 0,
+    totalWalks: 0,
+    totalStrikeouts: 0,
+    totalRunsBattedIn: 0,
+    // 其他總和數據
+  });
+
   let totalGamesCount = 0;
 
   const calculateHits = (gamesData, playerNames) => {
@@ -177,6 +189,36 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     fetchPlayersAndGamesData();
   }, [selectedTeam, selectedGameType]);
 
+  useEffect(() => {
+    let totals = {
+      totalStrikes: 0,
+      totalBalls: 0,
+      totalGamesPlayed: 0,
+      totalGamesStarted: 0,
+      totalHits: 0,
+      totalWalks: 0,
+      totalStrikeouts: 0,
+      totalRunsBattedIn: 0,
+    };
+
+    playersData.forEach(player => {
+      totals.totalStrikes += player.totalStrikes; //好球數
+      totals.totalBalls += player.totalBalls; //壞球數
+      totals.totalGamesPlayed += player.gamesPlayed; //出賽
+      totals.totalGamesStarted += player.gamesStarted; // 先發
+      totals.totalHits += player.totalHits; //安打
+      totals.totalWalks += player.totalWalks; //四壞
+      totals.totalStrikeouts += player.totalStrikeouts; //奪三振
+      totals.totalRunsBattedIn += player.runsBattedIn; //失分
+    });
+
+    totals.strikeBallRatio = totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
+
+
+    setTeamTotals(totals);
+  }, [playersData]);
+
+
   // 渲染組件
   return (
     <Card>
@@ -185,58 +227,79 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 }}>球員</TableCell>
+                <TableCell style={{ position: 'sticky', left: 0, zIndex: 1, fontSize: '1.0em' }}>球員</TableCell>
                 {selectedColumns.includes('好球數') && (
-                  <TableCell>好球數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>好球數</TableCell>
                 )}
                 {selectedColumns.includes('壞球數') && (
-                  <TableCell>壞球數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>壞球數</TableCell>
                 )}
                 {selectedColumns.includes('ERA') && (
-                  <TableCell>ERA</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>ERA</TableCell>
                 )}
                 {selectedColumns.includes('先發') && (
-                      <TableCell>先發</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>先發</TableCell>
                 )}
                 {selectedColumns.includes('出賽') && (
-                  <TableCell>出賽</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>出賽</TableCell>
                 )}
                 {selectedColumns.includes('局數') && (
-                  <TableCell>局數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>局數</TableCell>
                 )}
                 {selectedColumns.includes('安打') && (
-                  <TableCell>安打</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>安打</TableCell>
                 )}
                 {selectedColumns.includes('失分') && (
-                  <TableCell>失分</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>失分</TableCell>
                 )}
                 {selectedColumns.includes('球數') && (
-                  <TableCell>球數</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>球數</TableCell>
                 )}
                 {selectedColumns.includes('四壞') && (
-                  <TableCell>四壞</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>四壞</TableCell>
                 )}
                 {selectedColumns.includes('奪三振') && (
-                  <TableCell>奪三振</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>奪三振</TableCell>
                 )}
                 {selectedColumns.includes('WHIP') && (
-                  <TableCell>WHIP</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>WHIP</TableCell>
                 )}
                 {selectedColumns.includes('好壞球比') && (
-                  <TableCell>好壞球比</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>好壞球比</TableCell>
                 )}
                 {selectedColumns.includes('每局耗球') && (
-                  <TableCell>每局耗球</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>每局耗球</TableCell>
                 )}
                 {selectedColumns.includes('K/9') && (
-                  <TableCell>K/9</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>K/9</TableCell>
                 )}
                 {selectedColumns.includes('BB/9') && (
-                  <TableCell>BB/9</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>BB/9</TableCell>
                 )}
                 {selectedColumns.includes('H/9') && (
-                  <TableCell>H/9</TableCell>
+                  <TableCell style={{ fontSize: '1.0em' }}>H/9</TableCell>
                 )}
+              </TableRow>
+              <TableRow>
+              <TableCell style={{ position: 'sticky', left: 0, zIndex: 1 ,fontSize: '1.0em'}}>團隊成績</TableCell>
+
+                {selectedColumns.includes('好球數') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalStrikes}</TableCell>}
+                {selectedColumns.includes('壞球數') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalBalls}</TableCell>}
+                {selectedColumns.includes('ERA') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('先發') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalGamesStarted}</TableCell>}
+                {selectedColumns.includes('出賽') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalGamesPlayed}</TableCell>}
+                {selectedColumns.includes('局數') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('安打') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalHits}</TableCell>}
+                {selectedColumns.includes('失分') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalRunsBattedIn}</TableCell>}
+                {selectedColumns.includes('球數') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('四壞') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalWalks}</TableCell>}
+                {selectedColumns.includes('奪三振') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.totalStrikeouts}</TableCell>}
+                {selectedColumns.includes('WHIP') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('好壞球比') && <TableCell style={{ fontSize: '1.0em' }}>{teamTotals.strikeBallRatio}</TableCell>}
+                {selectedColumns.includes('每局耗球') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('K/9') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('BB/9') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
+                {selectedColumns.includes('H/9') && <TableCell style={{ fontSize: '1.0em' }}></TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
