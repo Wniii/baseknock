@@ -86,13 +86,13 @@ export const ManageProfileDetails = ({ teamInfo }) => {
   return (
     <form onSubmit={handleSubmit}>
       <Card>
-        <CardHeader title="Team Details" />
+        <CardHeader title="球隊資訊" />
         <CardContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Team ID"
+                label="球隊ID"
                 name="id"
                 value={values.id}
                 InputProps={{ readOnly: true }}
@@ -101,7 +101,7 @@ export const ManageProfileDetails = ({ teamInfo }) => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Team Name"
+                label="球隊名稱"
                 name="Name"
                 value={values.Name}
                 onChange={(e) => setValues({ ...values, Name: e.target.value })}
@@ -109,9 +109,18 @@ export const ManageProfileDetails = ({ teamInfo }) => {
               />
             </Grid>
             <Grid item xs={12} md={6}>
+            <TextField
+                fullWidth
+                label="球隊代號"
+                name="id"
+                value={values.codeName}
+                InputProps={{ readOnly: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Team Introduction"
+                label="球隊簡介"
                 name="introduction"
                 value={values.introduction}
                 onChange={(e) =>
@@ -132,7 +141,7 @@ export const ManageProfileDetails = ({ teamInfo }) => {
         </CardContent>
         <CardActions>
           <Button type="submit" fullWidth variant="contained" color="primary">
-            Confirm Changes
+            確認修改
           </Button>
         </CardActions>
       </Card>

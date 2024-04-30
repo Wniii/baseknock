@@ -89,7 +89,7 @@ export const ManageProfile = ({ selectedTeam, onImageSelect }) => {
                   ref={fileInputRef}
                 />
                 <Button fullWidth variant="text" onClick={() => fileInputRef.current.click()}>
-                  Choose Photo
+                  修改圖片
                 </Button>
               </CardActions>
             </Card>
