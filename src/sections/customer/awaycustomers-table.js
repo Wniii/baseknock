@@ -113,6 +113,8 @@ export const AwayCustomersTable = (props) => {
             }
         });
     };
+
+  
     // 函数来确定应该放置按钮的列数
     let buttonPlaced = false;
     let allPlayersHaveContent = false;
@@ -183,20 +185,18 @@ export const AwayCustomersTable = (props) => {
                           const buttonProps = determineButtonProps(content, i);
                           return (
                             <TableCell key={i}>
-                              <div
-                                style={{
-                                  height: '30px',
-                                  padding: 0,
-                                  backgroundColor: buttonProps.color,
-                                  color: 'white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                              >
-                                {buttonProps.text}
-                              </div>
-                            </TableCell>
+                            <Button
+                              variant="contained"
+                              style={{
+                                height: '30px',
+                                backgroundColor: buttonProps.color,
+                                color: 'white',
+                              }}
+                              onClick={() => handleClick(attack)}
+                            >
+                              {buttonProps.text}
+                            </Button>
+                          </TableCell>
                           );
                         }
     
