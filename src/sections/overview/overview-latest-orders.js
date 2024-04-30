@@ -48,7 +48,7 @@ const todayCardSx = {
   backgroundColor: '#d3d3d3',
   padding: '4px',
   //borderRadius: '4px',
-  height: '100px',
+  height: 'auto',
   width: '95%',
   margin: 'auto',
   display: 'flex',
@@ -59,7 +59,7 @@ const todayCardSx = {
 const contentCardSx = {
   backgroundColor: '#d3d3d3',
   padding: '4px',
-  height: '100px',
+  height: 'auto',
   //borderRadius: '4px',
   width: '95%',
   margin: 'auto',
