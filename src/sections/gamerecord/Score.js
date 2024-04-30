@@ -1,9 +1,7 @@
-import { format } from 'date-fns';
 import React, { useState, useEffect } from 'react';
 import { collection, getDoc, doc } from "firebase/firestore";
 import { firestore } from '../../pages/firebase';
 import PropTypes from 'prop-types';
-import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import { useRouter } from 'next/router';
 
 import {
@@ -22,7 +20,7 @@ import {
   TableRow
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from 'src/components/severity-pill';
+
 
 const statusMap = {
   pending: 'warning',
@@ -43,6 +41,21 @@ const calculateRbi = (ordermain) => {
   return rbiTotalByInn;
 };
 
+const calculateAwayRbi = (orderoppo) => {
+  const AwayrbiTotalByInn = {};
+  orderoppo.forEach((order) => {
+    const o_inn = order.o_inn.toString(); // 将数字转换为字符串
+    const o_rbi = order.o_rbi || 0;
+    if (!AwayrbiTotalByInn[o_inn]) { // 修正此处的变量名
+      AwayrbiTotalByInn[o_inn] = 0;
+    }
+    AwayrbiTotalByInn[o_inn] += o_rbi; // 修正此处的变量名
+    console.log('away score:', AwayrbiTotalByInn)
+  });
+  return AwayrbiTotalByInn;
+};
+
+
 export const Score = (props) => {
   const {
     teamId,
@@ -54,25 +67,60 @@ export const Score = (props) => {
   const [hometeam, sethometeam] = useState([]);
   const [awayteam, setawayteam] = useState([]);
   const [ordermain, setordermain] = useState([]);
-  const [rbiTotalByInn, setRbiTotalByInn] = useState({}); // 使用 useState 保存 rbiTotalByInn
+  const [orderoppo, setorderoppo] = useState([]);
+  const [rbiTotalByInn, setRbiTotalByInn] = useState({});
+  const [AwayrbiTotalByInn, setAwayRbiTotalByInn] = useState({}); // 使用 useState 保存 rbiTotalByInn
+  const [hitTotal, setHitTotal] = useState(0);
+  const [awayHitTotal, setAwayHitTotal] = useState(0);
+
+  const calculateHit = (ordermain) => {
+    let hitCount = 0;
+    ordermain.forEach((order) => {
+      if (["一安", "二安", "三安", "全打"].includes(order.content)) {
+        hitCount += 1;
+      }
+    });
+    return hitCount;
+  };
+
+  const calculateAwayHit = (orderoppo) => {
+    let awayHitCount = 0;
+    orderoppo.forEach((order) => {
+      if (["一安", "二安", "三安", "全打"].includes(order.content)) {
+        awayHitCount += 1;
+      }
+    });
+    return awayHitCount;
+  };
+
 
   useEffect(() => {
     fetchGames();
   }, [codeName, timestamp, teamId]); // 当codeName、timestamp、teamId 发生变化时重新获取数据
+  useEffect(() => {
+    if (ordermain.length > 0) {
+      const totalHits = calculateHit(ordermain);
+      setHitTotal(totalHits);
+    }
+    if (orderoppo.length > 0) {
+      const totalAwayHits = calculateAwayHit(orderoppo);
+      setAwayHitTotal(totalAwayHits);
+    }
+  }, [ordermain, orderoppo]);
 
   const fetchGames = async () => {
     if (!teamId || !timestamp) {
       return; // 如果没有提供团队文档ID或游戏文档ID，直接返回
     }
 
-    console.log('Fetching games...');
+    // console.log('Fetching games...');
 
     try {
       // 获取指定团队文档
       const teamDocSnapshot = await getDoc(doc(firestore, "team", teamId));
 
       if (teamDocSnapshot.exists()) {
-        console.log("Team document ID:", teamId);
+        // console.log("Team document ID:", teamId);
 
         // 获取指定团队文档中的游戏子集合
         const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
@@ -81,18 +129,22 @@ export const Score = (props) => {
         const gameDocSnapshot = await getDoc(doc(gamesCollectionRef, timestamp));
 
         if (gameDocSnapshot.exists()) {
-          console.log("Game document ID:", timestamp);
-          console.log("Game data:", gameDocSnapshot.data());
+          // console.log("Game document ID:", timestamp);
+          // console.log("Game data:", gameDocSnapshot.data());
 
           // 更新状态
           sethometeam(gameDocSnapshot.data().hometeam || []);
           setawayteam(gameDocSnapshot.data().awayteam || []);
           setordermain(gameDocSnapshot.data().ordermain || []);
-          
+          setorderoppo(gameDocSnapshot.data().orderoppo || []);
+
           // 计算 RBI 并设置状态
           const rbiTotal = calculateRbi(gameDocSnapshot.data().ordermain || []);
           setRbiTotalByInn(rbiTotal);
-          console.log("wd",rbiTotal)
+
+          const AwayrbiTotal = calculateAwayRbi(gameDocSnapshot.data().orderoppo || []);
+          setAwayRbiTotalByInn(AwayrbiTotal);
+          // console.log("wd",rbiTotal)
         } else {
           console.log("No matching game document with ID:", timestamp);
         }
@@ -118,25 +170,32 @@ export const Score = (props) => {
                 <TableCell></TableCell>
                 <TableCell>R</TableCell>
                 <TableCell>H</TableCell>
-                <TableCell>E</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {[
-                { teamName: hometeam, scores: [] },
-                { teamName: awayteam, scores: [] }
+                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal },
+                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal }
               ].map((team, rowIndex) => (
                 <TableRow key={rowIndex} hover>
                   <TableCell>{team.teamName}</TableCell>
                   {[...Array(9)].map((_, colIndex) => {
-                    const inn = (colIndex + 1).toString(); // 转换为字符串
-                    const rbiTotal = rbiTotalByInn[inn] || 0;
+                    const inn = (colIndex + 1).toString();
+                    const rbiTotal = team.rbiTotals[inn] || 0;
                     return <TableCell key={colIndex}>{rbiTotal}</TableCell>;
                   })}
                   <TableCell></TableCell>
+                  <TableCell>
+                    {Object.values(team.rbiTotals).reduce((a, b) => a + b, 0)}
+                  </TableCell>
+                  <TableCell>
+                    {team.hitTotals}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
+
+
           </Table>
         </Box>
       </Scrollbar>

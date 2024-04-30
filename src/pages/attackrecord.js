@@ -772,7 +772,7 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleCheckboxChange('雙殺')
-                                handleOutChange('雙殺');
+                                handleOutChange(2,'雙殺');
                               }
                               }
                             >
@@ -955,11 +955,9 @@ const Page = () => {
                       }}>
                         儲存
                       </Button>
-                      <Snackbar open={alertInfo.open} autoHideDuration={6000} onClose={() => setAlertInfo({ ...alertInfo, open: false })}>
                         <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
                           {alertInfo.message}
                         </Alert>
-                      </Snackbar>
                     </DialogActions>
                   </Dialog>
                 </CardContent>
@@ -974,7 +972,7 @@ const Page = () => {
             >
               儲存
             </Button>
-            <Snackbar open={alertInfo.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+            <Snackbar>
               <Alert onClose={handleCloseSnackbar} severity={alertInfo.severity} sx={{ width: '100%' }}>
                 {alertInfo.message}
               </Alert>

@@ -17,6 +17,8 @@ const Page = () => {
   const { codeName, timestamp, teamId } = router.query; // 从路由参数获取值
   const [outs, setOuts] = useState(0);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
+  const [gameData, setGameData] = useState(null);
+
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -49,6 +51,13 @@ const Page = () => {
             const gameData = gameDocSnapshot.data();
             const newOuts = gameData.outs || 0; // 确保 outs 有个默认值
             setOuts(newOuts); // 更新状态
+          }
+          if (gameDocSnapshot.exists()) {
+            console.log("Game document ID:", timestamp);
+            console.log("Game data:", gameDocSnapshot.data());
+            const gameData = gameDocSnapshot.data();
+            setGameData(gameData); // 保存游戏数据状态
+            // ...其他代码
           } else {
             console.log("No matching game document with ID:", timestamp);
           }
@@ -62,6 +71,21 @@ const Page = () => {
 
     fetchGames();
   }, [teamId, timestamp]);
+
+
+
+  const getGameTypeName = (gName) => {
+    switch (gName) {
+      case 'ubl':
+        return '大專盃';
+      case 'friendly':
+        return '友誼賽';
+      case 'mei':
+        return '梅花旗';
+      default:
+        return '未知比賽'; // 如果 gName 不是已知值時顯示
+    }
+  };
 
 
 
@@ -114,7 +138,7 @@ const Page = () => {
     const rangeIndex = Math.floor(Number(outs) / 3) % 2;
     return rangeIndex === 0 ? "客隊" : "主隊";
   }, [outs]);
-  
+
 
 
 
@@ -191,7 +215,7 @@ const Page = () => {
                     fontWeight="bold"
                     color="#005AB5"
                   >
-                    比賽性質
+                    {gameData ? getGameTypeName(gameData.gName) : '正在加載...'}
                   </Typography>
                 </Box>
               </div>
@@ -214,8 +238,17 @@ const Page = () => {
                     fontWeight="bold"
                     color="#005AB5"
                   >
-                    比賽日期
+                    {
+                      gameData && gameData.GDate
+                        ? new Date(gameData.GDate.seconds * 1000).toLocaleDateString('zh-TW', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        })
+                        : '正在加載...'
+                    }
                   </Typography>
+
                 </Box>
               </div>
             </div>
