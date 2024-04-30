@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState, useEffect } from 'react'; // Import useState and useEffect
+import { useState, useEffect, useMemo } from 'react'; // Import useState and useEffect
 import {
     Box, Container, Stack, Typography, Button, CardActions, Snackbar,
     Alert, Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
@@ -61,10 +61,13 @@ const Page = () => {
     const [balls, setBalls] = useState([false, false, false]);
     const [strikes, setStrikes] = useState([false, false]);
     const [outs, setOuts] = useState(0);
+    const [oldouts, setoldouts] = useState(0);
     const [currentInning, setCurrentInning] = useState(0);
     const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
     const [values, setValues] = useState({ hometeam: '', awayteam: '' });
     const [innOuts, setInnOuts] = useState(0);
+    const [previousOuts, setPreviousOuts] = useState(outs);
+    const [isActive, setIsActive] = useState(false); // 用于跟踪按钮是否处于激
 
 
 
@@ -104,6 +107,7 @@ const Page = () => {
                             console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
                             if (gameData.outs) {
                                 setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
+                                setoldouts(gameData.outs || 0);
                                 console.log('Initial Outs:', gameData.outs || 0);
                             }
                             if (gameSnap.exists()) {
@@ -112,6 +116,7 @@ const Page = () => {
                                 setCurrentBattingOrder(gameData.orderoppo.length % 9 + 1);
                                 // 計算局數和上下半局
                                 const outs = gameData.outs || 0;
+                                const oldouts = gameData.outs || 0;
                                 const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
 
@@ -147,6 +152,22 @@ const Page = () => {
 
 
 
+    const handleToggle = (hitType) => {
+        if (isActive) {
+            console.log("取消操作");
+            undoOutChange(); 
+        } else {
+            console.log("执行操作");
+            // 如果未激活，执行所需的函数
+            handleCheckboxChange(hitType);
+            handleOutChange(hitType);
+            handleInnOutsChange(hitType);
+        }
+        setIsActive(!isActive); // 切换激活状态
+    };
+    const undoOutChange = () => {
+      setOuts(previousOuts); // 恢复到之前的状态
+    };
     const handleSubmit = useCallback((event) => {
         event.preventDefault();
     }, []);
@@ -359,6 +380,7 @@ const Page = () => {
     }
 
     const handleOutChange = (baseOuts, hitType = null) => {
+        setPreviousOuts(outs); // 保存当前状态
         let additionalOuts = 1; // 預設增加一個出局
         if (hitType === "雙殺") {
             additionalOuts = 2; // 如果是雙殺，增加兩個出局
@@ -383,29 +405,34 @@ const Page = () => {
         });
     };
 
-    const renderOutsCheckboxes = () => {
-        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
-        return [...Array(3)].map((_, index) => (
-            <FormControlLabel
-                key={index}
-                control={
-                    <Checkbox
-                        checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
-                        color="primary"
-                        readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
-                    />
-                }
-                label="" // 沒有標籤
-            />
-        ));
-    };
+    function OutCheckboxes({ outs }) {
+        return [...Array(3)].map((_, index) => {
+            const remainder = oldouts % 3; // 計算 outs 除以 3 的餘數
+            return (
+                <FormControlLabel
+                    key={index}
+                    control={
+                        <Checkbox
+                            checked={index < remainder}
+                            color="primary"
+                            readOnly
+                        />
+                    }
+                    label="" // 没有标签
+                />
+            );
+        });
+    }
+    
+
+    
 
     const handleInnOutsChange = (hitType, baseOuts) => {
         let hitouts = 0;
         let baseinn = 0;
         console.log('hitType:', hitType, 'baseOuts:', baseOuts)
         // 根據打擊類型判斷出局數
-        if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
+        if (hitType === '三振' || hitType === ' 飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
             hitouts = 1;
         } else if (hitType === '雙殺') {
             hitouts = 2;
@@ -543,8 +570,11 @@ const Page = () => {
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '250px' }}>
                                                         <Typography variant='h5'>O</Typography>
-                                                        {renderOutsCheckboxes()}
+                                                        {OutCheckboxes(outs)}
+                                                        {console.log("c",outs)}
+                                                        
                                                     </div>
+                                                    
 
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
                                                         <Typography variant='body1'>
@@ -714,7 +744,7 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('三振');
-                                                                handleOutChange('三振');
+                                                                handleToggle('三振');
                                                                 handleBallTypeChange(strikes, 'strike', '三振');
                                                                 handleInnOutsChange('三振', 0);
                                                             }
@@ -731,7 +761,7 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('飛球')
-                                                                handleOutChange('飛球');
+                                                                handleToggle('飛球');
                                                                 handleInnOutsChange('飛球', 0);
                                                             }
                                                             }
@@ -747,7 +777,7 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('滾地')
-                                                                handleOutChange('滾地');
+                                                                handleToggle('滾地');
                                                                 handleInnOutsChange('滾地');
                                                             }
                                                             }
@@ -786,7 +816,7 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('野選')
-                                                                handleOutChange('野選')
+                                                                handleToggle('野選');
                                                                 handleInnOutsChange('野選');
                                                             }
                                                             }
@@ -802,7 +832,7 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('雙殺')
-                                                                handleOutChange(2, '雙殺');
+                                                                handleToggle(2, '雙殺');
                                                                 handleInnOutsChange('雙殺');
                                                             }
                                                             }
@@ -869,7 +899,7 @@ const Page = () => {
                                                             color='info'
                                                             onClick={() => {
                                                                 handleCheckboxChange('犧飛')
-                                                                handleOutChange('犧飛');
+                                                                handleToggle('犧飛');
                                                                 handleInnOutsChange('犧飛');
                                                             }}
                                                         >
@@ -884,7 +914,7 @@ const Page = () => {
                                                             color='info'
                                                             onClick={() => {
                                                                 handleCheckboxChange('犧觸')
-                                                                handleOutChange('犧觸');
+                                                                handleToggle('犧觸');
                                                                 handleInnOutsChange('犧觸');
                                                             }
                                                             }

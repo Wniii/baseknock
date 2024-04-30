@@ -56,6 +56,7 @@ export const AwayCustomersTable = (props) => {
     const [orderoppo, setorderoppo] = useState([]);
     const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
     const [displayedButton, setDisplayedButton] = useState(false);
+    const [lastValidIndex, setOderoppoLengthMinusOne] = useState(false);
     const router = useRouter(); // 初始化router
 
     useEffect(() => {
@@ -85,8 +86,15 @@ export const AwayCustomersTable = (props) => {
                 if (gameDocSnapshot.exists()) {
                     //   console.log("Game document ID:", timestamp);
                     //   console.log("Game data:", gameDocSnapshot.data());
-
+                    const gameData = gameDocSnapshot.data();
+                      const oderoppoLength = gameData.orderoppo.length;
+                      const lastValidIndex = oderoppoLength - 1;
+  
+                      console.log('Length of ordermain array:', oderoppoLength);
+                      console.log('Last valid index of ordermain array:', oderoppoLength - 1);
+                  
                     // 更新状态
+                    setOderoppoLengthMinusOne(lastValidIndex);
                     setAwayAttackListData(gameDocSnapshot.data().awayattacklist || []);
                     setorderoppo(gameDocSnapshot.data().orderoppo || []);
                     setGameDocSnapshot(gameDocSnapshot);
@@ -113,139 +121,115 @@ export const AwayCustomersTable = (props) => {
             }
         });
     };
+   // 初始化按鈕放置的行數
+let buttonRow = -1;
 
-  
-    // 函数来确定应该放置按钮的列数
-    let buttonPlaced = false;
-    let allPlayersHaveContent = false;
-    
-    return (
-      <Card>
-        <Scrollbar>
-          <Box sx={{ minWidth: 800 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>打者</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>2</TableCell>
-                  <TableCell>3</TableCell>
-                  <TableCell>4</TableCell>
-                  <TableCell>5</TableCell>
-                  <TableCell>6</TableCell>
-                  <TableCell>7</TableCell>
-                  <TableCell>8</TableCell>
-                  <TableCell>9</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {awayattackListData.map((attack, index) => {
-                  // 在 orderoppo 中查找具有相同 o_p_name 的对象
-                  const orderOppoItems = orderoppo.filter(item => item.o_p_name === attack);
-    
-                  // 初始化存放内容的数组
-                  const contentArray = new Array(9).fill('');
-    
-                  // 將每個攻擊者的內容添加到相應的列中
-                  orderOppoItems.forEach(orderOppoItem => {
-                    if (orderOppoItem && orderOppoItem.o_inn) {
-                      const innContent = orderOppoItem.o_inn;
-                      contentArray[innContent - 1] = orderOppoItem.o_content.split(',')[0]; // 使用正確的字段名
-                    }
-                  });
-    
-                  // 根据 outs 数字计算按钮所在的列数
-                  let buttonColumn = -1;
-                  if (gameDocSnapshot && gameDocSnapshot.data()) {
-                    const outs = gameDocSnapshot.data().outs || 0;
-                    buttonColumn = Math.floor(outs / 6) + 1;
-                  }
-    
-                  // 检查是否已经放置了按钮
-                  const hasContent = contentArray.some(content => content !== '');
-    
-                  // 检查是否所有球员都有内容
-                  allPlayersHaveContent = allPlayersHaveContent && hasContent;
-    
-                  // 如果所有球员都有内容，则重置按钮状态
-                  if (allPlayersHaveContent) {
-                    buttonPlaced = false;
-                    allPlayersHaveContent = false;
-                  }
-    
-                  return (
-                    <TableRow hover key={index}>
-                      {/* 攻击者信息 */}
-                      <TableCell>{attack}</TableCell>
+// 在迴圈外計算按鈕的行數和按鈕的列數
+let buttonColumn = -1;
+if (gameDocSnapshot && gameDocSnapshot.data()) {
+  const outs = gameDocSnapshot.data().outs || 0;
+  buttonColumn = Math.floor(outs / 6) + 1;
+
+  // 計算按鈕應該放置的行數
+  const remainder = (lastValidIndex % 9)+1;
+  console.log("s",remainder)
+  buttonRow = remainder;
+
+}
+return (
+  <Card>
+    <Scrollbar>
+      <Box sx={{ minWidth: 800 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>打者</TableCell>
+              <TableCell>1</TableCell>
+              <TableCell>2</TableCell>
+              <TableCell>3</TableCell>
+              <TableCell>4</TableCell>
+              <TableCell>5</TableCell>
+              <TableCell>6</TableCell>
+              <TableCell>7</TableCell>
+              <TableCell>8</TableCell>
+              <TableCell>9</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {awayattackListData.map((attack, index) => {
+              const orderOppoItems = orderoppo.filter((item) => item.o_p_name === attack);
+              const contentArray = new Array(9).fill('');
+
+              orderOppoItems.forEach((orderOppoItem) => {
+                if (orderOppoItem && orderOppoItem.o_inn) {
+                  const innContent = orderOppoItem.o_inn;
+                  contentArray[innContent - 1] = orderOppoItem.o_content.split(',')[0];
+                }
+              });
+
+              return (
+                <TableRow hover key={index}>
+                  <TableCell>{attack}</TableCell>
+                  {contentArray.map((content, i) => {
+                    if (content) {
+                      const buttonProps = determineButtonProps(content, i);
+                      return (
+                        <TableCell key={i}>
+                          <Button
+                            variant="contained"
+                            style={{
+                              height: '30px',
+                              backgroundColor: buttonProps.color,
+                              color: 'white',
+                            }}
+                            onClick={() => handleClick(attack)}
+                          >
+                            {buttonProps.text}
+                          </Button>
+                        </TableCell>
+                      );
+                    } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+                      // 確保只在未放置按鈕且當前列沒有內容時放置按鈕
+                      console.log("Button key:", i); // 添加這行以輸出按鈕的 key
                     
-                      {/* 根据当前列数决定是否显示内容或按钮 */}
-                      {contentArray.map((content, i) => {
-                        // 如果当前行有内容，则直接显示内容
-                        if (content) {
-                          const buttonProps = determineButtonProps(content, i);
-                          return (
-                            <TableCell key={i}>
-                            <Button
-                              variant="contained"
-                              style={{
-                                height: '30px',
-                                backgroundColor: buttonProps.color,
-                                color: 'white',
-                              }}
-                              onClick={() => handleClick(attack)}
-                            >
-                              {buttonProps.text}
-                            </Button>
-                          </TableCell>
-                          );
-                        }
+                      return (
+                        <TableCell key={i}>
+                          <Button
+                            variant="outlined"
+                            color="inherit"
+                            sx={{ height: '30px', padding: 0 }}
+                            type="button"
+                            onClick={() => handleClick(attack)}
+                          >
+                            <AddIcon />
+                          </Button>
+                        </TableCell>
+                      );
+                    } else {
+                      // 其他情況下返回空的 TableCell
+                      return <TableCell key={i}></TableCell>;
+                    }
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Box>
+    </Scrollbar>
+    <TablePagination
+      component="div"
+      count={count}
+      onPageChange={onPageChange}
+      onRowsPerPageChange={onRowsPerPageChange}
+      page={page}
+      rowsPerPage={rowsPerPage}
+      rowsPerPageOptions={[5, 10, 25]}
+    />
+  </Card>
+);
+
     
-                        // 如果当前行没有内容，并且没有放置按钮，则尝试放置按钮
-                        if (!buttonPlaced && content === '') {
-                          // 如果是第一个没有放置内容的球员，并且按钮未被放置，则放置按钮
-                          if (buttonColumn === i + 1) {
-                            buttonPlaced = true;
-                            console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
-                            return (
-                              <TableCell key={i}>
-                                <Button
-                                  variant="outlined"
-                                  color="inherit"
-                                  sx={{ height: '30px', padding: 0 }}
-                                  type="button"
-                                  onClick={() => handleClick(attack)}
-                                >
-                                  <AddIcon />
-                                </Button>
-                              </TableCell>
-                            );
-                          } else {
-                            // 在 else 分支中返回一个空的 TableCell，以确保每一行都有相同数量的单元格
-                            return <TableCell key={i} />;
-                          }
-                        }
-                        
-                        // 如果当前行没有内容，但还未找到适合放置按钮的行，则显示空单元格
-                        return <TableCell key={i}></TableCell>;
-                      })}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </Box>
-        </Scrollbar>
-        <TablePagination
-          component="div"
-          count={count}
-          onPageChange={onPageChange}
-          onRowsPerPageChange={onRowsPerPageChange}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[5, 10, 25]}
-        />
-      </Card>
-    );
     
 };
 
