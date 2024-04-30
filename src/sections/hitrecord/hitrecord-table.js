@@ -141,29 +141,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   }, [selectedTeam, selectedGameTypes]);
   
 
-  const [teamTotals, setTeamTotals] = useState({
-    plateAppearances: 0,
-    atBats: 0,
-    hits: 0,
-    totalBases: 0,
-    onBaseCount: 0,
-
-    trbi: 0, //打點
-    singles: 0, //一安
-    doubles: 0, //二安
-    triples: 0, //三安
-    homeruns: 0, //全壘打
-    doublePlays: 0, //雙殺
-    walks: 0, //四壞
-    sacrificeFlies: 0, //犧飛
-    sacrificeHits: 0, //犧觸
-    hitByPitch: 0, //觸身
-
-    battingAverage: 0,
-    onBasePercentage: 0,
-    sluggingPercentage: 0,
-    t_ops: 0,
-  });
+  
   
   
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
@@ -406,6 +384,30 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   const handleClose = () => {
     setOpen(false);
   };
+
+  const [teamTotals, setTeamTotals] = useState({
+    plateAppearances: 0,
+    atBats: 0,
+    hits: 0,
+    totalBases: 0,
+    onBaseCount: 0,
+
+    trbi: 0, //打點
+    singles: 0, //一安
+    doubles: 0, //二安
+    triples: 0, //三安
+    homeruns: 0, //全壘打
+    doublePlays: 0, //雙殺
+    walks: 0, //四壞
+    sacrificeFlies: 0, //犧飛
+    sacrificeHits: 0, //犧觸
+    hitByPitch: 0, //觸身
+
+    battingAverage: 0,
+    onBasePercentage: 0,
+    sluggingPercentage: 0,
+    t_ops: 0,
+  });
 
 
   useEffect(() => {
