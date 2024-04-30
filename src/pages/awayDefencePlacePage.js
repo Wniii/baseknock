@@ -244,26 +244,29 @@ const navigateschedule = (gameId, codeName) => {
 };
 
   
-  return (
-    <Container maxWidth="xl">
-      <Typography variant="h4" mb={4} textAlign="center">
-        防守位
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
-          <div 
-            style={{
-              position: 'relative', 
-              width: '100%', 
-              paddingTop: '100%', 
-              overflow: 'hidden'
-            }}
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
-              alt="baseball_positions"
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            />
+return (
+  <Container maxWidth="xl">
+    <Typography variant="h4" mb={4} textAlign="center">
+      防守位
+    </Typography>
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={7}>
+      <div
+          style={{
+          position: 'relative',
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+            <div style={{ position: 'absolute', left: 'calc(50% - 32%)', top: 0 }}> {/* 使用left属性调整左偏移量 */}
+
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
+            alt="baseball_positions"
+            style={{ width: '100%' }} // 设置图像的宽度为50%
+          />
             {Object.keys(positions).map(pos => (
               <div
                 key={pos}
@@ -315,6 +318,8 @@ const navigateschedule = (gameId, codeName) => {
               </div>
             ))}
           </div>
+          
+          </div>
           {selectedPosition && (
             <div className="popup"
             onClick={handleBackgroundClick}
@@ -360,8 +365,19 @@ const navigateschedule = (gameId, codeName) => {
           )}
         </Grid>
       </Grid>
-      <Button onClick={handleSaveAndNavigate} variant="contained" color="primary">保存位置信息</Button>
-
+      <Grid container justifyContent="center" style={{ marginTop: '-180px' }}>
+    <Button
+      onClick={handleSaveAndNavigate}
+      variant="contained"
+      color="primary"
+      sx={{
+        display: 'block',
+        margin: '0 auto' // 设置左右外边距为auto，实现水平居中
+      }}
+    >
+      儲存守備位置
+    </Button>
+  </Grid>
     </Container>
   );
 }
