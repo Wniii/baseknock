@@ -366,17 +366,13 @@ const SchedulePage = () => {
             記錄打擊
           </Button>
           <Button onClick={() => playerattack("排主隊打擊棒次")} color="primary">
-            排主隊打擊棒次
+            主隊打擊與守備位置
           </Button>
-          <Button onClick={() => playerdefence("排主隊守備位置")} color="primary">
-            排主隊守備位置
-          </Button>
+         
           <Button onClick={() => awayplayerattack("排客隊打擊棒次")} color="primary">
-            排客隊打擊棒次
+            客隊打擊與守備位置
           </Button>
-          <Button onClick={() => awayplayerdefence("排客隊守備位置")} color="primary">
-            排客隊守備位置
-          </Button>
+          
           <Button onClick={() => handleEditGame("編輯比賽資訊")} color="primary">
             編輯比賽資訊
           </Button>
