@@ -9,7 +9,7 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { useRouter } from 'next/router';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import { firestore } from './firebase';
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
   Card,
   CardContent,
@@ -64,7 +64,7 @@ const Page = () => {
   const [currentInning, setCurrentInning] = useState(0);
   const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
   const [values, setValues] = useState({ hometeam: '', awayteam: '' });
-
+  const [innOuts, setInnOuts] = useState(0);
 
 
 
@@ -118,8 +118,6 @@ const Page = () => {
               }
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
-                // ... 你之前的代码 ...
-
                 // 检查是否存在 awayposition 字段，并且它是一个对象，然后获取 P 的内容
                 if (gameData.awayposition && typeof gameData.awayposition === 'object') {
                   const positionPContent = gameData.awayposition.P;
@@ -206,8 +204,6 @@ const Page = () => {
     const selectedBases = baseStatuses.filter(base => selectedHits[base]);
     const baseOuts = ['0', '1', '2', '3'];
 
-
-
     const selectedContent = Object.entries(selectedHits)
       .filter(([key, value]) => value && hitContents.includes(key))
       .map(([key, _]) => key)
@@ -248,18 +244,18 @@ const Page = () => {
     try {
       await updateDoc(HgameRef, {
         'ordermain': arrayUnion({
-          'content': selectedContent,
-          'inn': currentInning,
-          'onbase': bases,
           'p_name': attackData,
+          'inn': currentInning,
+          'content': selectedContent,          
+          'onbase': bases,          
           'rbi': rbiCount,
           'markers': markers,
           'pitcher': {
             name: pitcher,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
-            name: pitcher
           },
+          'innouts': innOuts
         }),
         'outs': outs
       });
@@ -283,17 +279,18 @@ const Page = () => {
     try {
       await updateDoc(AgameRef, {
         'ordermain': arrayUnion({
-          'content': selectedContent,
-          'inn': currentInning,
-          'onbase': bases,
           'p_name': attackData,
+          'inn': currentInning,
+          'content': selectedContent,          
+          'onbase': bases,          
           'rbi': rbiCount,
           'markers': markers,
           'pitcher': {
+            name: pitcher,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
-            name: pitcher
           },
+          'innouts': innOuts
         }),
 
         'outs': outs
@@ -405,6 +402,34 @@ const Page = () => {
         label="" // 沒有標籤
       />
     ));
+  };
+
+  const handleInnOutsChange = (hitType, baseOuts) => {
+    let hitouts = 0;
+    let baseinn = 0;
+    console.log('hitType:', hitType, 'baseOuts:', baseOuts)
+    // 根據打擊類型判斷出局數
+    if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
+      hitouts = 1;
+    } else if (hitType === '雙殺') {
+      hitouts = 2;
+    }
+    if (baseOuts === 0){
+      baseinn = 0
+    }
+    else if (baseOuts === 1){
+      baseinn = 1
+    }
+    else if (baseOuts === 2){
+      baseinn = 2
+    }
+    else if (baseOuts === 3){
+      baseinn = 3
+    }
+
+    const totalOuts = hitouts + baseinn;
+    console.log('Setting total outs:', totalOuts);
+    setInnOuts(totalOuts); // 更新狀態
   };
 
   //落點
@@ -527,7 +552,7 @@ const Page = () => {
                             <Typography variant='body1'>
                               {currentInning}
                             </Typography>
-                            <ArrowDropUpIcon />
+                            <ArrowDropDownIcon />
 
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
@@ -691,6 +716,7 @@ const Page = () => {
                                 handleCheckboxChange('三振');
                                 handleOutChange('三振');
                                 handleBallTypeChange(strikes, 'strike', '三振');
+                                handleInnOutsChange('三振', 0);
                               }
                               }
                             >
@@ -706,6 +732,7 @@ const Page = () => {
                               onClick={() => {
                                 handleCheckboxChange('飛球')
                                 handleOutChange('飛球');
+                                handleInnOutsChange('飛球', 0);
                               }
                               }
                             >
@@ -721,6 +748,7 @@ const Page = () => {
                               onClick={() => {
                                 handleCheckboxChange('滾地')
                                 handleOutChange('滾地');
+                                handleInnOutsChange('滾地');
                               }
                               }
                             >
@@ -756,9 +784,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('野選')
-
-
+                              onClick={() => {
+                                handleCheckboxChange('野選')
+                                handleOutChange('野選')
+                                handleInnOutsChange('野選');
+                              }
                               }
                             >
                               野選
@@ -772,7 +802,8 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleCheckboxChange('雙殺')
-                                handleOutChange(2,'雙殺');
+                                handleOutChange(2, '雙殺');
+                                handleInnOutsChange('雙殺');
                               }
                               }
                             >
@@ -839,6 +870,7 @@ const Page = () => {
                               onClick={() => {
                                 handleCheckboxChange('犧飛')
                                 handleOutChange('犧飛');
+                                handleInnOutsChange('犧飛');
                               }}
                             >
                               犧飛
@@ -853,6 +885,7 @@ const Page = () => {
                               onClick={() => {
                                 handleCheckboxChange('犧觸')
                                 handleOutChange('犧觸');
+                                handleInnOutsChange('犧觸');
                               }
                               }
                             >
@@ -938,7 +971,14 @@ const Page = () => {
                         }}
                       >
                         <FormControl sx={{ mt: 2, minWidth: 120 }}>
-                          <Select autoFocus onChange={(event) => handleOutChange(parseInt(event.target.value))}>
+                          <Select
+                            autoFocus
+                            onChange={(event) => {
+                              const baseOuts = parseInt(event.target.value);
+                              handleOutChange(baseOuts); // 維持原有的出局數處理
+                              handleInnOutsChange(baseOuts); // 新增的打席造成的出局數處理
+                            }}
+                          >
                             <InputLabel>出局數</InputLabel>
                             <MenuItem value="0">0</MenuItem>
                             <MenuItem value="1">1</MenuItem>
@@ -955,9 +995,9 @@ const Page = () => {
                       }}>
                         儲存
                       </Button>
-                        <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                          {alertInfo.message}
-                        </Alert>
+                      <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                        {alertInfo.message}
+                      </Alert>
                     </DialogActions>
                   </Dialog>
                 </CardContent>

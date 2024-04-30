@@ -64,7 +64,7 @@ const Page = () => {
     const [currentInning, setCurrentInning] = useState(0);
     const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
     const [values, setValues] = useState({ hometeam: '', awayteam: '' });
-
+    const [innOuts, setInnOuts] = useState(0);
 
 
 
@@ -112,7 +112,7 @@ const Page = () => {
                                 setCurrentBattingOrder(gameData.orderoppo.length % 9 + 1);
                                 // 計算局數和上下半局
                                 const outs = gameData.outs || 0;
-                                const inningsCompleted = Math.floor(outs / 3) + 1;
+                                const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
 
                             }
@@ -156,16 +156,16 @@ const Page = () => {
             if (!values.hometeam || !firestore) {
                 return;
             }
-    
+
             try {
                 const teamQuerySnapshot = await getDocs(
                     query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
-    
+
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-    
+
                     if (teamData && teamData.players) {
                         const playerKeys = Object.keys(teamData.players);
                         setPlayers(playerKeys); // 更新玩家鍵的狀態
@@ -180,10 +180,10 @@ const Page = () => {
                 console.error('Error fetching home team players:', error);
             }
         };
-    
+
         fetchHomeTeamPlayers();
     }, [values.hometeam, firestore]); // 依賴於 values.hometeam
-    
+
 
 
 
@@ -241,10 +241,10 @@ const Page = () => {
         try {
             await updateDoc(HgameRef, {
                 'orderoppo': arrayUnion({
-                    'o_content': selectedContent,
-                    'o_inn': currentInning,
-                    'o_onbase': bases,
                     'o_p_name': awayattackData,
+                    'o_inn': currentInning,
+                    'o_content': selectedContent,                    
+                    'o_onbase': bases,                    
                     'o_rbi': rbiCount,
                     'o_markers': markers,
                     'pitcher': {
@@ -252,6 +252,7 @@ const Page = () => {
                         strike: strikes.filter(Boolean).length,
                         name: pitcher
                     },
+                    'innouts': innOuts
                 }),
                 'outs': outs
             });
@@ -275,10 +276,10 @@ const Page = () => {
         try {
             await updateDoc(AgameRef, {
                 'orderoppo': arrayUnion({
-                    'o_content': selectedContent,
-                    'o_inn': currentInning,
-                    'o_onbase': bases,
                     'o_p_name': awayattackData,
+                    'o_inn': currentInning,
+                    'o_content': selectedContent,                    
+                    'o_onbase': bases,                    
                     'o_rbi': rbiCount,
                     'o_markers': markers,
                     'pitcher': {
@@ -286,6 +287,7 @@ const Page = () => {
                         strike: strikes.filter(Boolean).length,
                         name: pitcher
                     },
+                    'innouts': innOuts
                 }),
                 'outs': outs
             });
@@ -396,6 +398,36 @@ const Page = () => {
                 label="" // 沒有標籤
             />
         ));
+    };
+
+    const handleInnOutsChange = (hitType, baseOuts) => {
+        let hitouts = 0;
+        let baseinn = 0;
+        console.log('hitType:', hitType, 'baseOuts:', baseOuts)
+        // 根據打擊類型判斷出局數
+        if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
+            hitouts = 1;
+        } else if (hitType === '雙殺') {
+            hitouts = 2;
+        }
+        if (baseOuts === 0) {
+            baseinn = 0
+        }
+        else if (baseOuts === 1) {
+            baseinn = 1
+        }
+        else if (baseOuts === 2) {
+            baseinn = 2
+        }
+        else if (baseOuts === 3) {
+            baseinn = 3
+        }
+
+        // let baseinn = parseInt(baseOuts); // 從UI選擇的基壘出局數直接轉換成數字
+        console.log('hitouts:', hitouts, 'baseinn:', baseinn);
+        // 計算總出局數
+        const totalOuts = hitouts + baseinn;
+        setInnOuts(totalOuts); // 更新狀態
     };
 
     //落點
@@ -684,6 +716,7 @@ const Page = () => {
                                                                 handleCheckboxChange('三振');
                                                                 handleOutChange('三振');
                                                                 handleBallTypeChange(strikes, 'strike', '三振');
+                                                                handleInnOutsChange('三振', 0);
                                                             }
                                                             }
                                                         >
@@ -699,6 +732,7 @@ const Page = () => {
                                                             onClick={() => {
                                                                 handleCheckboxChange('飛球')
                                                                 handleOutChange('飛球');
+                                                                handleInnOutsChange('飛球', 0);
                                                             }
                                                             }
                                                         >
@@ -714,6 +748,7 @@ const Page = () => {
                                                             onClick={() => {
                                                                 handleCheckboxChange('滾地')
                                                                 handleOutChange('滾地');
+                                                                handleInnOutsChange('滾地');
                                                             }
                                                             }
                                                         >
@@ -749,9 +784,11 @@ const Page = () => {
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
-                                                            onClick={() => handleCheckboxChange('野選')
-
-
+                                                            onClick={() => {
+                                                                handleCheckboxChange('野選')
+                                                                handleOutChange('野選')
+                                                                handleInnOutsChange('野選');
+                                                            }
                                                             }
                                                         >
                                                             野選
@@ -765,7 +802,8 @@ const Page = () => {
                                                             color='error'
                                                             onClick={() => {
                                                                 handleCheckboxChange('雙殺')
-                                                                handleOutChange('雙殺');
+                                                                handleOutChange(2, '雙殺');
+                                                                handleInnOutsChange('雙殺');
                                                             }
                                                             }
                                                         >
@@ -832,6 +870,7 @@ const Page = () => {
                                                             onClick={() => {
                                                                 handleCheckboxChange('犧飛')
                                                                 handleOutChange('犧飛');
+                                                                handleInnOutsChange('犧飛');
                                                             }}
                                                         >
                                                             犧飛
@@ -846,6 +885,7 @@ const Page = () => {
                                                             onClick={() => {
                                                                 handleCheckboxChange('犧觸')
                                                                 handleOutChange('犧觸');
+                                                                handleInnOutsChange('犧觸');
                                                             }
                                                             }
                                                         >
@@ -931,7 +971,14 @@ const Page = () => {
                                                 }}
                                             >
                                                 <FormControl sx={{ mt: 2, minWidth: 120 }}>
-                                                    <Select autoFocus onChange={(event) => handleOutChange(parseInt(event.target.value))}>
+                                                    <Select
+                                                        autoFocus
+                                                        onChange={(event) => {
+                                                            const baseOuts = parseInt(event.target.value);
+                                                            handleOutChange(baseOuts); // 維持原有的出局數處理
+                                                            handleInnOutsChange(hitType, baseOuts); // 新增的打席造成的出局數處理
+                                                        }}
+                                                    >
                                                         <InputLabel>出局數</InputLabel>
                                                         <MenuItem value="0">0</MenuItem>
                                                         <MenuItem value="1">1</MenuItem>
@@ -948,11 +995,11 @@ const Page = () => {
                                             }}>
                                                 儲存
                                             </Button>
-                                            <Snackbar open={alertInfo.open} autoHideDuration={6000} onClose={() => setAlertInfo({ ...alertInfo, open: false })}>
+                                            
                                                 <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
                                                     {alertInfo.message}
                                                 </Alert>
-                                            </Snackbar>
+                                            
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
