@@ -353,10 +353,10 @@ return (
 
                       }}
                     >
-                      <ListItemAvatar>
+                      {/* <ListItemAvatar>
                         <Box component="img" src={players[playerKey]?.image} sx={{ borderRadius: 1, height: 48, width: 48 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`Name: ${playerKey}`} />
+                      </ListItemAvatar> */}
+                      <ListItemText primary={` ${playerKey}`} />
                     </ListItem>
                   ))}
                 </List>
