@@ -21,6 +21,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { firestore } from 'src/pages/firebase';
 import { doc, getDoc, collection, getDocs,query,where } from "firebase/firestore";
 
+
 // 定義 HitrecordTable 組件
 export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameTypes }) => {
   const [open, setOpen] = useState(false);
@@ -141,7 +142,29 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   }, [selectedTeam, selectedGameTypes]);
   
 
-  
+  const [teamTotals, setTeamTotals] = useState({
+    plateAppearances: 0,
+    atBats: 0,
+    hits: 0,
+    totalBases: 0,
+    onBaseCount: 0,
+
+    trbi: 0, //打點
+    singles: 0, //一安
+    doubles: 0, //二安
+    triples: 0, //三安
+    homeruns: 0, //全壘打
+    doublePlays: 0, //雙殺
+    walks: 0, //四壞
+    sacrificeFlies: 0, //犧飛
+    sacrificeHits: 0, //犧觸
+    hitByPitch: 0, //觸身
+
+    battingAverage: 0,
+    onBasePercentage: 0,
+    sluggingPercentage: 0,
+    t_ops: 0,
+  });
   
   
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
@@ -384,30 +407,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   const handleClose = () => {
     setOpen(false);
   };
-
-  const [teamTotals, setTeamTotals] = useState({
-    plateAppearances: 0,
-    atBats: 0,
-    hits: 0,
-    totalBases: 0,
-    onBaseCount: 0,
-
-    trbi: 0, //打點
-    singles: 0, //一安
-    doubles: 0, //二安
-    triples: 0, //三安
-    homeruns: 0, //全壘打
-    doublePlays: 0, //雙殺
-    walks: 0, //四壞
-    sacrificeFlies: 0, //犧飛
-    sacrificeHits: 0, //犧觸
-    hitByPitch: 0, //觸身
-
-    battingAverage: 0,
-    onBasePercentage: 0,
-    sluggingPercentage: 0,
-    t_ops: 0,
-  });
 
 
   useEffect(() => {
@@ -716,11 +715,62 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   );
 };
 
+const parseLocationToZone = (x, y) => {
+  const inCircle = (x, y, centerX, centerY, radius) => (Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2) <= Math.pow(radius, 2));
+  const outCircle = (x, y, centerX, centerY, radius) => (Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2) > Math.pow(radius, 2));
+  const onOrAboveLine = (x, y, slope, intercept) => (y >= slope * x + intercept);
+  const onOrBelowLine = (x, y, slope, intercept) => (y <= slope * x + intercept);
+  const onOrRightOfVertical = (x, y, lineX) => (x >= lineX);
+  const onOrLeftOfVertical = (x, y, lineX) => (x <= lineX);
+
+   // Zone 1: a, e, b, c
+   if (inCircle(x, y, 201, 219.64, 175.64) && onOrAboveLine(x, y, 209/65, -24719/65) &&
+   outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8)) {
+ return 'zone1';
+}
+// Zone 2: b, c, j, g
+if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8) &&
+   onOrBelowLine(x, y, -17/8, 620) && onOrAboveLine(x, y, 20/27, 70)) {
+ return 'zone2';
+}
+// Zone 3: c, d, j, k, l
+if (onOrBelowLine(x, y, 1, 65.8) && onOrBelowLine(x, y, -1, 465.7) &&
+   onOrAboveLine(x, y, -17/8, 620) && y >= 212 && onOrAboveLine(x, y, 17/7, -298)) {
+ return 'zone3';
+}
+// Zone 4: i, b, l, d
+if (onOrAboveLine(x, y, -20/27, 9178/25) && inCircle(x, y, 200, 223.24, 83) && 
+   onOrBelowLine(x, y, 17/7, -298) && onOrBelowLine(x, y, -1, 465.7)) {
+   return 'zone4';
+ }
+// Zone 5: f, b, a, d
+if (onOrAboveLine(x, y, -209/60, 19323/20) && outCircle(x, y, 200, 223.24, 83) &&
+   inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, -1, 465.7)) {
+ return 'zone5';
+}
+// Zone 6: a, e, b, f
+if (inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, 209/65, -24719/65) &&
+   outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, -209/60, 19323/20)) {
+ return 'zone6';
+}
+// Zone 7: b, g, h, k
+if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 20/27, 70) &&
+   onOrLeftOfVertical(x, y, 201) && y <= 212) {
+ return 'zone7';
+}
+// Zone 8: b, h, i, k
+if (inCircle(x, y, 200, 223.24, 83) && onOrRightOfVertical(x, y, 201) &&
+   y <= 212 && onOrBelowLine(x, y, -20/27, 9178/25)) {
+ return 'zone8';
+}
+
+return 'unknown';
+};
 
 const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
-  const baseballFieldImage = 'https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
-    ; // 用实际图片URL替换此处文本
+  const baseballFieldImage = 'https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='; // 用实际图片URL替换此处文本
+  const picImage = 'pic.png'; // 替換為實際圖片的路徑
 
   // 确保此函数正确计算位置百分比
   const convertLocationToPosition = (location) => {
@@ -743,13 +793,37 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
   // 调试时，将位置记录到控制台
   console.log('Locations:', locations);
 
+  const zonePositions = {
+    'zone1': { left: '27%', top: '35%' },
+    'zone2': { left: '40%', top: '60%' },
+    'zone3': { left: '50%', top: '67%' },
+    'zone4': { left: '60%', top: '60%' },
+    'zone5': { left: '73%', top: '35%' },
+    'zone6': { left: '50%', top: '25%' },
+    'zone7': { left: '43%', top: '48%' },
+    'zone8': { left: '57%', top: '48%' },
+  };
+
+  const countZones = locations.reduce((acc, loc) => {
+    const zone = parseLocationToZone(loc.x, loc.y);
+    acc[zone] = (acc[zone] || 0) + 1;
+    return acc;
+  }, {});
+
+  const totalLocations = locations.length;
+  const zonePercentages = Object.keys(countZones).map(zone => ({
+    zone,
+    percentage: ((countZones[zone] / totalLocations) * 100).toFixed(1) + '%',
+    ...zonePositions[zone]
+  }));
+
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{player?.p_id || 'Unknown Player'}</DialogTitle>
       <DialogContent>
         <div
           ref={imageContainerRef} // 您需要在组件中创建此引用
-          style={{ position: 'relative', width: '400px', height: 'auto' }}
+          style={{ position: 'relative', width: '450px', height: 'auto' }}
         >
           <img
             src={baseballFieldImage}
@@ -759,26 +833,54 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
           />
           {locations.map((location, index) => {
             const position = convertLocationToPosition(location);
+            const zone = parseLocationToZone(location.x, location.y);
             return (
-              <div key={index} style={{
-                position: 'absolute',
-                left: position.left,
-                top: position.top,
-                // 自定义标记样式
-                height: '10px',
-                width: '10px',
-                borderRadius: '50%',
-                backgroundColor: 'blue',
-                transform: 'translate(-50%, -50%)'
-              }}></div>
+              <div
+                key={index}
+                className={`zone-${zone}`} // 根據區塊類型添加不同的 CSS 類
+                style={{
+                  position: 'absolute',
+                  left: position.left,
+                  top: position.top,
+                  height: '10px',
+                  width: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: 'blue',
+                  transform: 'translate(-50%, -50%)'
+                }}></div>
             );
           })}
         </div>
-        <img
-          src='pic.png'
-          width={'400px'}
-
-        />
+        <div
+          ref={imageContainerRef}
+          style={{ position: 'relative', width: '450px', height: 'auto' }}
+        >
+          <img
+            src={picImage}
+            width={'100%'}
+            height={'100%'}
+            alt="Game Specific Field"
+          />
+          {zonePercentages.map(({ zone, percentage, left, top }) => (
+            <Typography
+              key={zone}
+              style={{
+                position: 'absolute',
+                left: left,
+                top: top,
+                color: 'white', // 選擇合適的文字顏色
+                backgroundColor: 'rgba(0, 0, 0, 0.5)', // 背景色增加可讀性
+                padding: '2px 4px',
+                borderRadius: '4px',
+                transform: 'translate(-50%, -50%)',
+                fontSize: '0.75rem'
+              }}
+            >
+              {`${percentage}`}
+            </Typography>
+          ))}
+        </div>
+      
       </DialogContent>
     </Dialog>
   );
@@ -791,7 +893,12 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
 PlayerDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  player: PropTypes.string // 假設 player 是一個字符串
+  // player: PropTypes.string // 假設 player 是一個字符串
+  player: PropTypes.object, // 確保 player 是對象類型
+  locations: PropTypes.arrayOf(PropTypes.shape({
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired
+  }))
 };
 HitrecordTable.propTypes = {
   selectedTeam: PropTypes.string,
