@@ -260,7 +260,7 @@ const navigateschedule = (gameId, codeName) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-              <div style={{ position: 'absolute', left: 'calc(50% - 32%)', top: 0 }}> {/* 使用left属性调整左偏移量 */}
+              <div style={{ position: 'absolute', left: 'calc(45% - 32%)', top: 0 }}> {/* 使用left属性调整左偏移量 */}
 
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
@@ -366,7 +366,7 @@ const navigateschedule = (gameId, codeName) => {
           )}
         </Grid>
       </Grid>
-      <Grid container justifyContent="center" style={{ marginTop: '-180px' }}>
+      <Grid container justifyContent="center" style={{ marginTop: '10px' }}>
     <Button
       onClick={handleSaveAndNavigate}
       variant="contained"
