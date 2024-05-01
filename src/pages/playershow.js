@@ -146,7 +146,7 @@ const handleSaveAndNavigate = async () => {
 
     try {
         if (selectedPlayers.length < 9) {
-            alert("请选择九个球员才能保存！");
+            alert("請選擇九位球員！");
             return;
         }
         
@@ -235,7 +235,7 @@ const navigatetodefence = (gameId, codeName) => {
                         button
                         onClick={() => handleAddToSelectedPlayers(playerKey)}
                       >
-                        <ListItemAvatar>
+                        {/* <ListItemAvatar>
                           <Box
                             component="img"
                             src=''
@@ -245,9 +245,9 @@ const navigatetodefence = (gameId, codeName) => {
                               width: 48
                             }}
                           />
-                        </ListItemAvatar>
+                        </ListItemAvatar> */}
                         <ListItemText
-                          primary={`Name: ${playerKey}`}
+                          primary={` ${playerKey}`}
                           primaryTypographyProps={{ variant: 'body2' }}
                         />
                       </ListItem>
@@ -304,7 +304,7 @@ const navigatetodefence = (gameId, codeName) => {
     <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)} style={{ whiteSpace: 'nowrap' }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ marginRight: '16px' }}>{index + 1}</div>
-        <ListItemAvatar>
+        {/* <ListItemAvatar>
           <Box
             component="img"
             src=''
@@ -314,9 +314,9 @@ const navigatetodefence = (gameId, codeName) => {
               width: 48
             }}
           />
-        </ListItemAvatar>
+        </ListItemAvatar> */}
         <ListItemText
-          primary={`Name: ${playerKey}`}
+          primary={`${playerKey}`}
           primaryTypographyProps={{ variant: 'body2' }}
         />
       </div>

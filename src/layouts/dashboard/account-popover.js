@@ -58,6 +58,18 @@ export const AccountPopover = (props) => {
 
   const handleSignOut = useCallback(
     () => {
+      // 清除 localStorage 中的資料
+      try {
+        window.localStorage.removeItem('userName');
+      window.localStorage.removeItem('userEmail');
+      window.localStorage.removeItem('userTeam');
+      window.localStorage.removeItem('authenticated');
+      window.localStorage.removeItem('userId');   // 假設你也有儲存 userEmail
+        // 可以在此處續清除其他可能存儲的 localStorage 項目
+      } catch (err) {
+        console.error('Error clearing local storage:', err);
+      }
+  
       onClose?.();
       auth.signOut();
       router.push('/auth/login');
