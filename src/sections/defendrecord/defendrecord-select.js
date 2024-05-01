@@ -59,7 +59,7 @@ export const DefendSelect = ({ onConfirm }) => {
   const gameTypeToGNameMapping = {
     '友誼賽': 'friendly',
     '大專盃': 'ubl',
-    '梅花盃': 'mei',
+    '梅花旗': 'mei',
   };
 
   const handleGameTypeChange = (gameType) => (event) => {
@@ -147,7 +147,7 @@ export const DefendSelect = ({ onConfirm }) => {
               比賽性質
             </Typography>
             <Grid container spacing={1}>
-              {['友誼賽', '大專盃', '梅花盃'].map((gameTypeName, index) => (
+              {['友誼賽', '大專盃', '梅花旗'].map((gameTypeName, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
                     control={
