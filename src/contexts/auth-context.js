@@ -195,6 +195,17 @@ export const AuthProvider = (props) => {
 
 
   const signOut = () => {
+    // Clear local storage items
+    try {
+      window.localStorage.removeItem('userName');
+      window.localStorage.removeItem('userEmail');
+      window.localStorage.removeItem('userTeam');
+      window.localStorage.removeItem('authenticated');
+      window.localStorage.removeItem('userId');
+    } catch (err) {
+      console.error('Error clearing local storage:', err);
+    }
+  
     dispatch({
       type: HANDLERS.SIGN_OUT
     });

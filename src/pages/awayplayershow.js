@@ -235,7 +235,7 @@ const navigatetodefence = (gameId, codeName) => {
                         button
                         onClick={() => handleAddToSelectedPlayers(playerKey)}
                       >
-                        <ListItemAvatar>
+                        {/* <ListItemAvatar>
                           <Box
                             component="img"
                             src=''
@@ -245,9 +245,9 @@ const navigatetodefence = (gameId, codeName) => {
                               width: 48
                             }}
                           />
-                        </ListItemAvatar>
+                        </ListItemAvatar> */}
                         <ListItemText
-                          primary={`Name: ${playerKey}`}
+                          primary={`${playerKey}`}
                           primaryTypographyProps={{ variant: 'body2' }}
                         />
                       </ListItem>
@@ -297,14 +297,14 @@ const navigatetodefence = (gameId, codeName) => {
             {/* 右侧先发球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardHeader title="先发球员" />
+                <CardHeader title="先發球員" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
   {selectedPlayers.map((playerKey, index) => (
     <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)} style={{ whiteSpace: 'nowrap' }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ marginRight: '16px' }}>{index + 1}</div>
-        <ListItemAvatar>
+        {/* <ListItemAvatar>
           <Box
             component="img"
             src=''
@@ -314,9 +314,9 @@ const navigatetodefence = (gameId, codeName) => {
               width: 48
             }}
           />
-        </ListItemAvatar>
+        </ListItemAvatar> */}
         <ListItemText
-          primary={`Name: ${playerKey}`}
+          primary={`${playerKey}`}
           primaryTypographyProps={{ variant: 'body2' }}
         />
       </div>

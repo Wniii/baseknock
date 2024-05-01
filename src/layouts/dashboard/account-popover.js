@@ -58,6 +58,17 @@ export const AccountPopover = (props) => {
 
   const handleSignOut = useCallback(
     () => {
+      // 清除 localStorage 中的資料
+      try {
+        window.localStorage.removeItem('userName');
+        window.localStorage.removeItem('userEmail');
+        window.localStorage.removeItem('userTeam');
+        window.localStorage.removeItem('authenticated');
+        window.localStorage.removeItem('userId');   // 假設你也有儲存 userEmail
+      } catch (err) {
+        console.error('Error clearing local storage:', err);
+      }
+
       onClose?.();
       auth.signOut();
       router.push('/auth/login');
@@ -84,39 +95,39 @@ export const AccountPopover = (props) => {
     if (newPassword === confirmPassword) {
       try {
         console.log("Updating password...");
-        
+
         // 從本地存儲中獲取用戶電子郵件
         const userEmail = localStorage.getItem('userEmail');
         if (!userEmail) {
           console.error('User email not found in local storage');
           return;
         }
-        
+
         // 使用本地存儲中的用戶電子郵件來查找用戶
         const userQuery = query(collection(firestore, 'users'), where('u_email', '==', userEmail));
         const querySnapshot = await getDocs(userQuery);
-  
+
         // 假设每个用户的邮箱都是唯一的，因此我们只需要更新匹配的第一个文档
         if (!querySnapshot.empty) {
           const userDoc = querySnapshot.docs[0];
           const userData = userDoc.data();
-  
+
           // 检查输入的旧密码是否与数据库中的密码匹配
           if (oldPassword === userData.u_password) {
             const userRef = doc(firestore, 'users', userDoc.id);
-  
+
             // 使用 updateDoc 函式來更新使用者文件中的 u_password 欄位
             await updateDoc(userRef, {
               u_password: newPassword,
               u_checkpsw: confirmPassword,
             });
-  
+
             // 如果成功更新密碼，關閉彈窗並清空輸入的新密碼、確認密碼和舊密碼
             setShowChangePasswordDialog(false);
             setOldPassword('');
             setNewPassword('');
             setConfirmPassword('');
-            
+
             console.log('Password updated successfully');
             alert("修改成功!");
           } else {
@@ -133,7 +144,7 @@ export const AccountPopover = (props) => {
       alert('新密碼和確認密碼不相符！');
     }
   };
-  
+
 
   useEffect(() => {
     const fetchUserData = async () => {

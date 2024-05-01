@@ -247,7 +247,7 @@ const navigateschedule = (gameId, codeName) => {
   return (
     <Container maxWidth="xl">
       <Typography variant="h4" mb={4} textAlign="center">
-        防守位
+        守備位置
       </Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} md={7}>
@@ -354,10 +354,10 @@ const navigateschedule = (gameId, codeName) => {
 
                       }}
                     >
-                      <ListItemAvatar>
+                      {/* <ListItemAvatar>
                         <Box component="img" src={players[playerKey]?.image} sx={{ borderRadius: 1, height: 48, width: 48 }} />
-                      </ListItemAvatar>
-                      <ListItemText primary={`Name: ${playerKey}`} />
+                      </ListItemAvatar> */}
+                      <ListItemText primary={`${playerKey}`} />
                     </ListItem>
                   ))}
                 </List>
