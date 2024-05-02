@@ -19,7 +19,7 @@ import {
 import { Scrollbar } from 'src/components/scrollbar';
 import SearchIcon from '@mui/icons-material/Search';
 import { firestore } from 'src/pages/firebase';
-import { doc, getDoc, collection, getDocs,query,where } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 
 
 // 定義 HitrecordTable 組件
@@ -91,19 +91,19 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   useEffect(() => {
     const fetchPlayersAndGamesData = async () => {
       if (!selectedTeam) return;
-  
+
       const teamDocRef = doc(firestore, "team", selectedTeam);
       const teamDocSnap = await getDoc(teamDocRef);
-  
+
       if (!teamDocSnap.exists()) {
         console.log("No such team document!");
         setPlayersData([]);
         return;
       }
-  
+
       const teamData = teamDocSnap.data();
       const playersInGames = new Set();
-  
+
       let gamesQuery;
       if (selectedGameTypes && selectedGameTypes.length > 0) {
         gamesQuery = query(collection(teamDocRef, "games"), where("gName", "in", selectedGameTypes));
@@ -111,7 +111,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
         gamesQuery = query(collection(teamDocRef, "games"));
       }
       const gamesQuerySnapshot = await getDocs(gamesQuery);
-  
+
       gamesQuerySnapshot.docs.forEach((doc) => {
         const gameData = doc.data();
         ['ordermain', 'orderoppo'].forEach((orderKey) => {
@@ -127,20 +127,20 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
           }
         });
       });
-  
+
       const filteredPlayers = Object.keys(teamData.players)
         .filter(playerKey => playersInGames.has(playerKey))
         .map(playerKey => ({
           ...teamData.players[playerKey],
           p_id: playerKey,
         }));
-  
+
       setPlayersData(filteredPlayers);
     };
-  
+
     fetchPlayersAndGamesData();
   }, [selectedTeam, selectedGameTypes]);
-  
+
 
   const [teamTotals, setTeamTotals] = useState({
     plateAppearances: 0,
@@ -165,30 +165,30 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     sluggingPercentage: 0,
     t_ops: 0,
   });
-  
-  
+
+
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
   useEffect(() => {
     const fetchGamesAndCalculatePlateAppearances = async () => {
       // 確保 selectedGameTypes 不是 undefined 且有元素
       if (!selectedTeam || !playersData.length || !selectedGameTypes || !selectedGameTypes.length) return;
-  
+
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
       const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
-  
+
       try {
         const querySnapshot = await getDocs(gamesQuery);
         let playersStats = {};
-  
+
         if (querySnapshot.empty) {
           console.log('No games data found.');
           return;
         }
-  
+
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
           console.log('Game Data:', gameData);
-  
+
           // 处理 ordermain 和 orderoppo
           if (gameData.ordermain) {
             gameData.ordermain.forEach((playerStat) => {
@@ -201,7 +201,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
           } else {
             console.log('No ordermain for this game:', docSnapshot.id);
           }
-  
+
           if (gameData.orderoppo) {
             gameData.orderoppo.forEach((playerStat) => {
               const playerEntry = playersData.find(player => player.p_id === playerStat.o_p_name);
@@ -214,18 +214,18 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
             console.log('No orderoppo for this game:', docSnapshot.id);
           }
         });
-  
+
         setPlayerPlateAppearances(playersStats);
         console.log('Player plate appearances calculated:', playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
     };
-  
+
     fetchGamesAndCalculatePlateAppearances();
   }, [selectedTeam, playersData, selectedGameTypes]);
-  
-  
+
+
 
   useEffect(() => {
     const fetchGamesAndCalculateHits = async () => {
@@ -308,24 +308,24 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     };
 
     fetchGamesAndCalculateHits();
-  }, [selectedTeam, playersData,selectedGameTypes]);
+  }, [selectedTeam, playersData, selectedGameTypes]);
 
   useEffect(() => {
     if (!selectedGameTypes || selectedGameTypes.length === 0) {
       console.error("selectedGameTypes is undefined or empty");
       return;
     }
-  
+
     const fetchGamesAndCalculateStats = async () => {
       // 調用API之前檢查 selectedTeam 和 selectedGameTypes
       if (!selectedTeam) {
         console.error("selectedTeam is undefined");
         return;
       }
-  
+
       const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
       const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
-  
+
       try {
         const querySnapshot = await getDocs(gamesQuery);
         let playersStats = {};
@@ -337,45 +337,62 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
         console.error("Error fetching games data: ", error);
       }
     };
-  
+
     fetchGamesAndCalculateStats();
   }, [selectedTeam, selectedGameTypes]);
-  
+
 
 
   const fetchAndSetPlayerLocations = async (playerId) => {
     const gamesRef = collection(firestore, `team/${selectedTeam}/games`);
     try {
-      const querySnapshot = await getDocs(gamesRef);
-      const locations = [];
+        const querySnapshot = await getDocs(gamesRef);
+        const locations = [];
 
-      querySnapshot.forEach((docSnapshot) => {
-        const gameData = docSnapshot.data();
+        querySnapshot.forEach((docSnapshot) => {
+            const gameData = docSnapshot.data();
 
-        // Check if ordermain exists and is an array before processing
-        if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
-          gameData.ordermain.forEach((play) => {
-            if (play.p_name === playerId && play.location) {
-              locations.push(play.location);
+            // Check if ordermain exists and is an array before processing
+            if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
+                gameData.ordermain.forEach((play) => {
+                    if (play.p_name === playerId && play.location) {
+                        // Ensure the location data is not undefined or null
+                        if (play.location.x !== undefined && play.location.y !== undefined) {
+                            // Include content in the location object
+                            locations.push({
+                                x: play.location.x,
+                                y: play.location.y,
+                                content: play.content // Add content to the location data
+                            });
+                        }
+                    }
+                });
             }
-          });
-        }
 
-        // Check if orderoppo exists and is an array before processing
-        if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
-          gameData.orderoppo.forEach((play) => {
-            if (play.o_p_name === playerId && play.location) {
-              locations.push(play.location);
+            // Check if orderoppo exists and is an array before processing
+            if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
+                gameData.orderoppo.forEach((play) => {
+                    if (play.o_p_name === playerId && play.location) {
+                        // Ensure the location data is not undefined or null
+                        if (play.location.x !== undefined && play.location.y !== undefined) {
+                            // Include o_content in the location object
+                            locations.push({
+                                x: play.location.x,
+                                y: play.location.y,
+                                content: play.o_content // Add o_content to the location data
+                            });
+                        }
+                    }
+                });
             }
-          });
-        }
-      });
+        });
 
-      setSelectedLocation(locations); // Update state with all found locations
+        setSelectedLocation(locations); // Update state with all found locations
     } catch (error) {
-      console.error("Error fetching player locations: ", error);
+        console.error("Error fetching player locations: ", error);
     }
-  };
+};
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -723,54 +740,57 @@ const parseLocationToZone = (x, y) => {
   const onOrRightOfVertical = (x, y, lineX) => (x >= lineX);
   const onOrLeftOfVertical = (x, y, lineX) => (x <= lineX);
 
-   // Zone 1: a, e, b, c
-   if (inCircle(x, y, 201, 219.64, 175.64) && onOrAboveLine(x, y, 209/65, -24719/65) &&
-   outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8)) {
- return 'zone1';
-}
-// Zone 2: b, c, j, g
-if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8) &&
-   onOrBelowLine(x, y, -17/8, 620) && onOrAboveLine(x, y, 20/27, 70)) {
- return 'zone2';
-}
-// Zone 3: c, d, j, k, l
-if (onOrBelowLine(x, y, 1, 65.8) && onOrBelowLine(x, y, -1, 465.7) &&
-   onOrAboveLine(x, y, -17/8, 620) && y >= 212 && onOrAboveLine(x, y, 17/7, -298)) {
- return 'zone3';
-}
-// Zone 4: i, b, l, d
-if (onOrAboveLine(x, y, -20/27, 9178/25) && inCircle(x, y, 200, 223.24, 83) && 
-   onOrBelowLine(x, y, 17/7, -298) && onOrBelowLine(x, y, -1, 465.7)) {
-   return 'zone4';
- }
-// Zone 5: f, b, a, d
-if (onOrAboveLine(x, y, -209/60, 19323/20) && outCircle(x, y, 200, 223.24, 83) &&
-   inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, -1, 465.7)) {
- return 'zone5';
-}
-// Zone 6: a, e, b, f
-if (inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, 209/65, -24719/65) &&
-   outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, -209/60, 19323/20)) {
- return 'zone6';
-}
-// Zone 7: b, g, h, k
-if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 20/27, 70) &&
-   onOrLeftOfVertical(x, y, 201) && y <= 212) {
- return 'zone7';
-}
-// Zone 8: b, h, i, k
-if (inCircle(x, y, 200, 223.24, 83) && onOrRightOfVertical(x, y, 201) &&
-   y <= 212 && onOrBelowLine(x, y, -20/27, 9178/25)) {
- return 'zone8';
-}
+  // Zone 1: a, e, b, c
+  if (inCircle(x, y, 201, 219.64, 175.64) && onOrAboveLine(x, y, 209 / 65, -24719 / 65) &&
+    outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8)) {
+    return 'zone1';
+  }
+  // Zone 2: b, c, j, g
+  if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 1, 65.8) &&
+    onOrBelowLine(x, y, -17 / 8, 620) && onOrAboveLine(x, y, 20 / 27, 70)) {
+    return 'zone2';
+  }
+  // Zone 3: c, d, j, k, l
+  if (onOrBelowLine(x, y, 1, 65.8) && onOrBelowLine(x, y, -1, 465.7) &&
+    onOrAboveLine(x, y, -17 / 8, 620) && y >= 212 && onOrAboveLine(x, y, 17 / 7, -298)) {
+    return 'zone3';
+  }
+  // Zone 4: i, b, l, d
+  if (onOrAboveLine(x, y, -20 / 27, 9178 / 25) && inCircle(x, y, 200, 223.24, 83) &&
+    onOrBelowLine(x, y, 17 / 7, -298) && onOrBelowLine(x, y, -1, 465.7)) {
+    return 'zone4';
+  }
+  // Zone 5: f, b, a, d
+  if (onOrAboveLine(x, y, -209 / 60, 19323 / 20) && outCircle(x, y, 200, 223.24, 83) &&
+    inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, -1, 465.7)) {
+    return 'zone5';
+  }
+  // Zone 6: a, e, b, f
+  if (inCircle(x, y, 201, 219.64, 175.64) && onOrBelowLine(x, y, 209 / 65, -24719 / 65) &&
+    outCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, -209 / 60, 19323 / 20)) {
+    return 'zone6';
+  }
+  // Zone 7: b, g, h, k
+  if (inCircle(x, y, 200, 223.24, 83) && onOrBelowLine(x, y, 20 / 27, 70) &&
+    onOrLeftOfVertical(x, y, 201) && y <= 212) {
+    return 'zone7';
+  }
+  // Zone 8: b, h, i, k
+  if (inCircle(x, y, 200, 223.24, 83) && onOrRightOfVertical(x, y, 201) &&
+    y <= 212 && onOrBelowLine(x, y, -20 / 27, 9178 / 25)) {
+    return 'zone8';
+  }
 
-return 'unknown';
+  return 'unknown';
 };
+
+const isHit = (content) => ["一安", "二安", "三安", "全壘打"].some(hit => content && content.includes(hit));
+const isOut = (content) => ["飛球", "滾地", "失誤", "野選", "雙殺", "犧飛", "犧觸", "觸身"].some(out => content && content.includes(out));
 
 const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
   const baseballFieldImage = 'https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='; // 用实际图片URL替换此处文本
-  const picImage = 'pic.png'; // 替換為實際圖片的路徑
+  const picImage = 'pic.png'; 
 
   // 确保此函数正确计算位置百分比
   const convertLocationToPosition = (location) => {
@@ -821,33 +841,27 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>{player?.p_id || 'Unknown Player'}</DialogTitle>
       <DialogContent>
-        <div
-          ref={imageContainerRef} // 您需要在组件中创建此引用
-          style={{ position: 'relative', width: '450px', height: 'auto' }}
-        >
-          <img
-            src={baseballFieldImage}
-            width={'100%'}
-            height={'100%'}
-            alt="Baseball Field"
-          />
+        <div ref={imageContainerRef} style={{ position: 'relative', width: '450px', height: 'auto' }}>
+          <img src={baseballFieldImage} width="100%" height="100%" alt="Baseball Field" />
           {locations.map((location, index) => {
             const position = convertLocationToPosition(location);
-            const zone = parseLocationToZone(location.x, location.y);
+            const content = location.content || location.o_content || "";
+            const pointColor = isHit(content) ? 'blue' : isOut(content) ? 'red' : 'black';
+
+            // 打印content或o_content
+            console.log(`Location index ${index}: Content - ${content}`);
+
             return (
-              <div
-                key={index}
-                className={`zone-${zone}`} // 根據區塊類型添加不同的 CSS 類
-                style={{
-                  position: 'absolute',
-                  left: position.left,
-                  top: position.top,
-                  height: '10px',
-                  width: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: 'blue',
-                  transform: 'translate(-50%, -50%)'
-                }}></div>
+              <div key={index} style={{
+                position: 'absolute',
+                left: position.left,
+                top: position.top,
+                height: '10px',
+                width: '10px',
+                borderRadius: '50%',
+                backgroundColor: pointColor,
+                transform: 'translate(-50%, -50%)'
+              }} />
             );
           })}
         </div>
@@ -880,7 +894,7 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
             </Typography>
           ))}
         </div>
-      
+
       </DialogContent>
     </Dialog>
   );
