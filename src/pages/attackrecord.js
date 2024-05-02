@@ -69,6 +69,7 @@ const Page = () => {
   const [previousOuts, setPreviousOuts] = useState(0);
   const [lastHitType, setLastHitType] = useState(null);
   const [isStrikeout, setIsStrikeout] = useState(false);
+  const [Active, setActive] = useState(false);
 
 
 
@@ -350,10 +351,11 @@ const Page = () => {
       // 激活時執行的函數
       handleCheckboxChange(hitType);
       handleOutChange(hitType);
+      handleInnOutsChange(hitType, 0);
+
       if (hitType === '三振') {
         handleBallTypeChange(strikes, 'strike', '三振');
       }
-      handleInnOutsChange(hitType, 0);
     } else {
       console.log("取消操作", previousOuts);
       undoChange();
@@ -376,6 +378,8 @@ const Page = () => {
     setInnOuts(0);
   };
 
+  
+
 
   const handleBallTypeChange = (index, type, hitType) => {
     console.log('hitType:', hitType); // 输出 hitType 的值
@@ -384,11 +388,12 @@ const Page = () => {
       console.log('进入四壞情况'); // 输出进入四壞情况
       // 四壞情况，直接设置四个壞球
       setBalls([true, true, true, true]);
-      setIsStrikeout(true);
+      
     } else if (hitType === '三振') {
       console.log('進入三振情況'); // 输出进入三振情況
       // 三振情况，直接设置三个好球
       setStrikes([true, true, true]);
+      setIsStrikeout(true);
     } else {
       console.log('普通情況'); // 輸出普通情況
 
@@ -404,7 +409,41 @@ const Page = () => {
     const currentStrikesCount = strikes.filter(Boolean).length;
   }
 
+  const handleToggle4 = (hitType) => {
+    console.log('hitType', hitType);
+    setActive(!Active); // 切換激活狀態
+    if (!Active) {
+      console.log("激活操作");
+      // 激活時執行的函數
+      handleCheckboxChange(hitType);
+      handleBallTypeChange(balls, 'ball', '四壞');
+     
+    } else {
+      console.log("取消操作");
+      undoChange4();
+    }
+  };
+
+
+  const undoChange4 = () => {
+    if (lastHitType === '四壞') {
+      // 如果上次操作是三振，重置到兩個勾選
+      setBalls([true, true, true]);
+    }
+    if (lastHitType !== null) {
+      setSelectedHits(prev => ({
+        ...prev,
+        [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+      }));
+    }
+    console.log("undoChange4 function executed.");
+  };
+
+
+
+
   const handleOutChange = (hitType = null, baseOuts) => {
+    console.log("hitytype",hitType)
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
@@ -447,34 +486,33 @@ const Page = () => {
     ));
   };
 
-  const handleInnOutsChange = (hitType = null, baseOuts) => {
-    let hitouts = 0;
-    let baseinn = 0;
+  const handleInnOutsChange = (hitType, baseOuts) => {
+    let innAdditionalOut = 1
     console.log('hitType:', hitType, 'baseOuts:', baseOuts)
     // 根據打擊類型判斷出局數
     if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
-      hitouts = 1;
+      innAdditionalOut = 1
     } else if (hitType === '雙殺') {
-      hitouts = 2;
+      innAdditionalOut = 2
     }
     if (baseOuts === 0) {
-      baseinn = 0
+      innAdditionalOut = 0
     }
     else if (baseOuts === 1) {
-      baseinn = 1
+      innAdditionalOut = 1
     }
     else if (baseOuts === 2) {
-      baseinn = 2
+      innAdditionalOut = 2
     }
     else if (baseOuts === 3) {
-      baseinn = 3
+      innAdditionalOut = 3
     }
-
-    // let baseinn = parseInt(baseOuts); // 從UI選擇的基壘出局數直接轉換成數字
-
-    // 計算總出局數
-    const totalOuts = hitouts + baseinn;
-    setInnOuts(totalOuts); // 更新狀態
+    setInnOuts(innprevOuts => {
+      const newOuts = innprevOuts + innAdditionalOut;
+      console.log('Current outs before update:', innprevOuts);
+      console.log('Updating outs to:', newOuts);
+      return newOuts;
+    });
   };
 
   //落點
@@ -759,7 +797,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleToggle('三振')}
+                              onClick={() => {
+                                handleToggle('三振')
+                                handleInnOutsChange('三振')
+                              }
+                              }
                             >
                               三振
                             </Button>
@@ -882,12 +924,7 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => {
-                                handleCheckboxChange('四壞')
-                                handleBallTypeChange(balls, 'ball', '四壞')
-                              }
-                              }
-
+                              onClick={() => handleToggle4('四壞')}
                             >
                               四壞
                             </Button>
