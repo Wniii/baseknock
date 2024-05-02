@@ -144,9 +144,10 @@ export const Manage = ({ onTeamSelect }) => {
       return;
     }
     const teamCodeName = teamDoc.data().codeName;
+    const teamName = teamDoc.data().Name;
 
     // 弹出确认窗口
-    const confirmExit = confirm(`确定要退出球队 ${teamCodeName} 吗？`);
+    const confirmExit = confirm(`確定要退出 ${teamName} 嗎？`);
     if (!confirmExit) {
       console.log("用户取消了退出操作");
       return; // 用户点击“取消”，终止函数执行
@@ -161,14 +162,14 @@ export const Manage = ({ onTeamSelect }) => {
     try {
       await updateDoc(userRef, { u_team: userTeams });
       console.log("Updated Teams in Firestore");
-      alert("已退出球队");
+      alert("已退出球隊");
 
       // 更新localStorage并刷新页面
       localStorage.setItem("userTeam", userTeams.join(","));
       location.reload(); // 刷新页面以反映更新
     } catch (error) {
       console.error("Error removing team from user:", error);
-      alert("退出球队时出错");
+      alert("退出球隊時出錯");
     }
   };
 
@@ -283,7 +284,7 @@ export const Manage = ({ onTeamSelect }) => {
           >
             <EditIcon />
           </IconButton>
-          <br />
+          &nbsp;
           <List style={ListStyle}>
             {teams.map((team) => (
               <ListItem

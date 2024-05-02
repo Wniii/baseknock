@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogActions,
   Button,
+  CircularProgress,
 } from "@mui/material";
 
 import { Layout as DashboardLayout } from "src/layouts/dashboard/layout";
@@ -35,6 +36,7 @@ const SchedulePage = () => {
   const [selectedGame, setSelectedGame] = useState(null); // 修改这里
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter(); // 使用路由器
+  const [loading, setLoading] = useState(true);
   const [codeName, setcodeName] = useState(null); // 修改这里
   const [teamId, setteamId] = useState(null); // 修改这里
   const timeZone = "Asia/Taipei";
@@ -135,12 +137,20 @@ const SchedulePage = () => {
     } catch (error) {
       console.error("Error fetching games:", error);
     }
+    setLoading(false); // 数据加载完成，设置 loading 为 false
   };
 
   useEffect(() => {
     fetchGames();
   }, []);
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
 
 
