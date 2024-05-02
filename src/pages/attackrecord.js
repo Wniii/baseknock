@@ -343,20 +343,23 @@ const Page = () => {
   };
 
   const handleToggle = (hitType) => {
-    console.log('hitType', hitType)
-    setIsActive(!isActive); // 切换激活状态
+    console.log('hitType', hitType);
+    setIsActive(!isActive); // 切換激活狀態
     if (!isActive) {
       console.log("激活操作");
-      // 激活时执行的函数
-      handleCheckboxChange('三振' || '飛球' || '滾地' || '野選' || '雙殺' || '犧飛' || '犧觸');
-      handleOutChange('三振' || '飛球' || '滾地' || '野選' || '雙殺' || '犧飛' || '犧觸');
-      handleBallTypeChange(strikes, 'strike', '三振');
-      handleInnOutsChange('三振' || '飛球' || '滾地' || '野選' || '雙殺' || '犧飛' || '犧觸', 0);
+      // 激活時執行的函數
+      handleCheckboxChange(hitType);
+      handleOutChange(hitType);
+      if (hitType === '三振') {
+        handleBallTypeChange(strikes, 'strike', '三振');
+      }
+      handleInnOutsChange(hitType, 0);
     } else {
       console.log("取消操作", previousOuts);
       undoChange();
     }
   };
+
 
   const undoChange = () => {
     setOuts(previousOuts); // 將 outs 重置為撤銷前的值
@@ -366,8 +369,8 @@ const Page = () => {
     }
     if (lastHitType !== null) {
       setSelectedHits(prev => ({
-          ...prev,
-          [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+        ...prev,
+        [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
       }));
     }
     setInnOuts(0);
@@ -401,7 +404,7 @@ const Page = () => {
     const currentStrikesCount = strikes.filter(Boolean).length;
   }
 
-  const handleOutChange = (baseOuts, hitType = null) => {
+  const handleOutChange = (hitType = null, baseOuts) => {
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
@@ -444,7 +447,7 @@ const Page = () => {
     ));
   };
 
-  const handleInnOutsChange = (hitType, baseOuts) => {
+  const handleInnOutsChange = (hitType = null, baseOuts) => {
     let hitouts = 0;
     let baseinn = 0;
     console.log('hitType:', hitType, 'baseOuts:', baseOuts)
@@ -656,15 +659,17 @@ const Page = () => {
                           <div
                             style={{
                               position: 'absolute',
-                              top: `${markers.y}px`, // 添加 'px' 单位
-                              left: `${markers.x}px`, // 添加 'px' 单位
-                              width: '10px',
-                              height: '10px',
-                              backgroundColor: 'red',
-                              transform: 'translate(-50%, -50%)',
-                              borderRadius: '50%'
+                              top: `${markers.y}px`,
+                              left: `${markers.x}px`,
+                              transform: 'translate(-50%, -50%)'
                             }}
-                          />
+                          >
+                            <img
+                              src="baseball-16-32.png"  // 這裡放置你的棒球圖片網址
+                              alt="棒球"
+                              style={{ width: '21px', height: '21px' }}
+                            />
+                          </div>
                         )}
                       </div>
                       <Button onClick={handleDeleteLastMarker} color="secondary">
@@ -843,7 +848,7 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('違規')}
+                              onClick={() => handleToggle('違規')}
                             >
                               違規
                             </Button>
@@ -1011,15 +1016,18 @@ const Page = () => {
                       </Box>
                     </DialogContent>
                     <DialogActions>
-                      <Button onClick={() => {
-                        console.log('Save button clicked!');
-                        saveData();
-                      }}>
-                        儲存
-                      </Button>
-                      <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                        {alertInfo.message}
-                      </Alert>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Button onClick={() => {
+                          saveData();
+                        }}>
+                          儲存
+                        </Button>
+                      </div>
+                      <Snackbar>
+                        <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                          {alertInfo.message}
+                        </Alert>
+                      </Snackbar>
                     </DialogActions>
                   </Dialog>
                 </CardContent>
