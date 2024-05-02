@@ -1,12 +1,44 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { collection, getDoc, doc } from "firebase/firestore";
-import { Box, Button, Card, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
+import { collection, getDoc, doc, getDocs } from "firebase/firestore";
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
 import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
-import { green, blue, red } from '@mui/material/colors';
+import { green, red } from '@mui/material/colors';
+
+
+const ReplacementDialog = ({ open, onClose, attackListData, teamPlayers }) => {
+  return (
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+          <DialogTitle>選擇替補球員</DialogTitle>
+          <DialogContent>
+              <Box display="flex" justifyContent="space-between">
+                  <List>
+                      {attackListData.map((player, index) => (
+                          <ListItem key={index}>{player}</ListItem>
+                      ))}
+                  </List>
+                  <List>
+                      {teamPlayers.map((player, index) => (
+                          <ListItem key={index}>
+                              {Object.keys(player).map((key, idx) => (
+                                  <Box key={idx} component="span" sx={{ display: 'block' }}>
+                                      {key}: {player[key]}
+                                  </Box>
+                              ))}
+                          </ListItem>
+                      ))}
+                  </List>
+              </Box>
+          </DialogContent>
+          <DialogActions>
+              <Button onClick={onClose}>取消</Button>
+          </DialogActions>
+      </Dialog>
+  );
+};
 
 // 定義 determineButtonProps 函數
 const determineButtonProps = (content, index) => {
@@ -42,6 +74,7 @@ const determineButtonProps = (content, index) => {
   };
 };
 
+
 export const CustomersTable = (props) => {
   const {
     count = 0,
@@ -58,34 +91,43 @@ export const CustomersTable = (props) => {
   const [ordermain, setordermain] = useState([]);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [displayedButton, setDisplayedButton] = useState(false);
-  const router = useRouter(); // 初始化router
+  const [lastValidIndex, setLastValidIndex] = useState(0);  // 修正初始值為 0
+  const [teamPlayers, setTeamPlayers] = useState([]);
+  const [open, setOpen] = useState(false); // 定義 open 狀態
+  const router = useRouter();
 
   useEffect(() => {
-    fetchGames();
-  }, [codeName, timestamp, teamId]); // 当codeName、timestamp、teamId 发生变化时重新获取数据
+    const fetchGameData = async () => {
+      await fetchGames();
+      await fetchTeamPlayers();
+    };
+    fetchGameData();
+  }, [codeName, timestamp, teamId]);
 
   const fetchGames = async () => {
     if (!teamId || !timestamp) {
-      return; // 如果没有提供团队文档ID或游戏文档ID，直接返回
+      console.log('Required IDs are missing.');
+      return; // 直接返回如果缺少 ID
     }
     
     console.log('Fetching games...');
-  
     try {
-      // 获取指定团队文档
-      const teamDocSnapshot = await getDoc(doc(firestore, "team", teamId));
+      const teamDocRef = doc(firestore, "team", teamId);
+      const teamDocSnapshot = await getDoc(teamDocRef);
   
       if (teamDocSnapshot.exists()) {
-        // 获取指定团队文档中的游戏子集合
         const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
-  
-        // 获取指定游戏文档
-        const gameDocSnapshot = await getDoc(doc(gamesCollectionRef, timestamp));
-  
+        const gameDocRef = doc(gamesCollectionRef, timestamp);
+        const gameDocSnapshot = await getDoc(gameDocRef);
+
         if (gameDocSnapshot.exists()) {
-          // 更新状态
-          setAttackListData(gameDocSnapshot.data().attacklist || []);
-          setordermain(gameDocSnapshot.data().ordermain || []);
+          const gameData = gameDocSnapshot.data();
+          const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
+          const lastValidIndex = orderMainLength - 1;
+
+          setLastValidIndex(lastValidIndex);
+          setAttackListData(gameData.attacklist || []);
+          setordermain(gameData.ordermain || []);
           setGameDocSnapshot(gameDocSnapshot);
         } else {
           console.log("No matching game document with ID:", timestamp);
@@ -97,148 +139,152 @@ export const CustomersTable = (props) => {
       console.error("Error fetching games:", error);
     }
   };
-  
+
+  const fetchTeamPlayers = async () => {
+    try {
+      const playersSnapshot = await getDocs(collection(firestore, "team"));
+      const players = [];
+      playersSnapshot.forEach(doc => {
+        if (!attackListData.includes(doc.data().name)) {
+          players.push(doc.data());
+        }
+      });
+      setTeamPlayers(teamPlayers);
+    } catch (error) {
+      console.error("Error fetching team players:", error);
+    }
+  };
+  console.log("d",teamPlayers)
+
   const handleClick = (attack) => {
     router.push({
-      pathname: '/attackrecord',
-      query: {
-        attack: attack,
-        timestamp: timestamp,
-        codeName: codeName,
-        teamId: teamId,
-        outs: outs
-      }
+        pathname: '/awayattackrecord',
+        query: {
+            attack: attack,
+            timestamp: timestamp,
+            codeName: codeName,
+            teamId: teamId,
+            outs: outs
+        }
     });
-  };
+};
+
+  let buttonRow = -1;
+
+// 在迴圈外計算按鈕的行數和按鈕的列數
+let buttonColumn = -1;
+if (gameDocSnapshot && gameDocSnapshot.data()) {
+  const outs = gameDocSnapshot.data().outs || 0;
+  buttonColumn = Math.floor(outs / 6) + 1;
+
+  // 計算按鈕應該放置的行數
+  const remainder = (lastValidIndex % 9)+2;
+  console.log("s",remainder)
+    buttonRow = remainder;
+
+}
   
-// 函数来确定应该放置按钮的列数
-let buttonPlaced = false;
-let allPlayersHaveContent = false;
-
-return (
-  <Card>
-    <Scrollbar>
-      <Box sx={{ minWidth: 800 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>打者</TableCell>
-              <TableCell>1</TableCell>
-              <TableCell>2</TableCell>
-              <TableCell>3</TableCell>
-              <TableCell>4</TableCell>
-              <TableCell>5</TableCell>
-              <TableCell>6</TableCell>
-              <TableCell>7</TableCell>
-              <TableCell>8</TableCell>
-              <TableCell>9</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {attackListData.map((attack, index) => {
-              // 在 ordermain 中查找具有相同 p_name 的对象
-              const orderMainItems = ordermain.filter(item => item.p_name === attack);
-
-              // 获取当前攻击者的内容
-              const contentArray = new Array(9).fill('');
-
-              // 将每个攻击者的内容添加到相应的列中
-              orderMainItems.forEach(orderMainItem => {
-                if (orderMainItem && orderMainItem.inn) {
-                  const innContent = orderMainItem.inn;
-                  contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
-                }
-              });
-
-              // 根据 outs 数字计算按钮所在的列数
-              let buttonColumn = -1;
-              if (gameDocSnapshot && gameDocSnapshot.data()) {
-                const outs = gameDocSnapshot.data().outs || 0;
-                buttonColumn = Math.floor(outs / 6) + 1;
-              }
-
-              // 检查是否已经放置了按钮
-              const hasContent = contentArray.some(content => content !== '');
-
-              // 检查是否所有球员都有内容
-              allPlayersHaveContent = allPlayersHaveContent && hasContent;
-
-              // 如果所有球员都有内容，则重置按钮状态
-              if (allPlayersHaveContent) {
-                buttonPlaced = false;
-                allPlayersHaveContent = false;
-              }
-
-              return (
-                <TableRow hover key={index}>
-                  {/* 攻击者信息 */}
-                  <TableCell>{attack}</TableCell>
-                
-                  {/* 根据当前列数决定是否显示内容或按钮 */}
-                  {contentArray.map((content, i) => {
-                    // 如果当前行有内容，则直接显示内容
-                    if (content) {
-                      const buttonProps = determineButtonProps(content, i);
-                      return (
-                        <TableCell key={i}>
-                          <div
-                            style={{
-                              height: '30px',
-                              padding: 0,
-                              backgroundColor: buttonProps.color,
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {buttonProps.text}
-                          </div>
-                        </TableCell>
-                      );
-                    }
-
-                    // 如果当前行没有内容，并且没有放置按钮，则尝试放置按钮
-                    if (!buttonPlaced && buttonColumn === i + 1) {
-                      buttonPlaced = true;
-                      console.log(`Button placed for player ${attack} in column ${buttonColumn}`);
-                      return (
-                        <TableCell key={i}>
-                          <Button
-                            variant="outlined"
-                            color="inherit"
-                            sx={{ height: '30px', padding: 0 }}
-                            type="button"
-                            onClick={() => handleClick(attack)}
-                          >
-                            <AddIcon />
-                          </Button>
-                        </TableCell>
-                      );
-                    }
-
-                    // 如果当前行没有内容，但还未找到适合放置按钮的行，则显示空单元格
-                    return <TableCell key={i}></TableCell>;
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Box>
-    </Scrollbar>
-    <TablePagination
-      component="div"
-      count={count}
-      onPageChange={onPageChange}
-      onRowsPerPageChange={onRowsPerPageChange}
-      page={page}
-      rowsPerPage={rowsPerPage}
-      rowsPerPageOptions={[5, 10, 25]}
-    />
-  </Card>
-);
-
+  return (
+    <Card>
+      <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+        替補球員
+      </Button>
+      <ReplacementDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        attackListData={attackListData}
+        teamPlayers={teamPlayers}
+      />
+      <Scrollbar>
+        <Box sx={{ minWidth: 800 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>打者</TableCell>
+                <TableCell>1</TableCell>
+                <TableCell>2</TableCell>
+                <TableCell>3</TableCell>
+                <TableCell>4</TableCell>
+                <TableCell>5</TableCell>
+                <TableCell>6</TableCell>
+                <TableCell>7</TableCell>
+                <TableCell>8</TableCell>
+                <TableCell>9</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {attackListData.map((attack, index) => {
+                console.log('Processing attack:', attack);
+                const orderMainItems = ordermain.filter(item => item.p_name === attack);
+                console.log('OrderMain items for', attack, ':', orderMainItems);
+                const contentArray = new Array(9).fill('');
+                orderMainItems.forEach(orderMainItem => {
+                  if (orderMainItem && orderMainItem.inn) {
+                    const innContent = orderMainItem.inn;
+                    contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
+                    console.log(`Updated contentArray for inning ${innContent} of ${attack}:`, contentArray);
+                  }
+                });
+  
+                console.log('Final contentArray for', attack, ':', contentArray);
+  
+                return (
+                  <TableRow hover key={index}>
+                    <TableCell>{attack}</TableCell>
+                    {contentArray.map((content, i) => {
+                      if (content) {
+                        const buttonProps = determineButtonProps(content, i);
+                        return (
+                          <TableCell key={i}>
+                            <Button
+                              variant="contained"
+                              style={{
+                                height: '30px',
+                                backgroundColor: buttonProps.color,
+                                color: 'white',
+                              }}
+                              onClick={() => handleClick(attack)}
+                            >
+                              {buttonProps.text}
+                            </Button>
+                          </TableCell>
+                        );
+                      } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+                        console.log("Button key:", i);
+                        return (
+                          <TableCell key={i}>
+                            <Button
+                              variant="outlined"
+                              color="inherit"
+                              sx={{ height: '30px', padding: 0 }}
+                              onClick={() => handleClick(attack)}
+                            >
+                              <AddIcon />
+                            </Button>
+                          </TableCell>
+                        );
+                      } else {
+                        return <TableCell key={i}></TableCell>;
+                      }
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Box>
+      </Scrollbar>
+      <TablePagination
+        component="div"
+        count={count}
+        onPageChange={onPageChange}
+        onRowsPerPageChange={onRowsPerPageChange}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[5, 10, 25]}
+      />
+    </Card>
+  )
 };
 
 CustomersTable.propTypes = {

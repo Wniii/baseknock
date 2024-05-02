@@ -153,21 +153,32 @@ const Page = () => {
 
 
     const handleToggle = (hitType) => {
-        if (isActive) {
-            console.log("取消操作");
-            undoOutChange(); 
-        } else {
+        // 首先计算切换后的状态
+        const newIsActive = !isActive;
+    
+        // 根据计算后的状态执行操作
+        if (newIsActive) {
             console.log("执行操作");
-            // 如果未激活，执行所需的函数
+            // 如果切换为激活状态，执行所需的函数
             handleCheckboxChange(hitType);
             handleOutChange(hitType);
             handleInnOutsChange(hitType);
+        } else {
+            console.log("取消操作");
+            undoOutChange(); 
         }
-        setIsActive(!isActive); // 切换激活状态
+    
+        // 更新isActive状态
+        setIsActive(newIsActive);
     };
+    
+
+
     const undoOutChange = () => {
       setOuts(previousOuts); // 恢复到之前的状态
     };
+
+
     const handleSubmit = useCallback((event) => {
         event.preventDefault();
     }, []);

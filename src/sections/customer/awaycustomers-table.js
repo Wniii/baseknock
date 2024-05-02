@@ -87,7 +87,7 @@ export const AwayCustomersTable = (props) => {
                     //   console.log("Game document ID:", timestamp);
                     //   console.log("Game data:", gameDocSnapshot.data());
                     const gameData = gameDocSnapshot.data();
-                      const oderoppoLength = gameData.orderoppo.length;
+                    const oderoppoLength = gameData.orderoppo ? gameData.orderoppo.length : 0;  // 如果ordermain存在则使用其长度，否则使用0
                       const lastValidIndex = oderoppoLength - 1;
   
                       console.log('Length of ordermain array:', oderoppoLength);
@@ -131,9 +131,9 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   buttonColumn = Math.floor(outs / 6) + 1;
 
   // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+1;
+  const remainder = (lastValidIndex % 9)+2;
   console.log("s",remainder)
-  buttonRow = remainder;
+    buttonRow = remainder;
 
 }
 return (

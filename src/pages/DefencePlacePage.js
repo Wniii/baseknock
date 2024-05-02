@@ -16,6 +16,10 @@ const DefencePlacePage = () => {
   const [initialIndexes, setInitialIndexes] = useState({});
   const [showPlayerList, setShowPlayerList] = useState(true);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [pitcherKeys, setpitcherKeys] = useState([]);
+  const [showPitchers, setShowPitchers] = useState(false);
+
+console.log("c",pitcherKeys)
   const { codeName } = router.query;
   const { teamId } = router.query;
   const { hcodeName } = router.query;
@@ -40,77 +44,68 @@ const DefencePlacePage = () => {
   }, [router.query.gameId]);
 
   useEffect(() => {
-    const fetchAttackList = async () => {
+    const fetchGameDataAndPlayers = async () => {
+        if (!gameId || !codeName) {
+            console.log('gameId 或 codeName 不存在');
+            return;
+        }
+
         try {
-            if (!gameId || !codeName) {
-                console.log('gameId 或 codeName 不存在');
-                return;
-            }
-            console.log("codeName",codeName)
-            console.log("gameId",gameId)
             const teamsCollectionRef = collection(firestore, 'team');
             const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', hcodeName)));
 
             if (!querySnapshot.empty) {
-                // 获取第一个匹配到的文档（假设每个 codeName 只对应一个文档）
                 const teamDocSnapshot = querySnapshot.docs[0];
-                console.log('团队文档存在', teamDocSnapshot.id);
 
-                // 获取游戏文档的引用
-                const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
-                const gameDocRef = doc(gamesCollectionRef, gameId);
-                const gameDocSnapshot = await getDoc(gameDocRef);
+                if (teamDocSnapshot.exists()) {
+                    const teamData = teamDocSnapshot.data();
+                    const playersField = teamData.players;
 
-                if (gameDocSnapshot.exists()) {
-                    console.log('游戏文档存在');
+                    if (playersField && typeof playersField === 'object') {
+                        console.log('players 字段是对象');
 
-                    const gameData = gameDocSnapshot.data();
-                    const attackList = gameData.attacklist;
-                    setAttackList(attackList);
+                        // Fetch the game document
+                        const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
+                        const gameDocRef = doc(gamesCollectionRef, gameId);
+                        const gameDocSnapshot = await getDoc(gameDocRef);
 
-                    if (teamDocSnapshot.exists()) {
-                        console.log('团队文档存在');
+                        if (gameDocSnapshot.exists()) {
+                            console.log('游戏文档存在');
+                            const gameData = gameDocSnapshot.data();
+                            const attackList = gameData.attacklist || [];
+                            setAttackList(attackList);
 
-                        const teamData = teamDocSnapshot.data();
-                        const playersField = teamData.players;
-
-                        if (playersField && typeof playersField === 'object') {
-                            console.log('players 字段是对象');
-
+                            // Filter players who are in the attack list
                             const playerKeysInAttackList = attackList.filter(playerId => playerId in playersField);
                             setPlayerKeys(playerKeysInAttackList);
 
+                            // Map players data and indices
                             const playersData = {};
-                            playerKeysInAttackList.forEach(playerId => {
-                                playersData[playerId] = playersField[playerId];
-                            });
-                            setPlayers(playersData);
-
-                            console.log('设置玩家数据');
-
                             const originalIndexes = {};
-                            playerKeysInAttackList.forEach((playerId, index) => {
-                                originalIndexes[playerId] = index;
-                            });
-                            setOriginalPlayerIndexes(originalIndexes);
-
-                            console.log('设置初始索引');
-
                             const initialIndexesData = {};
                             playerKeysInAttackList.forEach((playerId, index) => {
+                                playersData[playerId] = playersField[playerId];
+                                originalIndexes[playerId] = index;
                                 initialIndexesData[playerId] = index + 1;
                             });
-                            setInitialIndexes(initialIndexesData);
 
-                            console.log('完成设置');
+                            setPlayers(playersData);
+                            setOriginalPlayerIndexes(originalIndexes);
+                            setInitialIndexes(initialIndexesData);
+                            console.log('设置玩家数据');
+
+                            // Fetch pitcher keys
+                            const pitcherKeys = Object.keys(playersField).filter(key => playersField[key].position === 'P');
+                            setpitcherKeys(pitcherKeys);
+                            console.log('Pitcher keys:', pitcherKeys);
                         } else {
-                            console.log('团队文档中的players字段不是对象');
+                            console.log('游戏文档不存在');
                         }
                     } else {
-                        console.log('团队文档不存在');
+                        console.log('团队文档中的players字段不是对象');
                     }
                 } else {
-                    console.log('游戏文档不存在');
+                    console.log('团队文档不存在');
                 }
             } else {
                 console.log('找不到匹配的团队文档');
@@ -121,14 +116,16 @@ const DefencePlacePage = () => {
     };
 
     console.log('触发 useEffect');
-    fetchAttackList();
+    fetchGameDataAndPlayers();
 }, [gameId, codeName]);
 
 
 
-  const handlePositionClick = (position) => {
-    setSelectedPosition(position);
-  };
+
+const handlePositionClick = (position) => {
+  setSelectedPosition(position);
+  setShowPitchers(positionNames[position] === 'P'); // 當選擇的位置是投手時，showPitchers為true
+};
   
   const handleClosePopup = () => {
     setSelectedPosition(null);
@@ -152,6 +149,7 @@ const DefencePlacePage = () => {
     }));
     setSelectedPosition(null);
   };
+
 
 
   const addPositionToGame = async (teamCollectionRef, codeName, timestamp, positionData) => {
@@ -244,15 +242,15 @@ const navigateschedule = (gameId, codeName) => {
 };
 
   
-  return (
-    <Container maxWidth="xl">
-      <Typography variant="h4" mb={4} textAlign="center">
-        守備位置
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
+return (
+  <Container maxWidth="xl">
+    <Typography variant="h4" mb={4} textAlign="center">
+      守備位置
+    </Typography>
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={7}>
         <div
-            style={{
+          style={{
             position: 'relative',
             width: '100vw',
             height: '100vh',
@@ -260,128 +258,141 @@ const navigateschedule = (gameId, codeName) => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-              <div style={{ position: 'absolute', left: 'calc(45% - 32%)', top: 0 }}> {/* 使用left属性调整左偏移量 */}
+            <div style={{ position: 'absolute', left: 'calc(45% - 32%)', top: 0 }}>
 
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
-              alt="baseball_positions"
-              style={{ width: '100%' }} // 设置图像的宽度为50%
-            />
-            {Object.keys(positions).map(pos => (
-              <div
-                key={pos}
-                style={{
-                  position: 'absolute',
-                  top: `${getPositionTop(pos)}%`,
-                  left: `${getPositionLeft(pos)}%`,
-                  transform: 'translate(-50%, -50%)',
-                  margin: 'auto', // 让图片水平和垂直居中
-                  width: '10%',
-                  height: '10%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: positions[pos] ? 999 : 'auto',
-                  backgroundColor: positions[pos] ? '#3f51b5' : 'rgba(255, 255, 255, 0.5)',
-                }}
-                onClick={() => handlePositionClick(pos)}
-              >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
+                alt="baseball_positions"
+                style={{ width: '100%' }} // 设置图像的宽度为50%
+              />
+              {Object.keys(positions).map(pos => (
                 <div
+                  key={pos}
                   style={{
-                    border: `2px solid ${positions[pos] ? '#ffffff' : 'transparent'}`,
-                    width: '100%',
-                    height: '100%',
+                    position: 'absolute',
+                    top: `${getPositionTop(pos)}%`,
+                    left: `${getPositionLeft(pos)}%`,
+                    transform: 'translate(-50%, -50%)',
+                    margin: 'auto', // 让图片水平和垂直居中
+                    width: '10%',
+                    height: '10%',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    color: positions[pos] ? '#ffffff' : 'inherit',
-                    cursor: positions[pos] ? 'pointer' : 'default',
-                    position: 'relative'
+                    zIndex: positions[pos] ? 999 : 'auto',
+                    backgroundColor: positions[pos] ? '#3f51b5' : 'rgba(255, 255, 255, 0.5)',
                   }}
+                  onClick={() => handlePositionClick(pos)}
                 >
                   <div
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      border: `2px solid ${positions[pos] ? '#ffffff' : 'transparent'}`,
+                      width: '100%',
+                      height: '100%',
                       display: 'flex',
-                      flexDirection: 'column',
                       justifyContent: 'center',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      color: positions[pos] ? '#ffffff' : 'inherit',
+                      cursor: positions[pos] ? 'pointer' : 'default',
+                      position: 'relative'
                     }}
                   >
-                    <Typography variant="h6">{positionNames[pos]}</Typography>
-                    <Typography variant="body1">{positions[pos] || 'Empty'}</Typography>
-                  </div>
-                </div>
-              </div>
-              
-            ))}
-          </div>
-          </div>
-          {selectedPosition && (
-            <div className="popup"
-            onClick={handleBackgroundClick}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 9998,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              <Paper elevation={3} sx={{ p: 2, position: 'relative' }}>
-                <Typography variant="h6">{positionNames[selectedPosition]}</Typography>
-                <Typography variant="body1">{positions[selectedPosition] || 'Empty'}</Typography>
-                <Button onClick={handleClosePopup} sx={{ position: 'absolute', top: 0, right: 0 }}>Close</Button>
-                <List>
-                  {playerKeys.map(playerKey => (
-                    <ListItem 
-                      key={playerKey} 
-                      divider 
-                      onClick={() => assignPlayerToPosition(playerKey)}
-                      style={{ 
-                        backgroundColor: 
-                        Object.values(positions).includes(playerKey) ? '#3f51b5' : 'transparent',
-                      borderRadius: '16px', // 圓角化
-                      color: Object.values(positions).includes(playerKey) ? '#ffffff' : 'inherit' // 已選球員文字顏色設置為白色
-
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center'
                       }}
                     >
-                      {/* <ListItemAvatar>
-                        <Box component="img" src={players[playerKey]?.image} sx={{ borderRadius: 1, height: 48, width: 48 }} />
-                      </ListItemAvatar> */}
-                      <ListItemText primary={`${playerKey}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
+                      <Typography variant="h6">{positionNames[pos]}</Typography>
+                      <Typography variant="body1">{positions[pos] || 'Empty'}</Typography>
+                    </div>
+                  </div>
+                </div>
+
+              ))}
             </div>
+          </div>
+          {selectedPosition && (
+  <div className="popup"
+    onClick={handleBackgroundClick}
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      zIndex: 9998,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    }}>
+    <Paper elevation={3} sx={{ p: 2, position: 'relative' }}>
+      <Typography variant="h6">{positionNames[selectedPosition]}</Typography>
+      <Typography variant="body1">{positions[selectedPosition] || 'Empty'}</Typography>
+      <Button onClick={handleClosePopup} sx={{ position: 'absolute', top: 0, right: 0 }}>Close</Button>
+      <List>
+        {(selectedPosition === '1' ? pitcherKeys : playerKeys).map(key => (
+          <ListItem 
+            key={key} 
+            divider 
+            onClick={() => assignPlayerToPosition(key)}
+            style={{ 
+              backgroundColor: Object.values(positions).includes(key) ? '#3f51b5' : 'transparent',
+              borderRadius: '16px', // 圓角化
+              color: Object.values(positions).includes(key) ? '#ffffff' : 'inherit' // 已選球員文字顏色設置為白色
+            }}
+          >
+            <ListItemText primary={`${players[key]?.name || key}`} />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
+  </div>
+)}
+
+          {showPitchers && (
+            <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+              <Typography variant="h6">投手列表</Typography>
+              <List>
+                {pitcherKeys.map(pitcherKey => (
+                  <ListItem 
+                    key={pitcherKey} 
+                    divider 
+                    onClick={() => assignPlayerToPosition(pitcherKey)}
+                  >
+                    <ListItemText primary={`${players[pitcherKey]?.name || pitcherKey}`} />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
           )}
         </Grid>
       </Grid>
       <Grid container justifyContent="center" style={{ marginTop: '10px' }}>
-    <Button
-      onClick={handleSaveAndNavigate}
-      variant="contained"
-      color="primary"
-      sx={{
-        display: 'block',
-        margin: '0 auto' // 设置左右外边距为auto，实现水平居中
-      }}
-    >
-      儲存守備位置
-    </Button>
-  </Grid>
+        <Button
+          onClick={handleSaveAndNavigate}
+          variant="contained"
+          color="primary"
+          sx={{
+            display: 'block',
+            margin: '0 auto' // 设置左右外边距为auto，实现水平居中
+          }}
+        >
+          儲存守備位置
+        </Button>
+      </Grid>
     </Container>
   );
 }
+
 
 DefencePlacePage.getLayout = (page) => (
   <DashboardLayout>
