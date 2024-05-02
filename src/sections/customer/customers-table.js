@@ -9,28 +9,31 @@ import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
 
 
-const ReplacementDialog = ({ open, onClose, attackListData, teamPlayers }) => {
+const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) => {
+  // 在组件加载时调用 fetchTeamPlayers
+
   return (
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
           <DialogTitle>選擇替補球員</DialogTitle>
           <DialogContent>
               <Box display="flex" justifyContent="space-between">
+                  {/* 左列，攻击列表 */}
                   <List>
                       {attackListData.map((player, index) => (
                           <ListItem key={index}>{player}</ListItem>
                       ))}
                   </List>
+                  {/* 右列，过滤后的团队玩家列表 */}
                   <List>
-                      {teamPlayers.map((player, index) => (
-                          <ListItem key={index}>
-                              {Object.keys(player).map((key, idx) => (
-                                  <Box key={idx} component="span" sx={{ display: 'block' }}>
-                                      {key}: {player[key]}
-                                  </Box>
-                              ))}
-                          </ListItem>
-                      ))}
-                  </List>
+  {Object.keys(player).map((key, index) => (
+    <ListItem key={index}>
+      <Box component="span" sx={{ display: 'block' }}>
+        Key: {key}
+      </Box>
+    </ListItem>
+  ))}
+</List>
+
               </Box>
           </DialogContent>
           <DialogActions>
@@ -39,6 +42,7 @@ const ReplacementDialog = ({ open, onClose, attackListData, teamPlayers }) => {
       </Dialog>
   );
 };
+
 
 // 定義 determineButtonProps 函數
 const determineButtonProps = (content, index) => {
@@ -92,7 +96,7 @@ export const CustomersTable = (props) => {
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [displayedButton, setDisplayedButton] = useState(false);
   const [lastValidIndex, setLastValidIndex] = useState(0);  // 修正初始值為 0
-  const [teamPlayers, setTeamPlayers] = useState([]);
+  const [filteredPlayers, setTeamPlayers] = useState([]);
   const [open, setOpen] = useState(false); // 定義 open 狀態
   const router = useRouter();
 
@@ -110,7 +114,6 @@ export const CustomersTable = (props) => {
       return; // 直接返回如果缺少 ID
     }
     
-    console.log('Fetching games...');
     try {
       const teamDocRef = doc(firestore, "team", teamId);
       const teamDocSnapshot = await getDoc(teamDocRef);
@@ -142,19 +145,41 @@ export const CustomersTable = (props) => {
 
   const fetchTeamPlayers = async () => {
     try {
-      const playersSnapshot = await getDocs(collection(firestore, "team"));
-      const players = [];
-      playersSnapshot.forEach(doc => {
-        if (!attackListData.includes(doc.data().name)) {
-          players.push(doc.data());
+        console.log("Fetching team document...");
+        const teamDocRef = doc(firestore, "team", teamId);
+        const teamDocSnapshot = await getDoc(teamDocRef);
+
+        if (teamDocSnapshot.exists()) {
+            const teamData = teamDocSnapshot.data();
+            console.log("Team data:", teamData);
+
+            if (teamData.players) {
+              console.log("c",attackListData)
+
+                // 构建一个新的 players 对象，只包含过滤后的玩家
+                const filteredPlayers = {};
+                  Object.keys(teamData.players).forEach(playerName => {
+                      if (!attackListData.includes(playerName)) {
+                          filteredPlayers[playerName] = teamData.players[playerName];
+                      }
+                  });
+
+                console.log("dsd", filteredPlayers);
+                // 更新状态
+
+                setTeamPlayers(Object.values(filteredPlayers) || []);
+              } else {
+                console.log("No players data available.");
+            }
+        } else {
+            console.log("No such team document!");
         }
-      });
-      setTeamPlayers(teamPlayers);
     } catch (error) {
-      console.error("Error fetching team players:", error);
+        console.error("Error fetching team players:", error);
     }
-  };
-  console.log("d",teamPlayers)
+};
+
+
 
   const handleClick = (attack) => {
     router.push({
@@ -179,7 +204,6 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
 
   // 計算按鈕應該放置的行數
   const remainder = (lastValidIndex % 9)+2;
-  console.log("s",remainder)
     buttonRow = remainder;
 
 }
@@ -193,7 +217,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
         open={open}
         onClose={() => setOpen(false)}
         attackListData={attackListData}
-        teamPlayers={teamPlayers}
+        filteredPlayers={filteredPlayers}
       />
       <Scrollbar>
         <Box sx={{ minWidth: 800 }}>
@@ -214,19 +238,15 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
             </TableHead>
             <TableBody>
               {attackListData.map((attack, index) => {
-                console.log('Processing attack:', attack);
                 const orderMainItems = ordermain.filter(item => item.p_name === attack);
-                console.log('OrderMain items for', attack, ':', orderMainItems);
                 const contentArray = new Array(9).fill('');
                 orderMainItems.forEach(orderMainItem => {
                   if (orderMainItem && orderMainItem.inn) {
                     const innContent = orderMainItem.inn;
                     contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
-                    console.log(`Updated contentArray for inning ${innContent} of ${attack}:`, contentArray);
                   }
                 });
   
-                console.log('Final contentArray for', attack, ':', contentArray);
   
                 return (
                   <TableRow hover key={index}>

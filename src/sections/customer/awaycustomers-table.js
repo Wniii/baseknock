@@ -132,7 +132,6 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
 
   // 計算按鈕應該放置的行數
   const remainder = (lastValidIndex % 9)+2;
-  console.log("s",remainder)
     buttonRow = remainder;
 
 }
@@ -190,7 +189,6 @@ return (
                       );
                     } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
                       // 確保只在未放置按鈕且當前列沒有內容時放置按鈕
-                      console.log("Button key:", i); // 添加這行以輸出按鈕的 key
                     
                       return (
                         <TableCell key={i}>
