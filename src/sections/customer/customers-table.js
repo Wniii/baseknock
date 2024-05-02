@@ -23,15 +23,15 @@ const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) =
           </List>
           {/* 右列，过滤后的团队玩家列表 */}
           <List>
-            
-  {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
-    <ListItem key={index}>
-      <Box component="span" sx={{ display: 'block' }}>
-        {player.name}: {player.position}
-      </Box>
-    </ListItem>
-  ))}
-</List>
+
+            {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
+              <ListItem key={index}>
+                <Box component="span" sx={{ display: 'block' }}>
+                  {player.name}: {player.position}
+                </Box>
+              </ListItem>
+            ))}
+          </List>
         </Box>
       </DialogContent>
       <DialogActions>
@@ -81,7 +81,7 @@ const determineButtonProps = (content, index) => {
 export const CustomersTable = (props) => {
   const {
     count = 0,
-    onPageChange = () => {},
+    onPageChange = () => { },
     onRowsPerPageChange,
     page = 0,
     rowsPerPage = 0,
@@ -111,11 +111,11 @@ export const CustomersTable = (props) => {
       console.log('Required IDs are missing.');
       return; // 直接返回如果缺少 ID
     }
-    
+
     try {
       const teamDocRef = doc(firestore, "team", teamId);
       const teamDocSnapshot = await getDoc(teamDocRef);
-  
+
       if (teamDocSnapshot.exists()) {
         const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
         const gameDocRef = doc(gamesCollectionRef, timestamp);
@@ -143,72 +143,86 @@ export const CustomersTable = (props) => {
 
   const fetchTeamPlayers = async () => {
     try {
-        console.log("Fetching team document...");
-        const teamDocRef = doc(firestore, "team", teamId);
-        const teamDocSnapshot = await getDoc(teamDocRef);
+      console.log("Fetching team document...");
+      const teamDocRef = doc(firestore, "team", teamId);
+      const teamDocSnapshot = await getDoc(teamDocRef);
 
-        if (teamDocSnapshot.exists()) {
-            const teamData = teamDocSnapshot.data();
-            console.log("Team data:", teamData);
+      if (teamDocSnapshot.exists()) {
+        const teamData = teamDocSnapshot.data();
+        console.log("Team data:", teamData);
 
-            if (teamData.players) {
+        if (teamData.players) {
 
-                // 构建一个新的 players 对象，只包含过滤后的玩家
-                const filteredPlayers = {};
-                  Object.keys(teamData.players).forEach(playerName => {
-                      if (!attackListData.includes(playerName)) {
-                          filteredPlayers[playerName] = teamData.players[playerName];
-                      }
-                  });
-
-                console.log("dsd", filteredPlayers);
-                // 更新状态
-                Object.entries(filteredPlayers).forEach(([key, value]) => {
-                  console.log(key); // 键名
-                  console.log(value); // 对应的属性值
-                });
-                setTeamPlayers(Object.entries(filteredPlayers) || []);
-                console.log("c",Object.entries(filteredPlayers) || [])
-              } else {
-                console.log("No players data available.");
+          // 构建一个新的 players 对象，只包含过滤后的玩家
+          const filteredPlayers = {};
+          Object.keys(teamData.players).forEach(playerName => {
+            if (!attackListData.includes(playerName)) {
+              filteredPlayers[playerName] = teamData.players[playerName];
             }
+          });
+
+          // console.log("dsd", filteredPlayers);
+          // 更新状态
+          Object.entries(filteredPlayers).forEach(([key, value]) => {
+            // console.log(key); // 键名
+            // console.log(value); // 对应的属性值
+          });
+          setTeamPlayers(Object.entries(filteredPlayers) || []);
+          // console.log("c", Object.entries(filteredPlayers) || [])
         } else {
-            console.log("No such team document!");
+          console.log("No players data available.");
         }
+      } else {
+        console.log("No such team document!");
+      }
     } catch (error) {
-        console.error("Error fetching team players:", error);
+      console.error("Error fetching team players:", error);
     }
-};
+  };
 
 
 
   const handleClick = (attack) => {
     router.push({
-        pathname: '/awayattackrecord',
-        query: {
-            attack: attack,
-            timestamp: timestamp,
-            codeName: codeName,
-            teamId: teamId,
-            outs: outs
-        }
+      pathname: '/attackrecord',
+      query: {
+        attack: attack,
+        timestamp: timestamp,
+        codeName: codeName,
+        teamId: teamId,
+        outs: outs
+      }
     });
-};
+  };
+
+  const handleEdit = (attack, index) => {
+    router.push({
+      pathname: '/editattackrecord',
+      query: {
+        attack: attack,
+        index: index,  // 確保在跳轉時傳遞此參數
+        timestamp: timestamp,
+        codeName: codeName,
+        teamId: teamId,
+        outs: outs
+      }
+    })};
+   
 
   let buttonRow = -1;
 
-// 在迴圈外計算按鈕的行數和按鈕的列數
-let buttonColumn = -1;
-if (gameDocSnapshot && gameDocSnapshot.data()) {
-  const outs = gameDocSnapshot.data().outs || 0;
-  buttonColumn = Math.floor(outs / 6) + 1;
+  // 在迴圈外計算按鈕的行數和按鈕的列數
+  let buttonColumn = -1;
+  if (gameDocSnapshot && gameDocSnapshot.data()) {
+    const outs = gameDocSnapshot.data().outs || 0;
+    buttonColumn = Math.floor(outs / 6) + 1;
 
-  // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+2;
+    // 計算按鈕應該放置的行數
+    const remainder = (lastValidIndex % 9) + 2;
     buttonRow = remainder;
 
-}
-  
+  }
+
   return (
     <Card>
       <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
@@ -247,48 +261,61 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                     contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
                   }
                 });
-  
-  
+
+
                 return (
-                  <TableRow hover key={index}>
+                  <TableRow>
                     <TableCell>{attack}</TableCell>
-                    {contentArray.map((content, i) => {
-                      if (content) {
-                        const buttonProps = determineButtonProps(content, i);
-                        return (
-                          <TableCell key={i}>
-                            <Button
-                              variant="contained"
-                              style={{
-                                height: '30px',
-                                backgroundColor: buttonProps.color,
-                                color: 'white',
-                              }}
-                              onClick={() => handleClick(attack)}
-                            >
-                              {buttonProps.text}
-                            </Button>
-                          </TableCell>
-                        );
-                      } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
-                        console.log("Button key:", i);
-                        return (
-                          <TableCell key={i}>
-                            <Button
-                              variant="outlined"
-                              color="inherit"
-                              sx={{ height: '30px', padding: 0 }}
-                              onClick={() => handleClick(attack)}
-                            >
-                              <AddIcon />
-                            </Button>
-                          </TableCell>
-                        );
-                      } else {
-                        return <TableCell key={i}></TableCell>;
-                      }
-                    })}
+                    {(() => {
+                      let buttonIndex = 0; // 初始化按鈕索引計數器
+                      return contentArray.map((content, i) => {
+                        if (content) {
+                          const buttonProps = determineButtonProps(content, i);
+                          const currentButtonIndex = buttonIndex; // 捕獲當前的buttonIndex值
+                          buttonIndex++; // 索引只有在渲染按鈕時增加
+                          return (
+                            <TableCell key={currentButtonIndex}>
+                              <Button
+                                variant="contained"
+                                style={{
+                                  height: '30px',
+                                  backgroundColor: buttonProps.color,
+                                  color: 'white',
+                                }}
+                                onClick={() => {
+                                  console.log(`Button clicked at index: ${currentButtonIndex}`);
+                                  handleEdit(attack, ); //currentButtonIndex 假設handleEdit現在也接受index
+                                }}
+                              >
+                                {buttonProps.text}
+                              </Button>
+                            </TableCell>
+                          );
+                        } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+                          console.log("Button key:", i);
+                          return (
+                            <TableCell key={i}>
+                              <Button
+                                variant="outlined"
+                                color="inherit"
+                                sx={{ height: '30px', padding: 0 }}
+                                onClick={() => {
+                                  console.log(`Add button clicked at physical index: ${i}`);
+                                  handleClick(attack, i);
+                                }}
+                              >
+                                <AddIcon />
+                              </Button>
+                            </TableCell>
+                          );
+                        } else {
+                          return <TableCell key={i}></TableCell>;
+                        }
+                      });
+                    })()}
                   </TableRow>
+
+
                 );
               })}
             </TableBody>

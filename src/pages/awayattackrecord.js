@@ -113,14 +113,24 @@ const Page = () => {
                             if (gameSnap.exists()) {
                                 const gameData = gameSnap.data();
                                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                                setCurrentBattingOrder(gameData.orderoppo.length % 9 + 1);
-                                // 計算局數和上下半局
+                                const setCurrentBattingOrderValue = (gameData) => {
+                                  // 首先检查 ordermain 是否存在且其长度大于 0
+                                  if (gameData.ordermain && gameData.ordermain.length > 0) {
+                                    // 如果存在且长度大于 0，则计算当前的打击顺序
+                                    return gameData.ordermain.length % 9 + 1;
+                                  } else {
+                                    // 如果 ordermain 不存在或长度为 0，则返回 0
+                                    return 0;
+                                  }
+                                };                // 計算局數和上下半局
                                 const outs = gameData.outs || 0;
+                                console.log("d",outs)
                                 const oldouts = gameData.outs || 0;
-                                const inningsCompleted = Math.floor(outs / 6) + 1;
+                                const inningsCompleted = (Math.floor(outs / 6)) + 1;
+                                console.log("c",inningsCompleted)
                                 setCurrentInning(inningsCompleted);
-
-                            }
+                
+                              }
                             if (gameSnap.exists()) {
                                 // 獲取遊戲文檔數據
                                 const gameData = gameSnap.data();
@@ -1017,7 +1027,7 @@ const Page = () => {
                                                         onChange={(event) => {
                                                             const baseOuts = parseInt(event.target.value);
                                                             handleOutChange(baseOuts); // 維持原有的出局數處理
-                                                            handleInnOutsChange(hitType, baseOuts); // 新增的打席造成的出局數處理
+                                                            handleInnOutsChange(baseOuts); // 新增的打席造成的出局數處理
                                                         }}
                                                     >
                                                         <InputLabel>出局數</InputLabel>
