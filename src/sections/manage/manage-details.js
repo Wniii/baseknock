@@ -28,6 +28,9 @@ import firebase from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useAuth } from "src/hooks/use-auth";
 import "firebase/firestore";
+import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
 
 const CurrentTeamSx = {
   backgroundColor: "#d3d3d3",
@@ -39,7 +42,9 @@ const CurrentTeamSx = {
   flexDirection: "column",
   justifyContent: "space-between",
   textAlign: "center",
+  overflowX: "auto", // 垂直滚动
 };
+
 const ListStyle = {
   display: "flex", // Keep using Flexbox
   flexDirection: "row", // Keep child elements in a row
@@ -64,6 +69,7 @@ export const Manage = ({ onTeamSelect }) => {
   const auth = useAuth();
   const router = useRouter();
   const [userId, setUserId] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -112,6 +118,59 @@ export const Manage = ({ onTeamSelect }) => {
     return () => unsubscribe();
   }, []);
   console.log();
+
+  const handleRemoveTeam = async (teamId) => {
+    const userId = localStorage.getItem("userId");
+    console.log("Current userId:", userId); // 输出当前用户ID
+    console.log("Team ID to remove:", teamId); // 输出要移除的 Team ID
+
+    if (!userId) {
+      alert("无效的用户ID");
+      return;
+    }
+
+    const userRef = doc(firestore, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      alert("找不到用户文档");
+      return;
+    }
+
+    const teamRef = doc(firestore, "team", teamId);
+    const teamDoc = await getDoc(teamRef);
+    if (!teamDoc.exists()) {
+      alert("找不到球队文档");
+      return;
+    }
+    const teamCodeName = teamDoc.data().codeName;
+
+    // 弹出确认窗口
+    const confirmExit = confirm(`确定要退出球队 ${teamCodeName} 吗？`);
+    if (!confirmExit) {
+      console.log("用户取消了退出操作");
+      return; // 用户点击“取消”，终止函数执行
+    }
+
+    let userTeams = userDoc.data().u_team || [];
+    console.log("Original Teams:", userTeams);
+
+    userTeams = userTeams.filter((team) => team !== teamCodeName);
+    console.log("Filtered Teams:", userTeams);
+
+    try {
+      await updateDoc(userRef, { u_team: userTeams });
+      console.log("Updated Teams in Firestore");
+      alert("已退出球队");
+
+      // 更新localStorage并刷新页面
+      localStorage.setItem("userTeam", userTeams.join(","));
+      location.reload(); // 刷新页面以反映更新
+    } catch (error) {
+      console.error("Error removing team from user:", error);
+      alert("退出球队时出错");
+    }
+  };
 
   //加入球隊欄位
   const handleAddTeam = async () => {
@@ -170,8 +229,13 @@ export const Manage = ({ onTeamSelect }) => {
       );
 
       console.log("Team added to user successfully.");
+      alert("已成功加入球隊！");
 
-      alert("已成功加入球隊！請重新登入以重整頁面");
+      // 更新localStorage
+      localStorage.setItem("userTeam", userDocData.u_team.join(","));
+
+      // 刷新页面以反映更新
+      location.reload();
     } catch (error) {
       console.error("Error adding team to user:", error);
       alert("添加球隊時出錯");
@@ -205,28 +269,70 @@ export const Manage = ({ onTeamSelect }) => {
           </Typography>
         </div>
         &nbsp;
-        <Card sx={CurrentTeamSx}>
+        <Card sx={CurrentTeamSx} style={{ position: "relative" }}>
+          <IconButton
+            sx={{
+              position: "absolute", // 使用 fixed 定位
+              left: "10px", // 根据实际视觉效果调整
+              top: "10px", // 根据实际视觉效果调整
+              padding: "5px", // 减小内边距使得整体按钮看起来更小
+              "& .MuiSvgIcon-root": { fontSize: "1rem" }, // 自定义图标大小
+            }}
+            onClick={() => setEditMode(!editMode)} // 切换编辑模式
+            color="primary"
+          >
+            <EditIcon />
+          </IconButton>
+          <br />
           <List style={ListStyle}>
             {teams.map((team) => (
               <ListItem
-                sx={ListItemStyle}
                 key={team.id}
-                style={{ display: "flex" }}
                 onClick={() => onTeamSelect(team)}
+                sx={{
+                  ...ListItemStyle,
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textAlign: "center",
+                  position: "relative", // 为了使删除按钮定位
+                }}
               >
-                <Box>
-                  <ListItemIcon style={{ margin: "auto" }}>
-                    <Link style={{ margin: "0px" }}>
+                <ListItemIcon sx={{ width: "100px", height: "100px", position: "relative" }}>
+                  <Link>
+                    {team.photo ? (
                       <img
                         src={team.photo}
-                        alt="icon"
-                        style={{ width: "100px", height: "100px" }}
+                        alt={team.Name}
+                        style={{ width: "100%", height: "100%" }}
                       />
-                      <br></br>
-                      {team.Name}
-                    </Link>
-                  </ListItemIcon>
-                </Box>
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", backgroundColor: "#ccc" }} />
+                    )}
+                  </Link>
+                  {editMode && (
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent the click from triggering List item events
+                        handleRemoveTeam(team.id);
+                      }}
+                      color="error"
+                      aria-label="delete team"
+                      sx={{
+                        position: "absolute", // 绝对定位
+                        top: 0, // 顶部
+                        right: 0, // 右边
+                        padding: "3px", // 更小的内边距
+                        "& .MuiSvgIcon-root": { fontSize: "1rem" }, // 调整图标大小
+                        backgroundColor: "rgba(255, 255, 255, 0.7)", // 半透明背景增加可见性
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </ListItemIcon>
+                <Typography variant="subtitle1" sx={{ mt: 1 }}>
+                  {team.Name}
+                </Typography>
               </ListItem>
             ))}
           </List>
