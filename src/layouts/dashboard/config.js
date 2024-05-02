@@ -1,6 +1,8 @@
 import { SvgIcon } from '@mui/material';
 import ChartBarIcon from '@heroicons/react/24/solid/ChartBarIcon';
 import AddIcon from '@mui/icons-material/Add';
+import EventIcon from '@mui/icons-material/Event'; // 引入日曆圖標
+import HomeIcon from '@mui/icons-material/Home'; // 家的圖標
 import CogIcon from '@heroicons/react/24/solid/CogIcon';
 import LockClosedIcon from '@heroicons/react/24/solid/LockClosedIcon';
 import ShoppingBagIcon from '@heroicons/react/24/solid/ShoppingBagIcon';
@@ -15,7 +17,7 @@ export const items = [
     path: '/',
     icon: (
       <SvgIcon fontSize="small">
-        <ChartBarIcon />
+        <HomeIcon />
       </SvgIcon>
     )
   },
@@ -51,7 +53,7 @@ export const items = [
     path: '/schedule',
     icon: (
       <SvgIcon fontSize="small">
-        <ChartBarIcon />
+        <EventIcon />
       </SvgIcon>
     )
   },

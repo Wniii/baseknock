@@ -40,17 +40,17 @@ export const Layout = (props) => {
               width: '100%'
             }}
           >
-            <Box
+            {/* <Box
               component={NextLink}
               href="/"
               sx={{
                 display: 'inline-flex',
-                height: 32,
-                width: 32
+                height: 40,
+                width: 40
               }}
-            >
+              >
               <Logo />
-            </Box>
+            </Box> */}
           </Box>
           {children}
         </Grid>
