@@ -316,7 +316,6 @@ export const Manage = ({ onTeamSelect }) => {
                         e.stopPropagation(); // Prevent the click from triggering List item events
                         handleRemoveTeam(team.id);
                       }}
-                      color="error"
                       aria-label="delete team"
                       sx={{
                         position: "absolute", // 绝对定位

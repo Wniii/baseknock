@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -13,63 +13,62 @@ import {
   FormControlLabel,
   TextField,
   Typography,
-  Unstable_Grid2 as Grid
-} from '@mui/material';
+  Unstable_Grid2 as Grid,
+} from "@mui/material";
 import { collection, getDocs, where, query } from "firebase/firestore";
-import { firestore } from 'src/pages/firebase'; // 確保路徑與您的配置文件相匹配
+import { firestore } from "src/pages/firebase"; // 確保路徑與您的配置文件相匹配
 
 export const DefendSelect = ({ onConfirm }) => {
-  const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState("");
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
-  const [selectedGameType, setSelectedGameType] = useState([
-    'friendly', 'ubl', 'mei'
-  ]);
+  const [selectedGameType, setSelectedGameType] = useState(["friendly", "ubl", "mei"]);
 
   const [checkboxStates, setCheckboxStates] = useState([
-    { label: '好球數', checked: false },
-    { label: '壞球數', checked: false },
-    { label: 'ERA', checked: false },
-    { label: '先發', checked: false },
-    { label: '出賽', checked: false },
-    { label: '局數', checked: false },
-    { label: '安打', checked: false },
-    { label: '失分', checked: false },
-    { label: '球數', checked: false },
-    { label: '四壞', checked: false },
-    { label: '奪三振', checked: false },
-    { label: 'WHIP', checked: false },
-    { label: '好壞球比', checked: false },
-    { label: '每局耗球', checked: false },
-    { label: 'K/9', checked: false },
-    { label: 'BB/9', checked: false },
-    { label: 'H/9', checked: false },
+    { label: "好球數", checked: true },
+    { label: "壞球數", checked: true },
+    { label: "ERA", checked: true },
+    { label: "先發", checked: true },
+    { label: "出賽", checked: true },
+    { label: "局數", checked: true },
+    { label: "安打", checked: true },
+    { label: "失分", checked: true },
+    { label: "球數", checked: true },
+    { label: "四壞", checked: true },
+    { label: "奪三振", checked: true },
+    { label: "WHIP", checked: true },
+    { label: "好壞球比", checked: true },
+    { label: "每局耗球", checked: true },
+    { label: "K/9", checked: true },
+    { label: "BB/9", checked: true },
+    { label: "H/9", checked: true },
   ]);
 
+  const isAllSelected = checkboxStates.every((checkbox) => checkbox.checked);
 
   const handleSelectAllChange = (event) => {
     const isChecked = event.target.checked;
     const updatedCheckboxStates = checkboxStates.map((checkbox) => ({
       ...checkbox,
-      checked: isChecked
+      checked: isChecked,
     }));
     setCheckboxStates(updatedCheckboxStates);
   };
 
   // 這是一個新的對應對象，將UI上的比賽性質映射到Firebase中的gName
   const gameTypeToGNameMapping = {
-    '友誼賽': 'friendly',
-    '大專盃': 'ubl',
-    '梅花旗': 'mei',
+    友誼賽: "friendly",
+    大專盃: "ubl",
+    梅花旗: "mei",
   };
 
   const handleGameTypeChange = (gameType) => (event) => {
     const { checked } = event.target;
     const gName = gameTypeToGNameMapping[gameType]; // 從對應關係中獲取gName
-    setSelectedGameType(prevSelectedGameType => {
+    setSelectedGameType((prevSelectedGameType) => {
       if (checked) {
         return [...prevSelectedGameType, gName];
       } else {
-        return prevSelectedGameType.filter(type => type !== gName);
+        return prevSelectedGameType.filter((type) => type !== gName);
       }
     });
   };
@@ -90,21 +89,22 @@ export const DefendSelect = ({ onConfirm }) => {
   };
 
   const handleTeamChange = (event) => {
-    console.log('團隊選擇已更改為：', event.target.value); // 添加日志
+    console.log("團隊選擇已更改為：", event.target.value); // 添加日志
     setSelectedTeam(event.target.value);
   };
 
   useEffect(() => {
+    handleConfirm();
     const fetchTeams = async () => {
       // 從 localStorage 中獲取 userTeam
-      const userTeamCodes = localStorage.getItem("userTeam")?.split(',') || [];
+      const userTeamCodes = localStorage.getItem("userTeam")?.split(",") || [];
       const teamsCollectionRef = collection(firestore, "team");
       if (userTeamCodes.length > 0) {
         // 創建一個查詢，根據userTeamCodes中的codeName來過濾隊伍
         const teamsQuery = query(teamsCollectionRef, where("codeName", "in", userTeamCodes));
         try {
           const querySnapshot = await getDocs(teamsQuery);
-          const teamsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const teamsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           setTeams(teamsData);
 
           // 如果有預選隊伍，設置選中的隊伍
@@ -118,7 +118,6 @@ export const DefendSelect = ({ onConfirm }) => {
     };
     fetchTeams();
   }, []);
-
 
   return (
     <Card>
@@ -134,7 +133,9 @@ export const DefendSelect = ({ onConfirm }) => {
                 onChange={handleTeamChange}
               >
                 {teams.map((team) => (
-                  <MenuItem key={team.id} value={team.id}>{team.Name}</MenuItem>
+                  <MenuItem key={team.id} value={team.id}>
+                    {team.Name}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -143,11 +144,9 @@ export const DefendSelect = ({ onConfirm }) => {
         <br />
         <Grid container spacing={6}>
           <Grid item xs={12}>
-            <Typography variant="h6">
-              比賽性質
-            </Typography>
+            <Typography variant="h6">比賽性質</Typography>
             <Grid container spacing={1}>
-              {['友誼賽', '大專盃', '梅花旗'].map((gameTypeName, index) => (
+              {["友誼賽", "大專盃", "梅花旗"].map((gameTypeName, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
                     control={
@@ -164,18 +163,24 @@ export const DefendSelect = ({ onConfirm }) => {
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            <Typography variant="h6">
-              選示欄位
-            </Typography>
+            <Typography variant="h6">顯示欄位</Typography>
             <Grid container spacing={1}>
               <FormControlLabel
-                control={<Checkbox onChange={handleSelectAllChange} />}
+                control={
+                  <Checkbox
+                    checked={isAllSelected}
+                    onChange={handleSelectAllChange}
+                    color="primary"
+                  />
+                }
                 label="全選"
               />
               {checkboxStates.map((checkbox, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
-                    control={<Checkbox checked={checkbox.checked} onChange={handleCheckboxChange(index)} />}
+                    control={
+                      <Checkbox checked={checkbox.checked} onChange={handleCheckboxChange(index)} />
+                    }
                     label={checkbox.label}
                   />
                 </Grid>

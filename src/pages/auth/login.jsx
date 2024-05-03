@@ -1,11 +1,11 @@
-import Head from 'next/head';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router'; // 注意这里的变更
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
-import { useAuth } from 'src/hooks/use-auth';
-import { Layout as AuthLayout } from 'src/layouts/auth/layout';
+import Head from "next/head";
+import NextLink from "next/link";
+import { useRouter } from "next/router"; // 注意这里的变更
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { Box, Button, Link, Stack, TextField, Typography } from "@mui/material";
+import { useAuth } from "src/hooks/use-auth";
+import { Layout as AuthLayout } from "src/layouts/auth/layout";
 import React, { useState, useEffect } from "react";
 import { firestore } from "../firebase"; // 正确的导入路径
 import { getDocs, query, collection, where } from "firebase/firestore";
@@ -16,94 +16,93 @@ const LoginPage = () => {
   const [userId, setUserId] = useState("");
   const [userteam, setUserTeam] = useState("");
 
-  
-
   useEffect(() => {
-  //   // 在组件加载时，从 sessionStorage 中获取用户ID
-  //   const userIdFromStorage = window.sessionStorage.getItem('userId');
-  //   if (userIdFromStorage) {
-  //     setUserId(userIdFromStorage);
-  //   }
-  // }, []);
+    //   // 在组件加载时，从 sessionStorage 中获取用户ID
+    //   const userIdFromStorage = window.sessionStorage.getItem('userId');
+    //   if (userIdFromStorage) {
+    //     setUserId(userIdFromStorage);
+    //   }
+    // }, []);
 
-  const userIdFromStorage = window.localStorage.getItem('userId');
+    const userIdFromStorage = window.localStorage.getItem("userId");
     if (userIdFromStorage) {
       setUserId(userIdFromStorage);
     }
   }, []);
   const storeUserIdInLocalStorage = (userId) => {
-    window.localStorage.setItem('userId', userId);
+    window.localStorage.setItem("userId", userId);
   };
 
-
   const storeUserEmailInLocalStorage = (userEmail) => {
-    localStorage.setItem('userEmail', userEmail);
+    localStorage.setItem("userEmail", userEmail);
   };
 
   const fetchUserTeam = async (userId) => {
     try {
       const userRef = collection(firestore, "users");
-      const q = query(userRef, where('u_id', '==', userId));
+      const q = query(userRef, where("u_id", "==", userId));
       const querySnapshot = await getDocs(q);
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         setUserTeam(doc.data().u_team);
         // 存储团队信息到本地存储
-        window.localStorage.setItem('userTeam', doc.data().u_team);
+        window.localStorage.setItem("userTeam", doc.data().u_team);
       });
     } catch (error) {
-      console.error('Error fetching user team:', error);
+      console.error("Error fetching user team:", error);
     }
   };
 
   const formik = useFormik({
     initialValues: {
-      u_email: '',
-      u_password: '',
-      submit: '',
+      u_email: "",
+      u_password: "",
+      submit: "",
     },
 
     validationSchema: Yup.object({
-      u_email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-      u_password: Yup.string().max(255).required('Password is required')
+      u_email: Yup.string().email("Must be a valid email").max(255).required("Email is required"),
+      u_password: Yup.string().max(255).required("Password is required"),
     }),
     onSubmit: async (values, helpers) => {
       try {
         // 连接数据库，检查用户是否存在
-        const q = query(collection(firestore, "users"), where('u_email', '==', values.u_email));
+        const q = query(collection(firestore, "users"), where("u_email", "==", values.u_email));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
           // 用户不存在
-          throw new Error('Invalid email or password');
+          throw new Error("Invalid email or password");
         }
+        const userDoc = querySnapshot.docs[0];
+        const user = {
+          id: userDoc.id,
+          email: userDoc.data().u_email,
+          team: userDoc.data().u_team,
+        };
 
         const sendUserIdToServer = async (userId) => {
           try {
-            console.log('Sending user ID to server:', auth.user.id);
-            const response = await fetch('/', {
-              method: 'POST',
+            console.log("Sending user ID to server:", auth.user.id);
+            const response = await fetch("/", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/localstorage'
+                "Content-Type": "application/localstorage",
               },
-              body: JSON.stringify({ userId })
+              body: JSON.stringify({ userId }),
             });
-        
+
             if (!response.ok) {
-              throw new Error('Failed to send user ID to server');
+              throw new Error("Failed to send user ID to server");
             }
-            console.log('User ID sent successfully to server');
+            console.log("User ID sent successfully to server");
           } catch (error) {
-            console.error('Error sending user ID to server:', error);
+            console.error("Error sending user ID to server:", error);
           }
         };
 
-        
-
-
-        
-
         // 用户存在，尝试进行登录
         await auth.signIn(values.u_email, values.u_password);
-        if (auth.user.id) { // Check if the user object and id are defined
+        if (auth.user && auth.user.id) {
+          // Check if the user object and id are defined
           setUserId(auth.user.id);
           await fetchUserTeam(auth.user.id);
           sendUserIdToServer(auth.user.id);
@@ -112,18 +111,16 @@ const LoginPage = () => {
           router.push(`/?userId=${auth.user.id}`);
         } else {
           // Handle case where auth.user is undefined
-          throw new Error('Authentication state was not set correctly.');
+          throw new Error("Authentication state was not set correctly.");
         }
-
-      } catch (err) {
+      } catch (error) {
         helpers.setStatus({ success: false });
-        helpers.setErrors({ submit: err.message });
+        helpers.setErrors({ submit: error.message });
+        console.log(error.message);
         helpers.setSubmitting(false);
       }
-    }
+    },
   });
-
-
 
   return (
     <>
@@ -132,33 +129,26 @@ const LoginPage = () => {
       </Head>
       <Box
         sx={{
-          backgroundColor: 'background.paper',
-          flex: '1 1 auto',
-          alignItems: 'center',
-          display: 'flex',
-          justifyContent: 'center'
+          backgroundColor: "background.paper",
+          flex: "1 1 auto",
+          alignItems: "center",
+          display: "flex",
+          justifyContent: "center",
         }}
       >
         <Box
           sx={{
             maxWidth: 550,
             px: 3,
-            py: '100px',
-            width: '100%'
+            py: "100px",
+            width: "100%",
           }}
         >
           <div>
-            <Stack
-              spacing={1}
-              sx={{ mb: 3 }}
-            >
+            <Stack spacing={1} sx={{ mb: 3 }}>
               <Typography variant="h4">登入</Typography>
-              <Typography
-                color="text.secondary"
-                variant="body2"
-              >
-                Don&apos;t have an account?
-                &nbsp;
+              <Typography color="text.secondary" variant="body2">
+                Don&apos;t have an account? &nbsp;
                 <Link
                   component={NextLink}
                   href="/auth/register"
@@ -200,12 +190,7 @@ const LoginPage = () => {
                     {formik.errors.submit}
                   </Typography>
                 )}
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  disabled={formik.isSubmitting}
-                >
+                <Button type="submit" fullWidth variant="contained" disabled={formik.isSubmitting}>
                   登入
                 </Button>
               </Stack>
@@ -217,10 +202,6 @@ const LoginPage = () => {
   );
 };
 
-LoginPage.getLayout = (page) => (
-  <AuthLayout>
-    {page}
-  </AuthLayout>
-);
+LoginPage.getLayout = (page) => <AuthLayout>{page}</AuthLayout>;
 
 export default LoginPage;
