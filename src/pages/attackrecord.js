@@ -70,6 +70,8 @@ const Page = () => {
   const [lastHitType, setLastHitType] = useState(null);
   const [isStrikeout, setIsStrikeout] = useState(false);
   const [Active, setActive] = useState(false);
+  const [selectedHitType, setSelectedHitType] = useState("");
+  const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
 
 
 
@@ -350,8 +352,7 @@ const Page = () => {
       console.log("激活操作");
       // 激活時執行的函數
       handleCheckboxChange(hitType);
-      handleOutChange(hitType);
-      handleInnOutsChange(hitType, 0);
+      handleOutChange(hitType,1);
 
       if (hitType === '三振') {
         handleBallTypeChange(strikes, 'strike', '三振');
@@ -442,31 +443,33 @@ const Page = () => {
 
 
 
-  const handleOutChange = (hitType = null, baseOuts) => {
+  const handleOutChange = (hitType = null,baseOuts) => {
     console.log("hitytype",hitType)
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
     }
-    else if (baseOuts === 0) {
-      additionalOuts = 0;
-    }
-    else if (baseOuts === 1) {
+    else   {
       additionalOuts = 1;
     }
-    else if (baseOuts === 2) {
-      additionalOuts = 2;
-    }
-    else if (baseOuts === 3) {
-      additionalOuts = 3;
-    }
+    console.log("baseouts",baseOuts)
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
+
     setOuts(prevOuts => {
       setPreviousOuts(prevOuts); // 保存當前的outs值
       const newOuts = prevOuts + additionalOuts;
-      console.log('Current outs before update:', prevOuts);
+      console.log('Current outs before update11111:', prevOuts);
       console.log('Updating outs to:', newOuts);
       return newOuts;
+
     });
+    setInnOuts(prevInnOuts => {
+      const newOuts = prevInnOuts + increment;
+      console.log('Current outs before update33333:', prevInnOuts);
+      console.log('Updating outs to:', newOuts);
+      return newOuts;
+  });
   };
 
   const renderOutsCheckboxes = () => {
@@ -486,34 +489,30 @@ const Page = () => {
     ));
   };
 
-  const handleInnOutsChange = (hitType, baseOuts) => {
-    let innAdditionalOut = 1
-    console.log('hitType:', hitType, 'baseOuts:', baseOuts)
-    // 根據打擊類型判斷出局數
-    if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
-      innAdditionalOut = 1
-    } else if (hitType === '雙殺') {
-      innAdditionalOut = 2
+  const handleInnOutsChange = (selectedHitType, baseOuts) => {
+    console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
+
+    // 如果是雙殺，baseOuts 直接設為2
+    if (selectedHitType === '雙殺') {
+        baseOuts = 2;
     }
-    if (baseOuts === 0) {
-      innAdditionalOut = 0
-    }
-    else if (baseOuts === 1) {
-      innAdditionalOut = 1
-    }
-    else if (baseOuts === 2) {
-      innAdditionalOut = 2
-    }
-    else if (baseOuts === 3) {
-      innAdditionalOut = 3
-    }
-    setInnOuts(innprevOuts => {
-      const newOuts = innprevOuts + innAdditionalOut;
-      console.log('Current outs before update:', innprevOuts);
-      console.log('Updating outs to:', newOuts);
-      return newOuts;
+
+    // 計算增量：新選擇的 baseOuts 減去上次保存的 baseOuts
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
+
+    // 更新 inning outs
+    setInnOuts(prevOuts => {
+        const newOuts = prevOuts + increment;
+        console.log('Current outs before update222224444:', prevOuts);
+        console.log('Updating outs to:', newOuts);
+        return newOuts;
     });
-  };
+
+    // 更新 lastBaseOuts 為當前選擇的 baseOuts
+    setLastBaseOuts(baseOuts);
+};
+
 
   //落點
   const [markers, setMarkers] = useState({ x: '', y: '' });
@@ -799,7 +798,8 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleToggle('三振')
-                                handleInnOutsChange('三振')
+                                setSelectedHitType('三振');  // 存储击球类型，待后续使用
+
                               }
                               }
                             >
@@ -1039,8 +1039,8 @@ const Page = () => {
                             autoFocus
                             onChange={(event) => {
                               const baseOuts = parseInt(event.target.value);
-                              handleOutChange(baseOuts); // 維持原有的出局數處理
-                              handleInnOutsChange(baseOuts); // 新增的打席造成的出局數處理
+                              handleInnOutsChange(selectedHitType, baseOuts); // 新增的打席造成的出局數處理
+                              
                             }}
                           >
                             <InputLabel>出局數</InputLabel>
