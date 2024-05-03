@@ -174,8 +174,8 @@ export const Score = (props) => {
             </TableHead>
             <TableBody>
               {[
-                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal },
-                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal }
+                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal },
+                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal }
               ].map((team, rowIndex) => (
                 <TableRow key={rowIndex} hover>
                   <TableCell>{team.teamName}</TableCell>
@@ -194,6 +194,7 @@ export const Score = (props) => {
                 </TableRow>
               ))}
             </TableBody>
+
 
 
           </Table>

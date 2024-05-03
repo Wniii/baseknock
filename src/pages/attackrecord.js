@@ -118,7 +118,7 @@ const Page = () => {
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
+                setCurrentBattingOrder((gameData.ordermain ? gameData.ordermain.length : 0) % 9 + 1);
                 // 計算局數和上下半局
                 const outs = gameData.outs || 0;
                 const inningsCompleted = Math.floor(outs / 6) + 1;

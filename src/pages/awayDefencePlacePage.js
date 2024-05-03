@@ -75,7 +75,7 @@ const DefencePlacePage = () => {
 
             console.log('游戏文档存在');
             const gameData = gameDocSnapshot.data();
-            const attackList = gameData.awayattacklist || [];
+            let attackList = gameData.awayattacklist || [];
             setAttackList(attackList);
 
             const teamData = teamDocSnapshot.data();
@@ -103,7 +103,10 @@ const DefencePlacePage = () => {
 
                 console.log('设置玩家数据完成');
 
-                const pitcherKeys = Object.keys(playersField).filter(key => playersField[key].position === 'P');
+                const pitcherKeys = Object.keys(playersField).filter(key => {
+                  // 检查球员的位置是否是 'P'，并且该球员不在 attackList 中
+                  return playersField[key].position === 'P' && !attackList.includes(key);
+              });
                 setpitcherKeys(pitcherKeys);
                 console.log('Pitcher keys:', pitcherKeys);
             } else {

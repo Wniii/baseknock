@@ -72,7 +72,7 @@ console.log("c",pitcherKeys)
                         if (gameDocSnapshot.exists()) {
                             console.log('游戏文档存在');
                             const gameData = gameDocSnapshot.data();
-                            const attackList = gameData.attacklist || [];
+                            let attackList = gameData.attacklist || [];
                             setAttackList(attackList);
 
                             // Filter players who are in the attack list
@@ -95,8 +95,14 @@ console.log("c",pitcherKeys)
                             console.log('设置玩家数据');
 
                             // Fetch pitcher keys
-                            const pitcherKeys = Object.keys(playersField).filter(key => playersField[key].position === 'P');
-                            setpitcherKeys(pitcherKeys);
+                            const pitcherKeys = Object.keys(playersField).filter(key => {
+                              // 检查球员的位置是否是 'P'，并且该球员不在 attackList 中
+                              return playersField[key].position === 'P' && !attackList.includes(key);
+                          });
+                          
+                          console.log('Pitcher keys:', pitcherKeys);
+                          
+                          setpitcherKeys(pitcherKeys);
                             console.log('Pitcher keys:', pitcherKeys);
                         } else {
                             console.log('游戏文档不存在');
