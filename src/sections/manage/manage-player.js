@@ -57,10 +57,10 @@ const positionOptions = [
 const habitOptions = [
     // 定义投打习惯选项
     { value: '', label: '' },
-    { value: 'LL', label: '左投/左打' },
-    { value: 'LR', label: '左投/右打' },
-    { value: 'RR', label: '右投/右打' },
-    { value: 'RL', label: '右投/左打' }
+    { value: '左投/左打', label: '左投/左打' },
+    { value: '左投/右打', label: '左投/右打' },
+    { value: '右投/右打', label: '右投/右打' },
+    { value: '右投/左打', label: '右投/左打' }
 ];
 
 export const ManagePlayer = ({ teamInfo }) => {
