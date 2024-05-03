@@ -195,6 +195,22 @@ export const CustomersTable = (props) => {
     });
 };
 
+const handleEditClick = (attack, row, column) => {
+  router.push({
+      pathname: '/editattackrecord',
+      query: {
+          attack: attack,
+          timestamp: timestamp,
+          codeName: codeName,
+          teamId: teamId,
+          outs: outs,
+          row: row,
+          column: column
+      }
+  });
+};
+
+
   let buttonRow = -1;
 
 // 在迴圈外計算按鈕的行數和按鈕的列數
@@ -265,7 +281,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleClick(attack)}
+                              onClick={() => handleEditClick(attack, index + 1, i + 1)} 
                             >
                               {buttonProps.text}
                             </Button>
