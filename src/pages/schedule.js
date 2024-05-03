@@ -97,7 +97,7 @@ const SchedulePage = () => {
               const ateam = teamIdMap.get(gameData.awayteam);
               const homeTeamName = teamNameMap.get(gameData.hometeam);
               const awayTeamName = teamNameMap.get(gameData.awayteam);
-              const title = `${homeTeamName} v.s. ${awayTeamName}`; //Name
+              const title = `${awayTeamName} v.s. ${homeTeamName} `; //Name
               //const title = `${gameData.hometeam} v.s. ${gameData.awayteam}`; //codeName
 
               if (!userTeam.includes(gameData.hometeam) || !userTeam.includes(gameData.awayteam)) {

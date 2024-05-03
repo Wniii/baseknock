@@ -10,38 +10,37 @@ import { green, red } from '@mui/material/colors';
 
 
 const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) => {
-  // 在组件加载时调用 fetchTeamPlayers
-
   return (
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-          <DialogTitle>選擇替補球員</DialogTitle>
-          <DialogContent>
-              <Box display="flex" justifyContent="space-between">
-                  {/* 左列，攻击列表 */}
-                  <List>
-                      {attackListData.map((player, index) => (
-                          <ListItem key={index}>{player}</ListItem>
-                      ))}
-                  </List>
-                  {/* 右列，过滤后的团队玩家列表 */}
-                  <List>
-  {Object.keys(player).map((key, index) => (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>選擇替補球員</DialogTitle>
+      <DialogContent>
+        <Box display="flex" justifyContent="space-between">
+          {/* 左列，攻击列表 */}
+          <List>
+            {attackListData.map((player, index) => (
+              <ListItem key={index}>{player}</ListItem>
+            ))}
+          </List>
+          {/* 右列，过滤后的团队玩家列表 */}
+          <List>
+            
+  {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
     <ListItem key={index}>
       <Box component="span" sx={{ display: 'block' }}>
-        Key: {key}
+        {player.name}: {player.position}
       </Box>
     </ListItem>
   ))}
 </List>
-
-              </Box>
-          </DialogContent>
-          <DialogActions>
-              <Button onClick={onClose}>取消</Button>
-          </DialogActions>
-      </Dialog>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>取消</Button>
+      </DialogActions>
+    </Dialog>
   );
 };
+
 
 
 // 定義 determineButtonProps 函數
@@ -99,7 +98,6 @@ export const CustomersTable = (props) => {
   const [filteredPlayers, setTeamPlayers] = useState([]);
   const [open, setOpen] = useState(false); // 定義 open 狀態
   const router = useRouter();
-
   useEffect(() => {
     const fetchGameData = async () => {
       await fetchGames();
@@ -154,7 +152,6 @@ export const CustomersTable = (props) => {
             console.log("Team data:", teamData);
 
             if (teamData.players) {
-              console.log("c",attackListData)
 
                 // 构建一个新的 players 对象，只包含过滤后的玩家
                 const filteredPlayers = {};
@@ -166,8 +163,12 @@ export const CustomersTable = (props) => {
 
                 console.log("dsd", filteredPlayers);
                 // 更新状态
-
-                setTeamPlayers(Object.values(filteredPlayers) || []);
+                Object.entries(filteredPlayers).forEach(([key, value]) => {
+                  console.log(key); // 键名
+                  console.log(value); // 对应的属性值
+                });
+                setTeamPlayers(Object.entries(filteredPlayers) || []);
+                console.log("c",Object.entries(filteredPlayers) || [])
               } else {
                 console.log("No players data available.");
             }
@@ -183,7 +184,7 @@ export const CustomersTable = (props) => {
 
   const handleClick = (attack) => {
     router.push({
-        pathname: '/awayattackrecord',
+        pathname: '/attackrecord',
         query: {
             attack: attack,
             timestamp: timestamp,

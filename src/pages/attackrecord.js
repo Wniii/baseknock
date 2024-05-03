@@ -61,13 +61,19 @@ const Page = () => {
   const [balls, setBalls] = useState([false, false, false]);
   const [strikes, setStrikes] = useState([false, false]);
   const [outs, setOuts] = useState(0);
-  const [oldouts, setoldouts] = useState(0);
   const [currentInning, setCurrentInning] = useState(0);
   const [currentBattingOrder, setCurrentBattingOrder] = useState(1);
   const [values, setValues] = useState({ hometeam: '', awayteam: '' });
   const [innOuts, setInnOuts] = useState(0);
-  const [previousOuts, setPreviousOuts] = useState(outs);
-  const [isActive, setIsActive] = useState(false); // 用于跟踪按钮是否处于激活状态
+  const [isActive, setIsActive] = useState(false);
+  const [previousOuts, setPreviousOuts] = useState(0);
+  const [lastHitType, setLastHitType] = useState(null);
+  const [isStrikeout, setIsStrikeout] = useState(false);
+  const [Active, setActive] = useState(false);
+  const [selectedHitType, setSelectedHitType] = useState("");
+  const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
+
+
 
 
 
@@ -107,27 +113,15 @@ const Page = () => {
               console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
               if (gameData.outs) {
                 setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
-                setoldouts(gameData.outs || 0);
                 console.log('Initial Outs:', gameData.outs || 0);
               }
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                const setCurrentBattingOrderValue = (gameData) => {
-                  // 首先检查 ordermain 是否存在且其长度大于 0
-                  if (gameData.ordermain && gameData.ordermain.length > 0) {
-                    // 如果存在且长度大于 0，则计算当前的打击顺序
-                    return gameData.ordermain.length % 9 + 1;
-                  } else {
-                    // 如果 ordermain 不存在或长度为 0，则返回 0
-                    return 0;
-                  }
-                };                // 計算局數和上下半局
+                setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
+                // 計算局數和上下半局
                 const outs = gameData.outs || 0;
-                console.log("d",outs)
-                const oldouts = gameData.outs || 0;
-                const inningsCompleted = (Math.floor(outs / 6)) + 1;
-                console.log("c",inningsCompleted)
+                const inningsCompleted = Math.floor(outs / 6) + 1;
                 setCurrentInning(inningsCompleted);
 
               }
@@ -162,22 +156,8 @@ const Page = () => {
   }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
 
 
-  const handleToggle = (hitType) => {
-    if (isActive) {
-        console.log("取消操作");
-        undoOutChange(); 
-    } else {
-        console.log("执行操作");
-        // 如果未激活，执行所需的函数
-        handleCheckboxChange(hitType);
-        handleOutChange(hitType);
-        handleInnOutsChange(hitType);
-    }
-    setIsActive(!isActive); // 切换激活状态
-};
-const undoOutChange = () => {
-  setOuts(previousOuts); // 恢复到之前的状态
-};
+
+
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -273,16 +253,17 @@ const undoOutChange = () => {
     try {
       await updateDoc(HgameRef, {
         'ordermain': arrayUnion({
-          'p_name': attackData,
+          'content': selectedContent,
           'inn': currentInning,
-          'content': selectedContent,          
-          'onbase': bases,          
+          'onbase': bases,
+          'p_name': attackData,
           'rbi': rbiCount,
           'markers': markers,
           'pitcher': {
             name: pitcher,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
+            name: pitcher
           },
           'innouts': innOuts
         }),
@@ -308,16 +289,16 @@ const undoOutChange = () => {
     try {
       await updateDoc(AgameRef, {
         'ordermain': arrayUnion({
-          'p_name': attackData,
+          'content': selectedContent,
           'inn': currentInning,
-          'content': selectedContent,          
-          'onbase': bases,          
+          'onbase': bases,
+          'p_name': attackData,
           'rbi': rbiCount,
           'markers': markers,
           'pitcher': {
-            name: pitcher,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
+            name: pitcher
           },
           'innouts': innOuts
         }),
@@ -325,7 +306,6 @@ const undoOutChange = () => {
         'outs': outs
       });
       console.log('Document successfully updated!');
-      alert('Document successfully updated!');
       router.push({
         pathname: '/test',
         query: {
@@ -358,11 +338,48 @@ const undoOutChange = () => {
   };
 
   const handleCheckboxChange = (hitType) => {
+    setLastHitType(hitType);
     setSelectedHits((prev) => ({
       ...prev,
       [hitType]: !prev[hitType],
     }));
   };
+
+  const handleToggle = (hitType) => {
+    console.log('hitType', hitType);
+    setIsActive(!isActive); // 切換激活狀態
+    if (!isActive) {
+      console.log("激活操作");
+      // 激活時執行的函數
+      handleCheckboxChange(hitType);
+      handleOutChange(hitType,1);
+
+      if (hitType === '三振') {
+        handleBallTypeChange(strikes, 'strike', '三振');
+      }
+    } else {
+      console.log("取消操作", previousOuts);
+      undoChange();
+    }
+  };
+
+
+  const undoChange = () => {
+    setOuts(previousOuts); // 將 outs 重置為撤銷前的值
+    if (lastHitType === '三振') {
+      // 如果上次操作是三振，重置到兩個勾選
+      setStrikes([true, true]);
+    }
+    if (lastHitType !== null) {
+      setSelectedHits(prev => ({
+        ...prev,
+        [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+      }));
+    }
+    setInnOuts(0);
+  };
+
+  
 
 
   const handleBallTypeChange = (index, type, hitType) => {
@@ -372,10 +389,12 @@ const undoOutChange = () => {
       console.log('进入四壞情况'); // 输出进入四壞情况
       // 四壞情况，直接设置四个壞球
       setBalls([true, true, true, true]);
+      
     } else if (hitType === '三振') {
       console.log('進入三振情況'); // 输出进入三振情況
       // 三振情况，直接设置三个好球
       setStrikes([true, true, true]);
+      setIsStrikeout(true);
     } else {
       console.log('普通情況'); // 輸出普通情況
 
@@ -391,35 +410,71 @@ const undoOutChange = () => {
     const currentStrikesCount = strikes.filter(Boolean).length;
   }
 
- 
-  const handleOutChange = (baseOuts, hitType = null) => {
-    setPreviousOuts(outs); // 保存当前状态
+  const handleToggle4 = (hitType) => {
+    console.log('hitType', hitType);
+    setActive(!Active); // 切換激活狀態
+    if (!Active) {
+      console.log("激活操作");
+      // 激活時執行的函數
+      handleCheckboxChange(hitType);
+      handleBallTypeChange(balls, 'ball', '四壞');
+     
+    } else {
+      console.log("取消操作");
+      undoChange4();
+    }
+  };
+
+
+  const undoChange4 = () => {
+    if (lastHitType === '四壞') {
+      // 如果上次操作是三振，重置到兩個勾選
+      setBalls([true, true, true]);
+    }
+    if (lastHitType !== null) {
+      setSelectedHits(prev => ({
+        ...prev,
+        [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+      }));
+    }
+    console.log("undoChange4 function executed.");
+  };
+
+
+
+
+  const handleOutChange = (hitType = null,baseOuts) => {
+    console.log("hitytype",hitType)
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
+      baseOuts = 2
     }
-    else if (baseOuts === 0) {
-      additionalOuts = 0;
-    }
-    else if (baseOuts === 1) {
+    else   {
       additionalOuts = 1;
     }
-    else if (baseOuts === 2) {
-      additionalOuts = 2;
-    }
-    else if (baseOuts === 3) {
-      additionalOuts = 3;
-    }
+    console.log("baseouts",baseOuts)
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
+
     setOuts(prevOuts => {
-      console.log('Current outs before update:', prevOuts); // 正確的位置
+      setPreviousOuts(prevOuts); // 保存當前的outs值
       const newOuts = prevOuts + additionalOuts;
+      console.log('Current outs before update11111:', prevOuts);
       console.log('Updating outs to:', newOuts);
       return newOuts;
+
     });
+    setInnOuts(prevInnOuts => {
+      const newOuts = prevInnOuts + increment;
+      console.log('Current outs before update33333:', prevInnOuts);
+      console.log('Updating outs to:', newOuts);
+      return newOuts;
+  });
   };
 
   const renderOutsCheckboxes = () => {
-    const remainder = oldouts % 3; // 計算 outs 除以 3 的餘數
+    const remainder = outs % 3; // 計算 outs 除以 3 的餘數
     return [...Array(3)].map((_, index) => (
       <FormControlLabel
         key={index}
@@ -435,33 +490,53 @@ const undoOutChange = () => {
     ));
   };
 
-  const handleInnOutsChange = (hitType, baseOuts) => {
-    let hitouts = 0;
-    let baseinn = 0;
-    console.log('hitType:', hitType, 'baseOuts:', baseOuts)
-    // 根據打擊類型判斷出局數
-    if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
-      hitouts = 1;
-    } else if (hitType === '雙殺') {
-      hitouts = 2;
+  const handleInnOutsChange = (selectedHitType, baseOuts) => {
+    console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
+    let additionalOuts = 1; // 預設增加一個出局
+    if (selectedHitType === "雙殺") {
+      additionalOuts = 2; // 如果是雙殺，增加兩個出局
     }
     if (baseOuts === 0){
-      baseinn = 0
+      additionalOuts = 0;
     }
-    else if (baseOuts === 1){
-      baseinn = 1
+    if (baseOuts === 2){
+      additionalOuts = 2;
     }
-    else if (baseOuts === 2){
-      baseinn = 2
+    if (baseOuts === 3 ){
+      additionalOuts = 3;
     }
-    else if (baseOuts === 3){
-      baseinn = 3
+    else   {
+      additionalOuts = 1;
+    }
+    // 如果是雙殺，baseOuts 直接設為2
+    if (selectedHitType === '雙殺') {
+        baseOuts = 2;
     }
 
-    const totalOuts = hitouts + baseinn;
-    console.log('Setting total outs:', totalOuts);
-    setInnOuts(totalOuts); // 更新狀態
-  };
+    // 計算增量：新選擇的 baseOuts 減去上次保存的 baseOuts
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
+
+    setOuts(prevOuts => {
+      setPreviousOuts(prevOuts); // 保存當前的outs值
+      const newOuts = prevOuts + increment;
+      console.log('Current outs before updateout:', prevOuts);
+      console.log('Updating outs toout:', newOuts);
+      return newOuts;
+
+    });
+    // 更新 inning outs
+    setInnOuts(prevOuts => {
+        const newOuts = prevOuts + increment;
+        console.log('Current outs before update222224444:', prevOuts);
+        console.log('Updating outs to:', newOuts);
+        return newOuts;
+    });
+
+    // 更新 lastBaseOuts 為當前選擇的 baseOuts
+    setLastBaseOuts(baseOuts);
+};
+
 
   //落點
   const [markers, setMarkers] = useState({ x: '', y: '' });
@@ -645,15 +720,17 @@ const undoOutChange = () => {
                           <div
                             style={{
                               position: 'absolute',
-                              top: `${markers.y}px`, // 添加 'px' 单位
-                              left: `${markers.x}px`, // 添加 'px' 单位
-                              width: '10px',
-                              height: '10px',
-                              backgroundColor: 'red',
-                              transform: 'translate(-50%, -50%)',
-                              borderRadius: '50%'
+                              top: `${markers.y}px`,
+                              left: `${markers.x}px`,
+                              transform: 'translate(-50%, -50%)'
                             }}
-                          />
+                          >
+                            <img
+                              src="baseball-16-32.png"  // 這裡放置你的棒球圖片網址
+                              alt="棒球"
+                              style={{ width: '21px', height: '21px' }}
+                            />
+                          </div>
                         )}
                       </div>
                       <Button onClick={handleDeleteLastMarker} color="secondary">
@@ -744,10 +821,9 @@ const undoOutChange = () => {
                               padding={1}
                               color='error'
                               onClick={() => {
-                                handleCheckboxChange('三振');
-                                handleToggle('三振');
-                                handleBallTypeChange(strikes, 'strike', '三振');
-                                handleInnOutsChange('三振', 0);
+                                handleToggle('三振')
+                                setSelectedHitType('三振');  // 存储击球类型，待后续使用
+
                               }
                               }
                             >
@@ -760,11 +836,7 @@ const undoOutChange = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => {
-                                handleCheckboxChange('飛球')
-                                handleToggle('飛球');
-                                handleInnOutsChange('飛球', 0);
-                              }
+                              onClick={() => handleToggle('飛球')
                               }
                             >
                               飛球
@@ -777,9 +849,7 @@ const undoOutChange = () => {
                               padding={1}
                               color='error'
                               onClick={() => {
-                                handleCheckboxChange('滾地')
-                                handleToggle('滾地');
-                                handleInnOutsChange('滾地');
+                                handleToggle('滾地')
                               }
                               }
                             >
@@ -816,9 +886,7 @@ const undoOutChange = () => {
                               padding={1}
                               color='error'
                               onClick={() => {
-                                handleCheckboxChange('野選')
-                                handleToggle('野選');
-                                handleInnOutsChange('野選');
+                                handleToggle('野選')
                               }
                               }
                             >
@@ -832,9 +900,7 @@ const undoOutChange = () => {
                               padding={1}
                               color='error'
                               onClick={() => {
-                                handleCheckboxChange('雙殺')
-                                handleToggle(2, '雙殺');
-                                handleInnOutsChange('雙殺');
+                                handleToggle('雙殺')
                               }
                               }
                             >
@@ -848,7 +914,7 @@ const undoOutChange = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('違規')}
+                              onClick={() => handleToggle('違規')}
                             >
                               違規
                             </Button>
@@ -882,12 +948,7 @@ const undoOutChange = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => {
-                                handleCheckboxChange('四壞')
-                                handleBallTypeChange(balls, 'ball', '四壞')
-                              }
-                              }
-
+                              onClick={() => handleToggle4('四壞')}
                             >
                               四壞
                             </Button>
@@ -899,9 +960,7 @@ const undoOutChange = () => {
                               padding={1}
                               color='info'
                               onClick={() => {
-                                handleCheckboxChange('犧飛')
-                                handleToggle('犧飛');
-                                handleInnOutsChange('犧飛');
+                                handleToggle('犧飛')
                               }}
                             >
                               犧飛
@@ -914,9 +973,7 @@ const undoOutChange = () => {
                               padding={1}
                               color='info'
                               onClick={() => {
-                                handleCheckboxChange('犧觸')
-                                handleToggle('犧觸');
-                                handleInnOutsChange('犧觸');
+                                handleToggle('犧觸')
                               }
                               }
                             >
@@ -1006,8 +1063,8 @@ const undoOutChange = () => {
                             autoFocus
                             onChange={(event) => {
                               const baseOuts = parseInt(event.target.value);
-                              handleOutChange(baseOuts); // 維持原有的出局數處理
-                              handleInnOutsChange(baseOuts); // 新增的打席造成的出局數處理
+                              handleInnOutsChange(selectedHitType, baseOuts); // 新增的打席造成的出局數處理
+                              
                             }}
                           >
                             <InputLabel>出局數</InputLabel>
@@ -1020,15 +1077,18 @@ const undoOutChange = () => {
                       </Box>
                     </DialogContent>
                     <DialogActions>
-                      <Button onClick={() => {
-                        console.log('Save button clicked!');
-                        saveData();
-                      }}>
-                        儲存
-                      </Button>
-                      <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                        {alertInfo.message}
-                      </Alert>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Button onClick={() => {
+                          saveData();
+                        }}>
+                          儲存
+                        </Button>
+                      </div>
+                      <Snackbar>
+                        <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                          {alertInfo.message}
+                        </Alert>
+                      </Snackbar>
                     </DialogActions>
                   </Dialog>
                 </CardContent>

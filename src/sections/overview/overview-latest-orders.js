@@ -303,7 +303,7 @@ export const OverviewLatestOrders = () => {
 
                 return (
                   <ListItem key={index}>
-                    <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold" >{`${homeTeamName}`} &nbsp;&nbsp;&nbsp;vs &nbsp;&nbsp;&nbsp;{`${awayTeamName}`}</Typography>} />
+                    <ListItemText primary={<Typography align="center" fontSize={20} fontWeight="bold" > {`${awayTeamName}`}&nbsp;&nbsp;&nbsp;vs &nbsp;&nbsp;&nbsp;{`${homeTeamName}`}</Typography>} />
                   </ListItem>
                 );
               });
@@ -343,7 +343,7 @@ export const OverviewLatestOrders = () => {
                       <ListItemText primary={
                         <Typography align="center" fontWeight='500'>
                           {`${formatDate(game.GDate)}`}&nbsp;&nbsp;&nbsp;
-                          {`${homeTeamName}`}&nbsp;&nbsp;vs&nbsp;&nbsp;{`${awayTeamName}`}
+                          {`${awayTeamName}`}&nbsp;&nbsp;vs&nbsp;&nbsp; {`${homeTeamName}`}
                         </Typography>
                       } />
                     </ListItem>
