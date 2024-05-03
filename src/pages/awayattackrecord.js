@@ -155,7 +155,7 @@ const Page = () => {
     const handleToggle = (hitType) => {
         // 首先计算切换后的状态
         const newIsActive = !isActive;
-    
+
         // 根据计算后的状态执行操作
         if (newIsActive) {
             console.log("执行操作");
@@ -165,17 +165,17 @@ const Page = () => {
             handleInnOutsChange(hitType);
         } else {
             console.log("取消操作");
-            undoOutChange(); 
+            undoOutChange();
         }
-    
+
         // 更新isActive状态
         setIsActive(newIsActive);
     };
-    
+
 
 
     const undoOutChange = () => {
-      setOuts(previousOuts); // 恢复到之前的状态
+        setOuts(previousOuts); // 恢复到之前的状态
     };
 
 
@@ -275,8 +275,8 @@ const Page = () => {
                 'orderoppo': arrayUnion({
                     'o_p_name': awayattackData,
                     'o_inn': currentInning,
-                    'o_content': selectedContent,                    
-                    'o_onbase': bases,                    
+                    'o_content': selectedContent,
+                    'o_onbase': bases,
                     'o_rbi': rbiCount,
                     'o_markers': markers,
                     'pitcher': {
@@ -310,8 +310,8 @@ const Page = () => {
                 'orderoppo': arrayUnion({
                     'o_p_name': awayattackData,
                     'o_inn': currentInning,
-                    'o_content': selectedContent,                    
-                    'o_onbase': bases,                    
+                    'o_content': selectedContent,
+                    'o_onbase': bases,
                     'o_rbi': rbiCount,
                     'o_markers': markers,
                     'pitcher': {
@@ -434,9 +434,9 @@ const Page = () => {
             );
         });
     }
-    
 
-    
+
+
 
     const handleInnOutsChange = (hitType, baseOuts) => {
         let hitouts = 0;
@@ -502,7 +502,6 @@ const Page = () => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    py: 8
                 }}
             >
                 <Container maxWidth="lg">
@@ -538,6 +537,10 @@ const Page = () => {
                                                 </div>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+                                                        <Typography variant='body1'>
+                                                            第{currentBattingOrder}棒
+                                                        </Typography>
+                                                        &nbsp;&nbsp;&nbsp;
                                                         <Paper
                                                             variant='outlined'
                                                             sx={{
@@ -552,9 +555,10 @@ const Page = () => {
                                                                 textAlign: 'center',
                                                             }}
                                                         >
+
                                                             {awayattackData}
                                                         </Paper>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '100px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '92px' }}>
                                                             <Typography variant='h5'>B</Typography>
                                                             {balls.map((ball, index) => (
                                                                 <Checkbox
@@ -567,37 +571,26 @@ const Page = () => {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px', marginLeft: '250px' }}>
-                                                        <Typography variant='h5'>S</Typography>
-                                                        {strikes.map((strike, index) => (
-                                                            <Checkbox
-                                                                key={index}
-                                                                checked={strike}
-                                                                onChange={() => handleBallTypeChange(index, 'strike')}
-                                                                color="primary"
-                                                                inputProps={{ 'aria-label': `好球${index + 1}` }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '250px' }}>
-                                                        <Typography variant='h5'>O</Typography>
-                                                        {OutCheckboxes(outs)}
-                                                        {console.log("c",outs)}
-                                                        
-                                                    </div>
-                                                    
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
 
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
-                                                        <Typography variant='body1'>
-                                                            {currentInning}
-                                                        </Typography>
-                                                        <ArrowDropUpIcon />
-
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
-                                                        <Typography variant='body1'>
-                                                            第{currentBattingOrder}棒次
-                                                        </Typography>
+                                                        <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                                            <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
+                                                            <Select
+                                                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                                                                labelId="pitcher-label"
+                                                                id="pitcher-select"
+                                                                value={pitcher}
+                                                                label="投手"
+                                                                onChange={(e) => setPitcher(e.target.value)}
+                                                            >
+                                                                {/* 這裡顯示主隊投手 */}
+                                                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
+                                                                {/* 這裡顯示 fetch 到的其他球員 */}
+                                                                {players.map((playerKey, index) => (
+                                                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </FormControl>
                                                         <Box
                                                             noValidate
                                                             component="form"
@@ -608,27 +601,37 @@ const Page = () => {
                                                                 width: 'fit-content',
                                                             }}
                                                         >
-                                                            <FormControl sx={{ mt: 1, minWidth: 120 }}>
-                                                                <InputLabel id="pitcher-label">投手</InputLabel>
-                                                                <Select
-                                                                    labelId="pitcher-label"
-                                                                    id="pitcher-select"
-                                                                    value={pitcher}
-                                                                    label="投手"
-                                                                    onChange={(e) => setPitcher(e.target.value)}
-                                                                >
-                                                                    {/* 這裡顯示主隊投手 */}
-                                                                    <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                                                    {/* 這裡顯示 fetch 到的其他球員 */}
-                                                                    {players.map((playerKey, index) => (
-                                                                        <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </FormControl>
+                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-20px' }}>
+                                                                <Typography variant='h5'>S</Typography>
+                                                                {strikes.map((strike, index) => (
+                                                                    <Checkbox
+                                                                        key={index}
+                                                                        checked={strike}
+                                                                        onChange={() => handleBallTypeChange(index, 'strike')}
+                                                                        color="primary"
+                                                                        inputProps={{ 'aria-label': `好球${index + 1}` }}
+                                                                    />
+                                                                ))}
+                                                            </div>
                                                         </Box>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }} >
+                                                                {currentInning}
+                                                            </Typography>
+                                                            <ArrowDropUpIcon style={{ fontSize: '2rem' }} />
+                                                        </div>
+                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
+                                                        &nbsp;&nbsp;{OutCheckboxes(outs)}
+                                                        {console.log("c", outs)}
                                                     </div>
+
+                                                    {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+                                                    </div> */}
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -666,7 +669,7 @@ const Page = () => {
                                                     />
                                                 )}
                                             </div>
-                                            <Button onClick={handleDeleteLastMarker} color="secondary">
+                                            <Button onClick={handleDeleteLastMarker} color="secondary" style={{ marginBottom: '-10px' }}>
                                                 返回
                                             </Button>
                                         </CardContent>
@@ -677,18 +680,19 @@ const Page = () => {
                                     xs={12}
                                     sm={6}
                                     item
+                                    style={{ marginTop: '-120px' }}
                                 >
                                     <form onSubmit={handleSubmit}>
                                         <Card>
                                             <CardContent>
                                                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                                    <Divider style={{ flex: '1', marginRight: '10px' }} />
+                                                    <Divider style={{ flex: '1', marginRight: '10px', marginTop:'20px', marginBottom:'20px' }} />
                                                     <Typography variant="body2">
                                                         打擊內容＆打點
                                                     </Typography>
                                                     <Divider style={{ flex: '1', marginLeft: '10px' }} />
                                                 </div>
-                                                <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '10px' }}>
+                                                <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '0px' }}>
                                                     <div style={{ width: '100px', textAlign: 'center' }}>
                                                         <Button
                                                             variant={selectedHits['一安'] ? 'contained' : 'outlined'}
@@ -1036,11 +1040,11 @@ const Page = () => {
                                             }}>
                                                 儲存
                                             </Button>
-                                            
-                                                <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                                                    {alertInfo.message}
-                                                </Alert>
-                                            
+
+                                            <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
+                                                {alertInfo.message}
+                                            </Alert>
+
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
@@ -1048,10 +1052,11 @@ const Page = () => {
                             </Grid>
                         </div>
                     </Stack>
-                    <CardActions sx={{ justifyContent: 'center' }}>
+                    <CardActions sx={{ justifyContent: 'flex-end', marginTop: "-110px" }}>
                         <Button
                             variant="contained"
                             onClick={handleSaveToFirebase}
+
                         >
                             儲存
                         </Button>
