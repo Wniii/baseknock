@@ -145,6 +145,7 @@ const Page = () => {
         const { column, row } = router.query;
         const inning = parseInt(column);
         const playerIndex = parseInt(row);
+        console('haha', inning, playerIndex)
 
         // 过滤 ordermain 来找到相应的局次
         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
