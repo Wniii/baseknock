@@ -86,7 +86,7 @@ export const Score = (props) => {
   const calculateAwayHit = (orderoppo) => {
     let awayHitCount = 0;
     orderoppo.forEach((order) => {
-      if (["一安", "二安", "三安", "全打"].includes(order.content)) {
+      if (["一安", "二安", "三安", "全打"].includes(order.o_content)) {
         awayHitCount += 1;
       }
     });
@@ -174,8 +174,8 @@ export const Score = (props) => {
             </TableHead>
             <TableBody>
               {[
-                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal },
-                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal }
+                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal },
+                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal }
               ].map((team, rowIndex) => (
                 <TableRow key={rowIndex} hover>
                   <TableCell>{team.teamName}</TableCell>
@@ -194,6 +194,7 @@ export const Score = (props) => {
                 </TableRow>
               ))}
             </TableBody>
+
 
 
           </Table>

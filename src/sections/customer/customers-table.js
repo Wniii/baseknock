@@ -124,7 +124,7 @@ export const CustomersTable = (props) => {
         if (gameDocSnapshot.exists()) {
           const gameData = gameDocSnapshot.data();
           const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-          const lastValidIndex = orderMainLength - 1;
+          const lastValidIndex = orderMainLength ;
 
           setLastValidIndex(lastValidIndex);
           setAttackListData(gameData.attacklist || []);
@@ -195,6 +195,22 @@ export const CustomersTable = (props) => {
     });
 };
 
+const handleEditClick = (attack, row, column) => {
+  router.push({
+      pathname: '/editattackrecord',
+      query: {
+          attack: attack,
+          timestamp: timestamp,
+          codeName: codeName,
+          teamId: teamId,
+          outs: outs,
+          row: row,
+          column: column
+      }
+  });
+};
+
+
   let buttonRow = -1;
 
 // 在迴圈外計算按鈕的行數和按鈕的列數
@@ -204,7 +220,8 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   buttonColumn = Math.floor(outs / 6) + 1;
 
   // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+2;
+  const remainder = (lastValidIndex % 9)+1;
+  console.log("第幾行",remainder)
     buttonRow = remainder;
 
 }
@@ -264,7 +281,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleClick(attack)}
+                              onClick={() => handleEditClick(attack, index + 1, i + 1)} 
                             >
                               {buttonProps.text}
                             </Button>

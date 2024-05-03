@@ -69,6 +69,9 @@ const Page = () => {
   const [previousOuts, setPreviousOuts] = useState(0);
   const [lastHitType, setLastHitType] = useState(null);
   const [isStrikeout, setIsStrikeout] = useState(false);
+  const [Active, setActive] = useState(false);
+  const [selectedHitType, setSelectedHitType] = useState("");
+  const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
 
 
 
@@ -115,7 +118,7 @@ const Page = () => {
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                setCurrentBattingOrder(gameData.ordermain.length % 9 + 1);
+                setCurrentBattingOrder((gameData.ordermain ? gameData.ordermain.length : 0) % 9 + 1);
                 // 計算局數和上下半局
                 const outs = gameData.outs || 0;
                 const inningsCompleted = Math.floor(outs / 6) + 1;
@@ -243,8 +246,8 @@ const Page = () => {
     if (selectedHits['四分']) rbiCount += 4;
 
     const markerData = {
-      x: markers.x.toString(),
-      y: markers.y.toString()
+      x: location.x.toString(),
+      y: location.y.toString()
     };
 
     try {
@@ -255,7 +258,7 @@ const Page = () => {
           'onbase': bases,
           'p_name': attackData,
           'rbi': rbiCount,
-          'markers': markers,
+          'location': location,
           'pitcher': {
             name: pitcher,
             ball: balls.filter(Boolean).length,
@@ -291,7 +294,7 @@ const Page = () => {
           'onbase': bases,
           'p_name': attackData,
           'rbi': rbiCount,
-          'markers': markers,
+          'location': location,
           'pitcher': {
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
@@ -349,11 +352,11 @@ const Page = () => {
       console.log("激活操作");
       // 激活時執行的函數
       handleCheckboxChange(hitType);
-      handleOutChange(hitType);
+      handleOutChange(hitType, 1);
+
       if (hitType === '三振') {
         handleBallTypeChange(strikes, 'strike', '三振');
       }
-      handleInnOutsChange(hitType, 0);
     } else {
       console.log("取消操作", previousOuts);
       undoChange();
@@ -377,6 +380,8 @@ const Page = () => {
   };
 
 
+
+
   const handleBallTypeChange = (index, type, hitType) => {
     console.log('hitType:', hitType); // 输出 hitType 的值
 
@@ -384,7 +389,7 @@ const Page = () => {
       console.log('进入四壞情况'); // 输出进入四壞情况
       // 四壞情况，直接设置四个壞球
       setBalls([true, true, true, true]);
-      setIsStrikeout(true);
+
     } else if (hitType === '三振') {
       console.log('進入三振情況'); // 输出进入三振情況
       // 三振情况，直接设置三个好球
@@ -404,27 +409,64 @@ const Page = () => {
     const currentStrikesCount = strikes.filter(Boolean).length;
   }
 
+  const handleToggle4 = (hitType) => {
+    console.log('hitType', hitType);
+    setActive(!Active); // 切換激活狀態
+    if (!Active) {
+      console.log("激活操作");
+      // 激活時執行的函數
+      handleCheckboxChange(hitType);
+      handleBallTypeChange(balls, 'ball', '四壞');
+
+    } else {
+      console.log("取消操作");
+      undoChange4();
+    }
+  };
+
+
+  const undoChange4 = () => {
+    if (lastHitType === '四壞') {
+      // 如果上次操作是三振，重置到兩個勾選
+      setBalls([true, true, true]);
+    }
+    if (lastHitType !== null) {
+      setSelectedHits(prev => ({
+        ...prev,
+        [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+      }));
+    }
+    console.log("undoChange4 function executed.");
+  };
+
+
+
+
   const handleOutChange = (hitType = null, baseOuts) => {
+    console.log("hitytype", hitType)
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
+      baseOuts = 2
     }
-    else if (baseOuts === 0) {
-      additionalOuts = 0;
-    }
-    else if (baseOuts === 1) {
+    else {
       additionalOuts = 1;
     }
-    else if (baseOuts === 2) {
-      additionalOuts = 2;
-    }
-    else if (baseOuts === 3) {
-      additionalOuts = 3;
-    }
+    console.log("baseouts", baseOuts)
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
+
     setOuts(prevOuts => {
       setPreviousOuts(prevOuts); // 保存當前的outs值
       const newOuts = prevOuts + additionalOuts;
-      console.log('Current outs before update:', prevOuts);
+      console.log('Current outs before update11111:', prevOuts);
+      console.log('Updating outs to:', newOuts);
+      return newOuts;
+
+    });
+    setInnOuts(prevInnOuts => {
+      const newOuts = prevInnOuts + increment;
+      console.log('Current outs before update33333:', prevInnOuts);
       console.log('Updating outs to:', newOuts);
       return newOuts;
     });
@@ -447,49 +489,67 @@ const Page = () => {
     ));
   };
 
-  const handleInnOutsChange = (hitType = null, baseOuts) => {
-    let hitouts = 0;
-    let baseinn = 0;
-    console.log('hitType:', hitType, 'baseOuts:', baseOuts)
-    // 根據打擊類型判斷出局數
-    if (hitType === '三振' || hitType === '飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
-      hitouts = 1;
-    } else if (hitType === '雙殺') {
-      hitouts = 2;
+  const handleInnOutsChange = (selectedHitType, baseOuts) => {
+    console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
+    let additionalOuts = 1; // 預設增加一個出局
+    if (selectedHitType === "雙殺") {
+      additionalOuts = 2; // 如果是雙殺，增加兩個出局
     }
     if (baseOuts === 0) {
-      baseinn = 0
+      additionalOuts = 0;
     }
-    else if (baseOuts === 1) {
-      baseinn = 1
+    if (baseOuts === 2) {
+      additionalOuts = 2;
     }
-    else if (baseOuts === 2) {
-      baseinn = 2
+    if (baseOuts === 3) {
+      additionalOuts = 3;
     }
-    else if (baseOuts === 3) {
-      baseinn = 3
+    else {
+      additionalOuts = 1;
+    }
+    // 如果是雙殺，baseOuts 直接設為2
+    if (selectedHitType === '雙殺') {
+      baseOuts = 2;
     }
 
-    // let baseinn = parseInt(baseOuts); // 從UI選擇的基壘出局數直接轉換成數字
+    // 計算增量：新選擇的 baseOuts 減去上次保存的 baseOuts
+    const increment = baseOuts - lastBaseOuts;
+    console.log('Increment:', increment);
 
-    // 計算總出局數
-    const totalOuts = hitouts + baseinn;
-    setInnOuts(totalOuts); // 更新狀態
+    setOuts(prevOuts => {
+      setPreviousOuts(prevOuts); // 保存當前的outs值
+      const newOuts = prevOuts + increment;
+      console.log('Current outs before updateout:', prevOuts);
+      console.log('Updating outs toout:', newOuts);
+      return newOuts;
+
+    });
+    // 更新 inning outs
+    setInnOuts(prevOuts => {
+      const newOuts = prevOuts + increment;
+      console.log('Current outs before update222224444:', prevOuts);
+      console.log('Updating outs to:', newOuts);
+      return newOuts;
+    });
+
+    // 更新 lastBaseOuts 為當前選擇的 baseOuts
+    setLastBaseOuts(baseOuts);
   };
 
+
   //落點
-  const [markers, setMarkers] = useState({ x: '', y: '' });
+  const [location, setLocation] = useState({ x: '', y: '' });
   const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
   const handleImageClick = (event) => {
     const { offsetX, offsetY } = event.nativeEvent;
     setClickCoordinates({ x: offsetX, y: offsetY });
-    setMarkers({ x: offsetX.toString(), y: offsetY.toString() });
+    setLocation({ x: offsetX.toString(), y: offsetY.toString() });
   };
 
   const handleDeleteLastMarker = () => {
     // 直接重置 markers 对象
-    setMarkers({ x: '', y: '' });
+    setLocation({ x: '', y: '' });
   };
 
   //出局數彈跳視窗
@@ -511,7 +571,6 @@ const Page = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          py: 8
         }}
       >
         <Container maxWidth="lg">
@@ -531,6 +590,7 @@ const Page = () => {
                   xs={12}
                   sm={6}
                   item
+       
                 >
                   <form onSubmit={handleSubmit}>
                     <Card>
@@ -543,10 +603,13 @@ const Page = () => {
                             </Typography>
                             <Divider style={{ flex: '1', marginLeft: '10px' }} />
                           </div>
-
                         </div>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+                            <Typography variant='body1'>
+                              第{currentBattingOrder}棒次
+                            </Typography>
+                            &nbsp;&nbsp;&nbsp;
                             <Paper
                               variant='outlined'
                               sx={{
@@ -563,7 +626,7 @@ const Page = () => {
                             >
                               {attackData}
                             </Paper>
-                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '100px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '92px' }}>
                               <Typography variant='h5'>B</Typography>
                               {balls.map((ball, index) => (
                                 <Checkbox
@@ -576,34 +639,24 @@ const Page = () => {
                               ))}
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px', marginLeft: '250px' }}>
-                            <Typography variant='h5'>S</Typography>
-                            {strikes.map((strike, index) => (
-                              <Checkbox
-                                key={index}
-                                checked={strike}
-                                onChange={() => handleBallTypeChange(index, 'strike')}
-                                color="primary"
-                                inputProps={{ 'aria-label': `好球${index + 1}` }}
-                              />
-                            ))}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '250px' }}>
-                            <Typography variant='h5'>O</Typography>
-                            {renderOutsCheckboxes()}
-                          </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
-                            <Typography variant='body1'>
-                              {currentInning}
-                            </Typography>
-                            <ArrowDropDownIcon />
-
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
-                            <Typography variant='body1'>
-                              第{currentBattingOrder}棒次
-                            </Typography>
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
+                            <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                              <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
+                              <Select
+                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                                labelId="pitcher-label"
+                                id="pitcher-select"
+                                value={pitcher} // 使用 state 中的值
+                                label="投手"
+                                onChange={(e) => setPitcher(e.target.value)}
+                              >
+                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
+                                {players.map((playerKey, index) => (
+                                  <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
                             <Box
                               noValidate
                               component="form"
@@ -614,25 +667,39 @@ const Page = () => {
                                 width: 'fit-content',
                               }}
                             >
-                              <FormControl sx={{ mt: 1, minWidth: 120 }}>
-                                <InputLabel id="pitcher-label">投手</InputLabel>
-                                <Select
-                                  labelId="pitcher-label"
-                                  id="pitcher-select"
-                                  value={pitcher} // 使用 state 中的值
-                                  label="投手"
-                                  onChange={(e) => setPitcher(e.target.value)}
-                                >
-                                  <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                  {players.map((playerKey, index) => (
-                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
+
+
+                              <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-20px' }}>
+                                <Typography variant='h5'>S</Typography>
+                                {strikes.map((strike, index) => (
+                                  <Checkbox
+                                    key={index}
+                                    checked={strike}
+                                    onChange={() => handleBallTypeChange(index, 'strike')}
+                                    color="primary"
+                                    inputProps={{ 'aria-label': `好球${index + 1}` }}
+                                  />
+                                ))}
+                              </div>
                             </Box>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px'}}>
+                            <div style={{ display: 'flex', alignItems: 'center',}}>
+                            <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }} >
+                                {currentInning}
+                              </Typography>
+                              <ArrowDropDownIcon style={{ fontSize: '2rem' }} />
+                            </div>
+                            <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
+                            {renderOutsCheckboxes()}
                           </div>
+
+
+                          {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+                          </div> */}
                         </div>
                       </CardContent>
                     </Card>
@@ -655,12 +722,12 @@ const Page = () => {
                           style={{ cursor: 'pointer' }}
                         />
                         {/* 檢查是否有設置 markers */}
-                        {markers.x && markers.y && (
+                        {location.x && location.y && (
                           <div
                             style={{
                               position: 'absolute',
-                              top: `${markers.y}px`,
-                              left: `${markers.x}px`,
+                              top: `${location.y}px`,
+                              left: `${location.x}px`,
                               transform: 'translate(-50%, -50%)'
                             }}
                           >
@@ -683,12 +750,13 @@ const Page = () => {
                   xs={12}
                   sm={6}
                   item
+                  style={{ marginTop: '-140px' }}
                 >
                   <form onSubmit={handleSubmit}>
                     <Card>
                       <CardContent>
                         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                          <Divider style={{ flex: '1', marginRight: '10px' }} />
+                        <Divider style={{ flex: '1', marginRight: '10px', marginTop: '20px', marginBottom: '20px' }} />
                           <Typography variant="body2">
                             打擊內容＆打點
                           </Typography>
@@ -759,7 +827,12 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleToggle('三振')}
+                              onClick={() => {
+                                handleToggle('三振')
+                                setSelectedHitType('三振');  // 存储击球类型，待后续使用
+
+                              }
+                              }
                             >
                               三振
                             </Button>
@@ -770,7 +843,12 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleToggle('飛球')
+                              onClick={() => {
+                                handleToggle('飛球')
+                                setSelectedHitType('飛球');  // 存储击球类型，待后续使用
+
+
+                              }
                               }
                             >
                               飛球
@@ -784,6 +862,8 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleToggle('滾地')
+                                setSelectedHitType('滾地');  // 存储击球类型，待后续使用
+
                               }
                               }
                             >
@@ -796,7 +876,12 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('失誤')}
+                              onClick={() => {
+                                handleCheckboxChange('失誤')
+                                setSelectedHitType('失誤');  // 存储击球类型，待后续使用
+
+                              }
+                              }
                             >
                               失誤
                             </Button>
@@ -848,7 +933,10 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleToggle('違規')}
+                              onClick={() => {handleToggle('違規')
+                              setSelectedHitType('違規');
+                              }
+                            }
                             >
                               違規
                             </Button>
@@ -882,12 +970,7 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='info'
-                              onClick={() => {
-                                handleCheckboxChange('四壞')
-                                handleBallTypeChange(balls, 'ball', '四壞')
-                              }
-                              }
-
+                              onClick={() => handleToggle4('四壞')}
                             >
                               四壞
                             </Button>
@@ -1002,8 +1085,8 @@ const Page = () => {
                             autoFocus
                             onChange={(event) => {
                               const baseOuts = parseInt(event.target.value);
-                              handleOutChange(baseOuts); // 維持原有的出局數處理
-                              handleInnOutsChange(baseOuts); // 新增的打席造成的出局數處理
+                              handleInnOutsChange(selectedHitType, baseOuts); // 新增的打席造成的出局數處理
+
                             }}
                           >
                             <InputLabel>出局數</InputLabel>
@@ -1035,7 +1118,7 @@ const Page = () => {
               </Grid>
             </div>
           </Stack>
-          <CardActions sx={{ justifyContent: 'center' }}>
+          <CardActions sx={{ justifyContent: 'flex-end', marginTop: "-110px" }}>
             <Button
               variant="contained"
               onClick={handleSaveToFirebase}
