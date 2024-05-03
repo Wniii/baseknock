@@ -893,9 +893,7 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                                handleCheckboxChange('野選')
                                                                 handleToggle('野選');
-                                                                handleInnOutsChange('野選');
                                                             }
                                                             }
                                                         >
@@ -909,9 +907,7 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                                handleCheckboxChange('雙殺')
-                                                                handleToggle(2, '雙殺');
-                                                                handleInnOutsChange('雙殺');
+                                                                handleToggle('雙殺');
                                                             }
                                                             }
                                                         >
@@ -976,9 +972,7 @@ const Page = () => {
                                                             padding={1}
                                                             color='info'
                                                             onClick={() => {
-                                                                handleCheckboxChange('犧飛')
                                                                 handleToggle('犧飛');
-                                                                handleInnOutsChange('犧飛');
                                                             }}
                                                         >
                                                             犧飛
@@ -991,9 +985,7 @@ const Page = () => {
                                                             padding={1}
                                                             color='info'
                                                             onClick={() => {
-                                                                handleCheckboxChange('犧觸')
                                                                 handleToggle('犧觸');
-                                                                handleInnOutsChange('犧觸');
                                                             }
                                                             }
                                                         >
@@ -1083,9 +1075,8 @@ const Page = () => {
                                                         autoFocus
                                                         onChange={(event) => {
                                                             const baseOuts = parseInt(event.target.value);
-                                                            handleOutChange(baseOuts); // 維持原有的出局數處理
-                                                            handleInnOutsChange(hitType, baseOuts); // 新增的打席造成的出局數處理
-                                                        }}
+                                                            handleInnOutsChange(selectedHitType, baseOuts); // 新增的打席造成的出局數處理
+                                                              }}
                                                     >
                                                         <InputLabel>出局數</InputLabel>
                                                         <MenuItem value="0">0</MenuItem>
