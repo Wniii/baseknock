@@ -1,4 +1,3 @@
-// Page.js
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Head from 'next/head';
@@ -91,6 +90,7 @@ const Page = () => {
         component="main"
         sx={{
           flexGrow: 1,
+          py: 8
         }}
       >  
         <Container maxWidth="xl">

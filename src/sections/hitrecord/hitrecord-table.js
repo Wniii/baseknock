@@ -619,7 +619,6 @@ const sortedPlayers = useMemo(() => {
             <TableHead>
               <TableRow>
                 <TableCell
-                  colSpan={2}
                   style={{
                     position: "sticky",
                     top: 0,
