@@ -66,7 +66,7 @@ export const ManageProfile = ({ selectedTeam, onImageSelect }) => {
                     alignItems: "center",
                     display: "flex",
                     flexDirection: "column",
-                    height: "150px",
+                    height: "200px",
                   }}
                 >
                   {selectedTeam ? (
