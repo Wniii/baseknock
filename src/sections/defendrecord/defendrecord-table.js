@@ -240,13 +240,14 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     zIndex: 1,
                     fontSize: "1.0em",
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    textAlign: "center", // 水平置中
+                    display: "flex", // 使用flex布局
+                    alignItems: "center", // 垂直置中
+                    justifyContent: "center", // 水平置中
                     background: "white", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
                   }}
                 >
-                  <div>落點</div>
-                  <div>球員</div>
+                  球員
                 </TableCell>
                 {selectedColumns.includes("好球數") && (
                   <TableCell style={{ fontSize: "1.0em" }}>好球數</TableCell>

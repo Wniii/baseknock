@@ -233,26 +233,24 @@ export const EditGame = () => {
       const hquerySnapshot = await getDocs(
         query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
       );
-      let hteam = hquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+      let hteam = hquerySnapshot.docs[0]?.id;
 
       // 查询客队ID
       const aquerySnapshot = await getDocs(
         query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
       );
-      let ateam = aquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
+      let ateam = aquerySnapshot.docs[0]?.id;
 
       if (!hteam || !ateam) {
         console.error("未找到相应的主队或客队");
         alert("未找到相应的主队或客队");
-        return; // 如果没有找到队伍，就中止操作
+        return;
       }
 
-      // 检查主队和客队是否相同
       if (hteam === ateam) {
         alert("主隊和客隊不能相同，請重新選擇！");
-        return; // 如果主队和客队相同，中止操作并提示用户
+        return;
       }
-
       const prevhquerySnapshot = await getDocs(
         query(collection(firestore, "team"), where("codeName", "==", prevhteam))
       );
@@ -270,18 +268,33 @@ export const EditGame = () => {
         return; // 如果没有找到队伍，就中止操作
       }
 
-      // 更新原主隊的比賽資料和比賽日期
-      await deleteDoc(doc(firestore, "team", phteam, "games", g_id));
-      await deleteGamesField(phteam, g_id);
+      // 獲取比賽信息
+      const gameRef = doc(firestore, "team", phteam, "games", g_id); // 需要正确的路径
+      const gameSnap = await getDoc(gameRef);
+      const gameData = gameSnap.data();
 
-      // 更新原客隊的比賽資料和比賽日期
-      await deleteDoc(doc(firestore, "team", pateam, "games", g_id));
-      await deleteGamesField(pateam, g_id);
+      // 检查 orderoppo 或 ordermain 是否存在
+      const hasOrderOppo = gameData && gameData.orderoppo && Object.keys(gameData.orderoppo).length > 0;
+      const hasOrderMain = gameData && gameData.ordermain && Object.keys(gameData.ordermain).length > 0;
 
-      // 新增新主隊的比賽資料和比賽日期
+      if ((hteam !== phteam || ateam !== pateam) && (hasOrderOppo || hasOrderMain)) {
+        alert("該場比賽已有紀錄，請勿更改主/客隊");
+        return;
+      }
+
+      // 如果主队或客队有更改，并且没有orderoppo或ordermain
+      if (hteam !== phteam || ateam !== pateam) {
+        // 删除原有主队和客队的比赛数据
+        await deleteDoc(doc(firestore, "team", phteam, "games", g_id));
+        await deleteGamesField(phteam, g_id);
+        await deleteDoc(doc(firestore, "team",pateam, "games", g_id));
+        await deleteGamesField(pateam, g_id);
+      }
+
+      // 更新或新增新主队的比赛数据和比赛日期
       await setDoc(doc(firestore, "team", hteam, "games", g_id), values);
       await updateGamesField(hteam, g_id, values.GDate);
-      // 新增新客隊的比賽資料和比賽日期
+      // 更新或新增新客队的比赛数据和比赛日期
       await setDoc(doc(firestore, "team", ateam, "games", g_id), values);
       await updateGamesField(ateam, g_id, values.GDate);
 
@@ -291,7 +304,8 @@ export const EditGame = () => {
       console.error("更新比賽資料時發生錯誤:", error);
       alert("更新比賽資料時發生錯誤。");
     }
-  };
+};
+
 
   async function deleteGamesField(tId, g_id) {
     const teamDocRef = doc(firestore, "team", tId);
