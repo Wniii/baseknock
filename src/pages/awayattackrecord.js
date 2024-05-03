@@ -68,7 +68,13 @@ const Page = () => {
     const [innOuts, setInnOuts] = useState(0);
     const [previousOuts, setPreviousOuts] = useState(outs);
     const [isActive, setIsActive] = useState(false); // 用于跟踪按钮是否处于激
-
+    const [lastHitType, setLastHitType] = useState(null);
+    const [isStrikeout, setIsStrikeout] = useState(false);
+    const [Active, setActive] = useState(false);
+    const [selectedHitType, setSelectedHitType] = useState("");
+    const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
+  
+  
 
 
     useEffect(() => {
@@ -113,7 +119,7 @@ const Page = () => {
                             if (gameSnap.exists()) {
                                 const gameData = gameSnap.data();
                                 // 假設 gameData.ordermain 是一個包含打擊數據的數組
-                                setCurrentBattingOrder(gameData.orderoppo.length % 9 + 1);
+                                setCurrentBattingOrder((gameData.orderoppo ? gameData.orderoppo.length : 0) % 9 + 1);
                                 // 計算局數和上下半局
                                 const outs = gameData.outs || 0;
                                 const oldouts = gameData.outs || 0;
@@ -149,34 +155,6 @@ const Page = () => {
 
         fetchGameDocument();
     }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
-
-
-
-    const handleToggle = (hitType) => {
-        // 首先计算切换后的状态
-        const newIsActive = !isActive;
-
-        // 根据计算后的状态执行操作
-        if (newIsActive) {
-            console.log("执行操作");
-            // 如果切换为激活状态，执行所需的函数
-            handleCheckboxChange(hitType);
-            handleOutChange(hitType);
-            handleInnOutsChange(hitType);
-        } else {
-            console.log("取消操作");
-            undoOutChange();
-        }
-
-        // 更新isActive状态
-        setIsActive(newIsActive);
-    };
-
-
-
-    const undoOutChange = () => {
-        setOuts(previousOuts); // 恢复到之前的状态
-    };
 
 
     const handleSubmit = useCallback((event) => {
@@ -363,6 +341,39 @@ const Page = () => {
         }));
     };
 
+    const handleToggle = (hitType) => {
+        console.log('hitType', hitType);
+        setIsActive(!isActive); // 切換激活狀態
+        if (!isActive) {
+          console.log("激活操作");
+          // 激活時執行的函數
+          handleCheckboxChange(hitType);
+          handleOutChange(hitType,1);
+    
+          if (hitType === '三振') {
+            handleBallTypeChange(strikes, 'strike', '三振');
+          }
+        } else {
+          console.log("取消操作", previousOuts);
+          undoChange();
+        }
+      };
+    
+    
+      const undoChange = () => {
+        setOuts(previousOuts); // 將 outs 重置為撤銷前的值
+        if (lastHitType === '三振') {
+          // 如果上次操作是三振，重置到兩個勾選
+          setStrikes([true, true]);
+        }
+        if (lastHitType !== null) {
+          setSelectedHits(prev => ({
+            ...prev,
+            [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+          }));
+        }
+        setInnOuts(0);
+      };
 
     const handleBallTypeChange = (index, type, hitType) => {
         console.log('hitType:', hitType); // 输出 hitType 的值
@@ -390,83 +401,136 @@ const Page = () => {
         const currentStrikesCount = strikes.filter(Boolean).length;
     }
 
-    const handleOutChange = (baseOuts, hitType = null) => {
-        setPreviousOuts(outs); // 保存当前状态
+
+
+    const handleToggle4 = (hitType) => {
+        console.log('hitType', hitType);
+        setActive(!Active); // 切換激活狀態
+        if (!Active) {
+          console.log("激活操作");
+          // 激活時執行的函數
+          handleCheckboxChange(hitType);
+          handleBallTypeChange(balls, 'ball', '四壞');
+         
+        } else {
+          console.log("取消操作");
+          undoChange4();
+        }
+      };
+    
+    
+      const undoChange4 = () => {
+        if (lastHitType === '四壞') {
+          // 如果上次操作是三振，重置到兩個勾選
+          setBalls([true, true, true]);
+        }
+        if (lastHitType !== null) {
+          setSelectedHits(prev => ({
+            ...prev,
+            [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+          }));
+        }
+        console.log("undoChange4 function executed.");
+      };
+      
+      const handleOutChange = (hitType = null,baseOuts) => {
+        console.log("hitytype",hitType)
         let additionalOuts = 1; // 預設增加一個出局
         if (hitType === "雙殺") {
-            additionalOuts = 2; // 如果是雙殺，增加兩個出局
+          additionalOuts = 2; // 如果是雙殺，增加兩個出局
+          baseOuts = 2
         }
-        else if (baseOuts === 0) {
-            additionalOuts = 0;
+        else   {
+          additionalOuts = 1;
         }
-        else if (baseOuts === 1) {
-            additionalOuts = 1;
-        }
-        else if (baseOuts === 2) {
-            additionalOuts = 2;
-        }
-        else if (baseOuts === 3) {
-            additionalOuts = 3;
-        }
+        console.log("baseouts",baseOuts)
+        const increment = baseOuts - lastBaseOuts;
+        console.log('Increment:', increment);
+    
         setOuts(prevOuts => {
-            console.log('Current outs before update:', prevOuts); // 正確的位置
-            const newOuts = prevOuts + additionalOuts;
+          setPreviousOuts(prevOuts); // 保存當前的outs值
+          const newOuts = prevOuts + additionalOuts;
+          console.log('Current outs before update11111:', prevOuts);
+          console.log('Updating outs to:', newOuts);
+          return newOuts;
+    
+        });
+        setInnOuts(prevInnOuts => {
+          const newOuts = prevInnOuts + increment;
+          console.log('Current outs before update33333:', prevInnOuts);
+          console.log('Updating outs to:', newOuts);
+          return newOuts;
+      });
+      };
+
+      const renderOutsCheckboxes = () => {
+        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
+        return [...Array(3)].map((_, index) => (
+          <FormControlLabel
+            key={index}
+            control={
+              <Checkbox
+                checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
+                color="primary"
+                readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
+              />
+            }
+            label="" // 沒有標籤
+          />
+        ));
+      };
+
+
+
+
+      const handleInnOutsChange = (selectedHitType, baseOuts) => {
+        console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
+        let additionalOuts = 1; // 預設增加一個出局
+        if (selectedHitType === "雙殺") {
+          additionalOuts = 2; // 如果是雙殺，增加兩個出局
+        }
+        if (baseOuts === 0){
+          additionalOuts = 0;
+        }
+        if (baseOuts === 2){
+          additionalOuts = 2;
+        }
+        if (baseOuts === 3 ){
+          additionalOuts = 3;
+        }
+        else   {
+          additionalOuts = 1;
+        }
+        // 如果是雙殺，baseOuts 直接設為2
+        if (selectedHitType === '雙殺') {
+            baseOuts = 2;
+        }
+    
+        // 計算增量：新選擇的 baseOuts 減去上次保存的 baseOuts
+        const increment = baseOuts - lastBaseOuts;
+        console.log('Increment:', increment);
+    
+        setOuts(prevOuts => {
+          setPreviousOuts(prevOuts); // 保存當前的outs值
+          const newOuts = prevOuts + increment;
+          console.log('Current outs before updateout:', prevOuts);
+          console.log('Updating outs toout:', newOuts);
+          return newOuts;
+    
+        });
+        // 更新 inning outs
+        setInnOuts(prevOuts => {
+            const newOuts = prevOuts + increment;
+            console.log('Current outs before update222224444:', prevOuts);
             console.log('Updating outs to:', newOuts);
             return newOuts;
         });
+    
+        // 更新 lastBaseOuts 為當前選擇的 baseOuts
+        setLastBaseOuts(baseOuts);
     };
 
-    function OutCheckboxes({ outs }) {
-        return [...Array(3)].map((_, index) => {
-            const remainder = oldouts % 3; // 計算 outs 除以 3 的餘數
-            return (
-                <FormControlLabel
-                    key={index}
-                    control={
-                        <Checkbox
-                            checked={index < remainder}
-                            color="primary"
-                            readOnly
-                        />
-                    }
-                    label="" // 没有标签
-                />
-            );
-        });
-    }
 
-
-
-
-    const handleInnOutsChange = (hitType, baseOuts) => {
-        let hitouts = 0;
-        let baseinn = 0;
-        console.log('hitType:', hitType, 'baseOuts:', baseOuts)
-        // 根據打擊類型判斷出局數
-        if (hitType === '三振' || hitType === ' 飛球' || hitType === '滾地' || hitType === '野選' || hitType === '犧飛' || hitType === '犧觸') {
-            hitouts = 1;
-        } else if (hitType === '雙殺') {
-            hitouts = 2;
-        }
-        if (baseOuts === 0) {
-            baseinn = 0
-        }
-        else if (baseOuts === 1) {
-            baseinn = 1
-        }
-        else if (baseOuts === 2) {
-            baseinn = 2
-        }
-        else if (baseOuts === 3) {
-            baseinn = 3
-        }
-
-        // let baseinn = parseInt(baseOuts); // 從UI選擇的基壘出局數直接轉換成數字
-        console.log('hitouts:', hitouts, 'baseinn:', baseinn);
-        // 計算總出局數
-        const totalOuts = hitouts + baseinn;
-        setInnOuts(totalOuts); // 更新狀態
-    };
 
     //落點
     const [markers, setMarkers] = useState({ x: '', y: '' });
@@ -624,8 +688,7 @@ const Page = () => {
                                                             <ArrowDropUpIcon style={{ fontSize: '2rem' }} />
                                                         </div>
                                                         <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
-                                                        &nbsp;&nbsp;{OutCheckboxes(outs)}
-                                                        {console.log("c", outs)}
+                                                        {renderOutsCheckboxes()}
                                                     </div>
 
                                                     {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>

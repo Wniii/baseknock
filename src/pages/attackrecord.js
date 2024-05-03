@@ -836,7 +836,11 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleToggle('飛球')
+                              onClick={() => {handleToggle('飛球')
+                              setSelectedHitType('飛球');  // 存储击球类型，待后续使用
+
+
+                            }
                               }
                             >
                               飛球
@@ -850,6 +854,8 @@ const Page = () => {
                               color='error'
                               onClick={() => {
                                 handleToggle('滾地')
+                                setSelectedHitType('滾地');  // 存储击球类型，待后续使用
+
                               }
                               }
                             >
@@ -862,7 +868,12 @@ const Page = () => {
                               borderRadius={5}
                               padding={1}
                               color='error'
-                              onClick={() => handleCheckboxChange('失誤')}
+                              onClick={() => {
+                              handleCheckboxChange('失誤')
+                              setSelectedHitType('失誤');  // 存储击球类型，待后续使用
+
+                              }
+                            }
                             >
                               失誤
                             </Button>
