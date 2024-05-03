@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -34,6 +34,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   const updateLocations = (newLocation) => {
     setSelectedLocation([newLocation]); // 將單個對象包裹在數組中
   };
+  
 
   // 計算球員統計數據的方法
   const calculateStats = (playerId, hits, plateAppearances) => {
@@ -530,6 +531,85 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     setTeamTotals(totals);
   }, [playersData, playerHits, playerPlateAppearances]);
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "descending" });
+
+  const onSortChange = (key) => {
+    // 固定设置为降序
+    setSortConfig({ key, direction: "descending" });
+  };
+  
+
+function getValueByKey(player, key,) {
+  const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
+  switch (key) {
+    case '打席':
+      return playerPlateAppearances[player.p_id] || 0;
+    case '打數':
+      return playerPlateAppearances[player.p_id] ?
+        playerPlateAppearances[player.p_id] - (
+          (playerHits[player.p_id]?.bb || 0) +
+          (playerHits[player.p_id]?.touchball || 0) +
+          (playerHits[player.p_id]?.sf || 0) +
+          (playerHits[player.p_id]?.bunt || 0)
+        ) : 0;
+    case '安打':
+      return playerHits[player.p_id] ?
+        playerHits[player.p_id].single +
+        playerHits[player.p_id].double +
+        playerHits[player.p_id].triple +
+        playerHits[player.p_id].homerun : 0;
+    case '壘打數':
+      return stats.totalBases || 0;
+    case '上壘數':
+      return stats.onBaseCount || 0;
+    case '打點':
+      return playerHits[player.p_id]?.rbi || 0;
+    case '一安':
+      return playerHits[player.p_id]?.single || 0;
+    case '二安':
+      return playerHits[player.p_id]?.double || 0;
+    case '三安':
+      return playerHits[player.p_id]?.triple || 0;
+    case '全壘打':
+      return playerHits[player.p_id]?.homerun || 0;
+    case '雙殺':
+      return playerHits[player.p_id]?.doubleplay || 0;
+    case '四壞':
+      return playerHits[player.p_id]?.bb || 0;
+    case '犧飛':
+      return playerHits[player.p_id]?.sf || 0;
+    case '犧觸':
+      return playerHits[player.p_id]?.bunt || 0;
+    case '觸身':
+      return playerHits[player.p_id]?.touchball || 0;
+    case '打擊率':
+      return parseFloat(stats.battingAverage || 0);
+    case '上壘率':
+      return parseFloat(stats.onBasePercentage || 0);
+    case '長打率':
+      return parseFloat(stats.sluggingPercentage || 0);
+    case 'OPS':
+      return parseFloat(stats.onBasePercentage || 0) + parseFloat(stats.sluggingPercentage || 0);
+    default:
+      return 0; // Default return 0 to avoid undefined errors
+  }
+}
+
+
+  
+const sortedPlayers = useMemo(() => {
+  let sortableItems = [...playersData];
+  sortableItems.sort((a, b) => {
+    const valueA = getValueByKey(a, sortConfig.key, playerHits, playerPlateAppearances);
+    const valueB = getValueByKey(b, sortConfig.key, playerHits, playerPlateAppearances);
+    return valueA > valueB ? -1 : (valueA < valueB ? 1 : 0); // 反转比较的结果实现降序
+  });
+
+  return sortableItems;
+}, [playersData, sortConfig, playerHits, playerPlateAppearances]);
+
+  
+
   // 渲染組件
   return (
     <Card>
@@ -554,63 +634,142 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                 >
                   <div>落點</div>
                   <div>球員</div>
+                  <div>排名</div>
                 </TableCell>
                 {selectedColumns.includes("打席") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>打席</TableCell>
+                  <TableCell
+                    key={"打席"}
+                    style={{ fontSize: "1.0em", cursor: "pointer" }}
+                    onClick={() => onSortChange("打席")}
+                  >
+                    打席
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>打數</TableCell>
+                   <TableCell
+                   key={"打數"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("打數")}
+                 >打數</TableCell>
                 )}
                 {selectedColumns.includes("安打") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>安打</TableCell>
+                   <TableCell
+                   key={"安打"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("安打")}
+                 >安打</TableCell>
                 )}
                 {selectedColumns.includes("壘打數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>壘打數</TableCell>
+                   <TableCell
+                   key={"壘打數"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("壘打數")}
+                 >壘打數</TableCell>
                 )}
                 {selectedColumns.includes("上壘數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>上壘數</TableCell>
+                   <TableCell
+                   key={"上壘數"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("上壘數")}
+                 >上壘數</TableCell>
                 )}
                 {selectedColumns.includes("打點") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>打點</TableCell>
+                   <TableCell
+                   key={"打點"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("打點")}
+                 >打點</TableCell>
                 )}
                 {selectedColumns.includes("一安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>一安</TableCell>
+                   <TableCell
+                   key={"一安"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("一安")}
+                 >一安</TableCell>
                 )}
                 {selectedColumns.includes("二安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>二安</TableCell>
+                   <TableCell
+                   key={"二安"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("二安")}
+                 >二安</TableCell>
                 )}
                 {selectedColumns.includes("三安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>三安</TableCell>
+                   <TableCell
+                   key={"三安"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("三安")}
+                 >三安</TableCell>
                 )}
                 {selectedColumns.includes("全壘打") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>全壘打</TableCell>
+                   <TableCell
+                   key={"全壘打"}
+                   style={{ fontSize: "1.0em", cursor: "pointer" }}
+                   onClick={() => onSortChange("全壘打")}
+                 >全壘打</TableCell>
                 )}
                 {selectedColumns.includes("雙殺") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>雙殺</TableCell>
+                  <TableCell
+                  key={"雙殺"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("雙殺")}
+                >雙殺</TableCell>
                 )}
                 {selectedColumns.includes("四壞") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>四壞</TableCell>
+                  <TableCell
+                  key={"四壞"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("四壞")}
+                >四壞</TableCell>
                 )}
                 {selectedColumns.includes("犧飛") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>犧飛</TableCell>
+                  <TableCell
+                  key={"犧飛"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("犧飛")}
+                >犧飛</TableCell>
                 )}
                 {selectedColumns.includes("犧觸") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>犧觸</TableCell>
+                  <TableCell
+                  key={"犧觸"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("犧觸")}
+                >犧觸</TableCell>
                 )}
                 {selectedColumns.includes("觸身") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>觸身</TableCell>
+                  <TableCell
+                  key={"觸身"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("觸身")}
+                >觸身</TableCell>
                 )}
                 {selectedColumns.includes("打擊率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>打擊率</TableCell>
+                  <TableCell
+                  key={"打擊率"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("打擊率")}
+                >打擊率</TableCell>
                 )}
                 {selectedColumns.includes("上壘率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>上壘率</TableCell>
+                  <TableCell
+                  key={"上壘率"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("上壘率")}
+                >上壘率</TableCell>
                 )}
                 {selectedColumns.includes("長打率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>長打率</TableCell>
+                  <TableCell
+                  key={"長打率"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("長打率")}
+                >長打率</TableCell>
                 )}
                 {selectedColumns.includes("OPS") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>OPS</TableCell>
+                  <TableCell
+                  key={"OPS"}
+                  style={{ fontSize: "1.0em", cursor: "pointer" }}
+                  onClick={() => onSortChange("OPS")}
+                >OPS</TableCell>
                 )}
               </TableRow>
               <TableRow>
@@ -695,7 +854,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
               </TableRow>
             </TableHead>
             <TableBody>
-              {playersData.map((player, index) => {
+              {sortedPlayers.map((player, index) => {
                 const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
                 return (
                   <TableRow hover key={player.p_id}>
@@ -706,22 +865,23 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                         left: 0,
                         zIndex: 1,
                         fontSize: "1.0em",
-                        display: "flex", // 使用flex布局
-                        alignItems: "center", // 垂直置中
-                        justifyContent: "space-between", // 兩端對齊
-                        background: "white", // 設置背景顏色以覆蓋下層內容
-                        width: "100%", // 確保單元格滿寬
-                        paddingLeft: "16px", // 適當的左邊距
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        background: "white",
+                        width: "100%",
+                        paddingLeft: "16px",
                       }}
                     >
                       <IconButton
                         size="small"
-                        style={{ marginRight: "auto" }} // 按鈕固定在左邊
+                        style={{ marginRight: "auto" }}
                         onClick={() => handleOpen(player)}
                       >
                         <SearchIcon />
                       </IconButton>
                       <span style={{ flexGrow: 1, textAlign: "center" }}>{player.p_id}</span>
+                      {index + 1}
                     </TableCell>
                     {selectedColumns.includes("打席") && (
                       <TableCell>{playerPlateAppearances[player.p_id] || "N/A"}</TableCell>

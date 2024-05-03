@@ -274,8 +274,8 @@ export const EditGame = () => {
       const gameData = gameSnap.data();
 
       // 检查 orderoppo 或 ordermain 是否存在
-      const hasOrderOppo = gameData && gameData.orderoppo && Object.keys(gameData.orderoppo).length > 0;
-      const hasOrderMain = gameData && gameData.ordermain && Object.keys(gameData.ordermain).length > 0;
+      const hasOrderOppo = gameData && gameData.orderoppo && gameData.orderoppo.length > 0;
+      const hasOrderMain = gameData && gameData.ordermain && gameData.ordermain.length > 0;
 
       if ((hteam !== phteam || ateam !== pateam) && (hasOrderOppo || hasOrderMain)) {
         alert("該場比賽已有紀錄，請勿更改主/客隊");
