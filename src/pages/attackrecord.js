@@ -394,7 +394,6 @@ const Page = () => {
       console.log('進入三振情況'); // 输出进入三振情況
       // 三振情况，直接设置三个好球
       setStrikes([true, true, true]);
-      setIsStrikeout(true);
     } else {
       console.log('普通情況'); // 輸出普通情況
 

@@ -73,7 +73,7 @@ const Page = () => {
     const [Active, setActive] = useState(false);
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
-  
+ 
   
 
 
@@ -335,6 +335,7 @@ const Page = () => {
     };
 
     const handleCheckboxChange = (hitType) => {
+        setLastHitType(hitType);
         setSelectedHits((prev) => ({
             ...prev,
             [hitType]: !prev[hitType],
@@ -361,19 +362,29 @@ const Page = () => {
     
     
       const undoChange = () => {
+        console.log("Undoing changes...");
+        console.log("Resetting outs to previous value:", previousOuts);
         setOuts(previousOuts); // 將 outs 重置為撤銷前的值
+        console.log("lastHitType",lastHitType)
         if (lastHitType === '三振') {
-          // 如果上次操作是三振，重置到兩個勾選
-          setStrikes([true, true]);
+            console.log("Last hit type was '三振'. Resetting strikes to [true, true].");
+            setStrikes([true, true]); // 如果上次操作是三振，重置到兩個勾選
         }
+    
         if (lastHitType !== null) {
-          setSelectedHits(prev => ({
-            ...prev,
-            [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
-          }));
+            console.log("Resetting last hit type:", lastHitType, "to false.");
+            setSelectedHits(prev => ({
+                ...prev,
+                [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+            }));
+        } else {
+            console.log("No last hit type to reset.");
         }
+    
+        console.log("Resetting inning outs to 0.");
         setInnOuts(0);
-      };
+    };
+    
 
     const handleBallTypeChange = (index, type, hitType) => {
         console.log('hitType:', hitType); // 输出 hitType 的值
@@ -433,6 +444,8 @@ const Page = () => {
         console.log("undoChange4 function executed.");
       };
       
+
+
       const handleOutChange = (hitType = null,baseOuts) => {
         console.log("hitytype",hitType)
         let additionalOuts = 1; // 預設增加一個出局
@@ -463,6 +476,7 @@ const Page = () => {
       });
       };
 
+      
       const renderOutsCheckboxes = () => {
         const remainder = outs % 3; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
@@ -821,10 +835,9 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                                handleCheckboxChange('三振');
                                                                 handleToggle('三振');
-                                                                handleBallTypeChange(strikes, 'strike', '三振');
-                                                                handleInnOutsChange('三振', 0);
+                                                                setSelectedHitType('三振');  // 存储击球类型，待后续使用
+
                                                             }
                                                             }
                                                         >
@@ -838,10 +851,11 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                                handleCheckboxChange('飛球')
-                                                                handleToggle('飛球');
-                                                                handleInnOutsChange('飛球', 0);
-                                                            }
+                                                            handleToggle('飛球')
+                                                            setSelectedHitType('飛球');  // 存储击球类型，待后续使用
+                              
+                              
+                                                          }
                                                             }
                                                         >
                                                             飛球
@@ -854,10 +868,10 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                                handleCheckboxChange('滾地')
-                                                                handleToggle('滾地');
-                                                                handleInnOutsChange('滾地');
-                                                            }
+                                                                handleToggle('滾地')
+                                                                setSelectedHitType('滾地');  // 存储击球类型，待后续使用
+                                
+                                                              }
                                                             }
                                                         >
                                                             滾地
@@ -869,7 +883,11 @@ const Page = () => {
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
-                                                            onClick={() => handleCheckboxChange('失誤')}
+                                                            onClick={() =>{
+                                                                handleCheckboxChange('失誤')
+                                                                setSelectedHitType('失誤');  // 存储击球类型，待后续使用
+                                                            }
+                                                                }
                                                         >
                                                             失誤
                                                         </Button>
@@ -956,8 +974,7 @@ const Page = () => {
                                                             padding={1}
                                                             color='info'
                                                             onClick={() => {
-                                                                handleCheckboxChange('四壞')
-                                                                handleBallTypeChange(balls, 'ball', '四壞')
+                                                                handleToggle4('四壞')
                                                             }
                                                             }
 
