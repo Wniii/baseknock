@@ -159,17 +159,18 @@ export const AuthProvider = (props) => {
       };
   
       window.localStorage.setItem('authenticated', 'true');
-      window.localStorage.setItem('userId', user.uid); // Save user ID to localStorage
+      window.localStorage.setItem('userId', user.id); // Save user ID to localStorage using the correct property 'id' instead of 'uid'
   
       dispatch({
         type: HANDLERS.SIGN_IN,
-        payload: { user, userId: user.uid } // Include userId in payload
+        payload: { user, userId: user.id } // Include userId in payload using 'id'
       });
     } catch (err) {
       console.error(err);
       throw new Error('Please check your email and password');
     }
-  };
+};
+
   
 
   const signUp = async (password, email, userName, checkpsw) => {
