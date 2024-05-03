@@ -14,7 +14,7 @@ const Page = () => {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const { codeName, timestamp, teamId } = router.query; // 从路由参数获取值
+  const { codeName, timestamp, teamId, acodeName } = router.query; // 从路由参数获取值
   const [outs, setOuts] = useState(0);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [gameData, setGameData] = useState(null);
@@ -125,6 +125,7 @@ const Page = () => {
         teamId={teamId}
         timestamp={timestamp}
         codeName={codeName}
+        acodeName={acodeName}
         outs={numericOuts}
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}

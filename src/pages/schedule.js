@@ -84,7 +84,6 @@ const SchedulePage = () => {
             const docRef = doc(firestore, "team", teamId, "games", timestamp);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-              console.log("Document data:", docSnap.data()); // Debug log
               const gameData = docSnap.data();
 
               if (!gameData.hometeam || !gameData.awayteam) {
@@ -115,7 +114,7 @@ const SchedulePage = () => {
                 gamesData.push({
                   id: timestamp,
                   title: title,
-                  codeName: teamData.codeName,
+                  codeName: gameData.hometeam,
                   start: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
                   end: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
                   timestamp: timestamp,
@@ -243,7 +242,6 @@ const SchedulePage = () => {
         codeName: codeName, // Add codeName to the query
         teamId: teamId, // Add teamId to the query
         hcodeName: hcodeName, // Add codeName to the query
-
       }
     });
   };
@@ -285,7 +283,7 @@ const SchedulePage = () => {
 
     // 从团队数据中提取codeName
     const codeName = selectedGameData ? selectedGameData.codeName : null;
-
+    const acodeName = selectedGameData ? selectedGameData.acodeName : null;
     const teamId = selectedGameData ? selectedGameData.teamId : null;
 
 
@@ -295,7 +293,8 @@ const SchedulePage = () => {
       query: {
         timestamp: selectedGame.timestamp,
         codeName: codeName, // Add codeName to the query
-        teamId: teamId // Add teamId to the query
+        teamId: teamId, // Add teamId to the query
+        acodeName: acodeName,
       }
     });
   };
@@ -313,6 +312,7 @@ const SchedulePage = () => {
 
     // 从团队数据中提取codeName
     const codeName = selectedGameData ? selectedGameData.codeName : null;
+  
 
     const teamId = selectedGameData ? selectedGameData.teamId : null;
 
@@ -322,6 +322,7 @@ const SchedulePage = () => {
       query: {
         timestamp: selectedGame.timestamp,
         codeName: codeName, // Add codeName to the query
+        
       }
     });
   };
