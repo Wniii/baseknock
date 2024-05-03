@@ -448,6 +448,7 @@ const Page = () => {
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
       additionalOuts = 2; // 如果是雙殺，增加兩個出局
+      baseOuts = 2
     }
     else   {
       additionalOuts = 1;
@@ -518,7 +519,7 @@ const Page = () => {
 
     setOuts(prevOuts => {
       setPreviousOuts(prevOuts); // 保存當前的outs值
-      const newOuts = prevOuts + additionalOuts;
+      const newOuts = prevOuts + increment;
       console.log('Current outs before updateout:', prevOuts);
       console.log('Updating outs toout:', newOuts);
       return newOuts;
