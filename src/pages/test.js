@@ -18,7 +18,8 @@ const Page = () => {
   const [outs, setOuts] = useState(0);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [gameData, setGameData] = useState(null);
-
+  const [row, setRow] = useState('');
+  const [column, setColumn] = useState('');
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -130,6 +131,8 @@ const Page = () => {
         onRowsPerPageChange={handleRowsPerPageChange}
         page={page}
         rowsPerPage={rowsPerPage}
+        row={row}
+        column={column}
       />
     );
   };
