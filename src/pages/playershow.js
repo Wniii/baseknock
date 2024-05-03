@@ -88,6 +88,11 @@ const ALLPlayerPage = () => {
     // 更新本地存储中的选定的球员列表
   };
 
+  const handleClearPlayers = () => {
+    setSelectedPlayers([]);
+    setPlayers({ ...players, ...Object.fromEntries(selectedPlayers.map(key => [key, true])) });  // 重置players狀態為初始狀態
+  };
+
 
   const handleReturnClick = () => {
     router.push('/schedule');
@@ -209,13 +214,12 @@ const navigatetodefence = (gameId, codeName) => {
         component="main"
         sx={{
           flexGrow: 1,
-          py: 8
         }}
       >
         <Container maxWidth="xl">
           <div style={{ textAlign: 'center' }}>
           <Typography variant="h4" mb={4}>
-            {teamname}
+            {teamname}&nbsp;
             先發打序
           </Typography>
           </div>
@@ -269,7 +273,8 @@ const navigatetodefence = (gameId, codeName) => {
                   variant="contained"
                   color="primary"
                   style={{ width: '200px', height: '50px' }}
-                  onClick={() => setSelectedPlayers([])} // Clear selected players
+                  // onClick={() => setSelectedPlayers([])} // Clear selected players
+                  onClick={handleClearPlayers}
                 >
                   清除先發
                 </Button>

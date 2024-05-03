@@ -151,14 +151,13 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Customers | Devias Kit
+          比賽紀錄
         </title>
       </Head>
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          py: 8
         }}
       >
         <Container maxWidth="xl">

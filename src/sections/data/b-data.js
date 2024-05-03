@@ -165,7 +165,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
   return (
     <Card>
       <Scrollbar>
-        <Box sx={{ minWidth: 800 }}>
+        <Box sx={{ minWidth: 1500 }}>
           <Table>
             <TableHead>
               <TableRow>
