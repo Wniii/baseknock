@@ -602,7 +602,7 @@ const sortedPlayers = useMemo(() => {
   sortableItems.sort((a, b) => {
     const valueA = getValueByKey(a, sortConfig.key, playerHits, playerPlateAppearances);
     const valueB = getValueByKey(b, sortConfig.key, playerHits, playerPlateAppearances);
-    return valueA > valueB ? -1 : (valueA < valueB ? 1 : 0); // 反转比较的结果实现降序
+    return valueA > valueB ? -1 : (valueA < valueB ? 1 : 0); 
   });
 
   return sortableItems;
