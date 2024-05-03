@@ -491,7 +491,22 @@ const Page = () => {
 
   const handleInnOutsChange = (selectedHitType, baseOuts) => {
     console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
-
+    let additionalOuts = 1; // 預設增加一個出局
+    if (selectedHitType === "雙殺") {
+      additionalOuts = 2; // 如果是雙殺，增加兩個出局
+    }
+    if (baseOuts === 0){
+      additionalOuts = 0;
+    }
+    if (baseOuts === 2){
+      additionalOuts = 2;
+    }
+    if (baseOuts === 3 ){
+      additionalOuts = 3;
+    }
+    else   {
+      additionalOuts = 1;
+    }
     // 如果是雙殺，baseOuts 直接設為2
     if (selectedHitType === '雙殺') {
         baseOuts = 2;
@@ -501,6 +516,14 @@ const Page = () => {
     const increment = baseOuts - lastBaseOuts;
     console.log('Increment:', increment);
 
+    setOuts(prevOuts => {
+      setPreviousOuts(prevOuts); // 保存當前的outs值
+      const newOuts = prevOuts + additionalOuts;
+      console.log('Current outs before updateout:', prevOuts);
+      console.log('Updating outs toout:', newOuts);
+      return newOuts;
+
+    });
     // 更新 inning outs
     setInnOuts(prevOuts => {
         const newOuts = prevOuts + increment;
