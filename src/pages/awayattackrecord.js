@@ -73,8 +73,8 @@ const Page = () => {
     const [Active, setActive] = useState(false);
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
- 
-  
+
+
 
 
     useEffect(() => {
@@ -244,8 +244,8 @@ const Page = () => {
         if (selectedHits['四分']) rbiCount += 4;
 
         const markerData = {
-            x: markers.x.toString(),
-            y: markers.y.toString()
+            x: location.x.toString(),
+            y: location.y.toString()
         };
 
         try {
@@ -256,7 +256,7 @@ const Page = () => {
                     'o_content': selectedContent,
                     'o_onbase': bases,
                     'o_rbi': rbiCount,
-                    'o_markers': markers,
+                    'location': location,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
@@ -294,7 +294,7 @@ const Page = () => {
                     'o_content': selectedContent,
                     'o_onbase': bases,
                     'o_rbi': rbiCount,
-                    'o_markers': markers,
+                    'location': location,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
@@ -351,31 +351,31 @@ const Page = () => {
         console.log('hitType', hitType);
         setIsActive(!isActive); // 切換激活狀態
         if (!isActive) {
-          console.log("激活操作");
-          // 激活時執行的函數
-          handleCheckboxChange(hitType);
-          handleOutChange(hitType,1);
-    
-          if (hitType === '三振') {
-            handleBallTypeChange(strikes, 'strike', '三振');
-          }
+            console.log("激活操作");
+            // 激活時執行的函數
+            handleCheckboxChange(hitType);
+            handleOutChange(hitType, 1);
+
+            if (hitType === '三振') {
+                handleBallTypeChange(strikes, 'strike', '三振');
+            }
         } else {
-          console.log("取消操作", previousOuts);
-          undoChange();
+            console.log("取消操作", previousOuts);
+            undoChange();
         }
-      };
-    
-    
-      const undoChange = () => {
+    };
+
+
+    const undoChange = () => {
         console.log("Undoing changes...");
         console.log("Resetting outs to previous value:", previousOuts);
         setOuts(previousOuts); // 將 outs 重置為撤銷前的值
-        console.log("lastHitType",lastHitType)
+        console.log("lastHitType", lastHitType)
         if (lastHitType === '三振') {
             console.log("Last hit type was '三振'. Resetting strikes to [true, true].");
             setStrikes([true, true]); // 如果上次操作是三振，重置到兩個勾選
         }
-    
+
         if (lastHitType !== null) {
             console.log("Resetting last hit type:", lastHitType, "to false.");
             setSelectedHits(prev => ({
@@ -385,11 +385,11 @@ const Page = () => {
         } else {
             console.log("No last hit type to reset.");
         }
-    
+
         console.log("Resetting inning outs to 0.");
         setInnOuts(0);
     };
-    
+
 
     const handleBallTypeChange = (index, type, hitType) => {
         console.log('hitType:', hitType); // 输出 hitType 的值
@@ -423,119 +423,119 @@ const Page = () => {
         console.log('hitType', hitType);
         setActive(!Active); // 切換激活狀態
         if (!Active) {
-          console.log("激活操作");
-          // 激活時執行的函數
-          handleCheckboxChange(hitType);
-          handleBallTypeChange(balls, 'ball', '四壞');
-         
+            console.log("激活操作");
+            // 激活時執行的函數
+            handleCheckboxChange(hitType);
+            handleBallTypeChange(balls, 'ball', '四壞');
+
         } else {
-          console.log("取消操作");
-          undoChange4();
+            console.log("取消操作");
+            undoChange4();
         }
-      };
-    
-    
-      const undoChange4 = () => {
+    };
+
+
+    const undoChange4 = () => {
         if (lastHitType === '四壞') {
-          // 如果上次操作是三振，重置到兩個勾選
-          setBalls([true, true, true]);
+            // 如果上次操作是三振，重置到兩個勾選
+            setBalls([true, true, true]);
         }
         if (lastHitType !== null) {
-          setSelectedHits(prev => ({
-            ...prev,
-            [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
-          }));
+            setSelectedHits(prev => ({
+                ...prev,
+                [lastHitType]: false // 显式地将最后一次更改的 hitType 设置为 false
+            }));
         }
         console.log("undoChange4 function executed.");
-      };
-      
+    };
 
 
-      const handleOutChange = (hitType = null,baseOuts) => {
-        console.log("hitytype",hitType)
+
+    const handleOutChange = (hitType = null, baseOuts) => {
+        console.log("hitytype", hitType)
         let additionalOuts = 1; // 預設增加一個出局
         if (hitType === "雙殺") {
-          additionalOuts = 2; // 如果是雙殺，增加兩個出局
-          baseOuts = 2
+            additionalOuts = 2; // 如果是雙殺，增加兩個出局
+            baseOuts = 2
         }
-        else   {
-          additionalOuts = 1;
+        else {
+            additionalOuts = 1;
         }
-        console.log("baseouts",baseOuts)
+        console.log("baseouts", baseOuts)
         const increment = baseOuts - lastBaseOuts;
         console.log('Increment:', increment);
-    
+
         setOuts(prevOuts => {
-          setPreviousOuts(prevOuts); // 保存當前的outs值
-          const newOuts = prevOuts + additionalOuts;
-          console.log('Current outs before update11111:', prevOuts);
-          console.log('Updating outs to:', newOuts);
-          return newOuts;
-    
+            setPreviousOuts(prevOuts); // 保存當前的outs值
+            const newOuts = prevOuts + additionalOuts;
+            console.log('Current outs before update11111:', prevOuts);
+            console.log('Updating outs to:', newOuts);
+            return newOuts;
+
         });
         setInnOuts(prevInnOuts => {
-          const newOuts = prevInnOuts + increment;
-          console.log('Current outs before update33333:', prevInnOuts);
-          console.log('Updating outs to:', newOuts);
-          return newOuts;
-      });
-      };
+            const newOuts = prevInnOuts + increment;
+            console.log('Current outs before update33333:', prevInnOuts);
+            console.log('Updating outs to:', newOuts);
+            return newOuts;
+        });
+    };
 
-      
-      const renderOutsCheckboxes = () => {
+
+    const renderOutsCheckboxes = () => {
         const remainder = outs % 3; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
-          <FormControlLabel
-            key={index}
-            control={
-              <Checkbox
-                checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
-                color="primary"
-                readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
-              />
-            }
-            label="" // 沒有標籤
-          />
+            <FormControlLabel
+                key={index}
+                control={
+                    <Checkbox
+                        checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
+                        color="primary"
+                        readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
+                    />
+                }
+                label="" // 沒有標籤
+            />
         ));
-      };
+    };
 
 
 
 
-      const handleInnOutsChange = (selectedHitType, baseOuts) => {
+    const handleInnOutsChange = (selectedHitType, baseOuts) => {
         console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
         let additionalOuts = 1; // 預設增加一個出局
         if (selectedHitType === "雙殺") {
-          additionalOuts = 2; // 如果是雙殺，增加兩個出局
+            additionalOuts = 2; // 如果是雙殺，增加兩個出局
         }
-        if (baseOuts === 0){
-          additionalOuts = 0;
+        if (baseOuts === 0) {
+            additionalOuts = 0;
         }
-        if (baseOuts === 2){
-          additionalOuts = 2;
+        if (baseOuts === 2) {
+            additionalOuts = 2;
         }
-        if (baseOuts === 3 ){
-          additionalOuts = 3;
+        if (baseOuts === 3) {
+            additionalOuts = 3;
         }
-        else   {
-          additionalOuts = 1;
+        else {
+            additionalOuts = 1;
         }
         // 如果是雙殺，baseOuts 直接設為2
         if (selectedHitType === '雙殺') {
             baseOuts = 2;
         }
-    
+
         // 計算增量：新選擇的 baseOuts 減去上次保存的 baseOuts
         const increment = baseOuts - lastBaseOuts;
         console.log('Increment:', increment);
-    
+
         setOuts(prevOuts => {
-          setPreviousOuts(prevOuts); // 保存當前的outs值
-          const newOuts = prevOuts + increment;
-          console.log('Current outs before updateout:', prevOuts);
-          console.log('Updating outs toout:', newOuts);
-          return newOuts;
-    
+            setPreviousOuts(prevOuts); // 保存當前的outs值
+            const newOuts = prevOuts + increment;
+            console.log('Current outs before updateout:', prevOuts);
+            console.log('Updating outs toout:', newOuts);
+            return newOuts;
+
         });
         // 更新 inning outs
         setInnOuts(prevOuts => {
@@ -544,7 +544,7 @@ const Page = () => {
             console.log('Updating outs to:', newOuts);
             return newOuts;
         });
-    
+
         // 更新 lastBaseOuts 為當前選擇的 baseOuts
         setLastBaseOuts(baseOuts);
     };
@@ -552,18 +552,18 @@ const Page = () => {
 
 
     //落點
-    const [markers, setMarkers] = useState({ x: '', y: '' });
+    const [location, setLocation] = useState({ x: '', y: '' });
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
     const handleImageClick = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
         setClickCoordinates({ x: offsetX, y: offsetY });
-        setMarkers({ x: offsetX.toString(), y: offsetY.toString() });
+        setLocation({ x: offsetX.toString(), y: offsetY.toString() });
     };
 
     const handleDeleteLastMarker = () => {
         // 直接重置 markers 对象
-        setMarkers({ x: '', y: '' });
+        setLocation({ x: '', y: '' });
     };
 
     //出局數彈跳視窗
@@ -736,19 +736,21 @@ const Page = () => {
                                                     style={{ cursor: 'pointer' }}
                                                 />
                                                 {/* 檢查是否有設置 markers */}
-                                                {markers.x && markers.y && (
+                                                {location.x && location.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${markers.y}px`, // 添加 'px' 单位
-                                                            left: `${markers.x}px`, // 添加 'px' 单位
-                                                            width: '10px',
-                                                            height: '10px',
-                                                            backgroundColor: 'red',
-                                                            transform: 'translate(-50%, -50%)',
-                                                            borderRadius: '50%'
+                                                            top: `${location.y}px`,
+                                                            left: `${location.x}px`,
+                                                            transform: 'translate(-50%, -50%)'
                                                         }}
-                                                    />
+                                                    >
+                                                        <img
+                                                            src="baseball-16-32.png"  // 這裡放置你的棒球圖片網址
+                                                            alt="棒球"
+                                                            style={{ width: '21px', height: '21px' }}
+                                                        />
+                                                    </div>
                                                 )}
                                             </div>
                                             <Button onClick={handleDeleteLastMarker} color="secondary" style={{ marginBottom: '-10px' }}>
@@ -768,7 +770,7 @@ const Page = () => {
                                         <Card>
                                             <CardContent>
                                                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                                    <Divider style={{ flex: '1', marginRight: '10px', marginTop:'20px', marginBottom:'20px' }} />
+                                                    <Divider style={{ flex: '1', marginRight: '10px', marginTop: '20px', marginBottom: '20px' }} />
                                                     <Typography variant="body2">
                                                         打擊內容＆打點
                                                     </Typography>
@@ -856,11 +858,11 @@ const Page = () => {
                                                             padding={1}
                                                             color='error'
                                                             onClick={() => {
-                                                            handleToggle('飛球')
-                                                            setSelectedHitType('飛球');  // 存储击球类型，待后续使用
-                              
-                              
-                                                          }
+                                                                handleToggle('飛球')
+                                                                setSelectedHitType('飛球');  // 存储击球类型，待后续使用
+
+
+                                                            }
                                                             }
                                                         >
                                                             飛球
@@ -875,8 +877,8 @@ const Page = () => {
                                                             onClick={() => {
                                                                 handleToggle('滾地')
                                                                 setSelectedHitType('滾地');  // 存储击球类型，待后续使用
-                                
-                                                              }
+
+                                                            }
                                                             }
                                                         >
                                                             滾地
@@ -888,11 +890,11 @@ const Page = () => {
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
-                                                            onClick={() =>{
+                                                            onClick={() => {
                                                                 handleCheckboxChange('失誤')
                                                                 setSelectedHitType('失誤');  // 存储击球类型，待后续使用
                                                             }
-                                                                }
+                                                            }
                                                         >
                                                             失誤
                                                         </Button>
@@ -944,7 +946,11 @@ const Page = () => {
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
-                                                            onClick={() => handleCheckboxChange('違規')}
+                                                            onClick={() => {
+                                                                handleToggle('違規')
+                                                                setSelectedHitType('違規');
+                                                            }
+                                                            }
                                                         >
                                                             違規
                                                         </Button>
@@ -1098,7 +1104,7 @@ const Page = () => {
                                                         onChange={(event) => {
                                                             const baseOuts = parseInt(event.target.value);
                                                             handleInnOutsChange(selectedHitType, baseOuts); // 新增的打席造成的出局數處理
-                                                              }}
+                                                        }}
                                                     >
                                                         <InputLabel>出局數</InputLabel>
                                                         <MenuItem value="0">0</MenuItem>
