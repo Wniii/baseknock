@@ -264,8 +264,11 @@ const Page = () => {
                     },
                     'innouts': innOuts
                 }),
-                'outs': outs
+                'outs': outs,
+                'position.P': pitcher  // 添加或更新 position map 中的 P 欄位
+
             });
+
             console.log('Document successfully updated!');
             alert('Document successfully updated!');
             router.push({
@@ -299,7 +302,9 @@ const Page = () => {
                     },
                     'innouts': innOuts
                 }),
-                'outs': outs
+                'outs': outs,
+                'position.P': pitcher  // 添加或更新 position map 中的 P 欄位
+
             });
             console.log('Document successfully updated!');
             alert('Document successfully updated!');
@@ -320,6 +325,7 @@ const Page = () => {
 
     };
 
+
     const handleSaveToFirebase = () => {
         if (selectedHits['一壘'] || selectedHits['二壘'] || selectedHits['三壘']) {
             setOpenDialog(true);
@@ -327,7 +333,6 @@ const Page = () => {
             saveData();  // 如果没有基壘被选中，直接保存数据
         }
     };
-
 
 
     const handleCloseSnackbar = () => {
