@@ -124,7 +124,7 @@ export const CustomersTable = (props) => {
         if (gameDocSnapshot.exists()) {
           const gameData = gameDocSnapshot.data();
           const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-          const lastValidIndex = orderMainLength - 1;
+          const lastValidIndex = orderMainLength ;
 
           setLastValidIndex(lastValidIndex);
           setAttackListData(gameData.attacklist || []);
@@ -204,7 +204,8 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   buttonColumn = Math.floor(outs / 6) + 1;
 
   // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+2;
+  const remainder = (lastValidIndex % 9)+1;
+  console.log("第幾行",remainder)
     buttonRow = remainder;
 
 }

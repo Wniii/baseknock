@@ -174,24 +174,23 @@ const Page = () => {
           query(collection(firestore, 'team'), where('codeName', '==', codeName))
         );
 
-        if (!teamQuerySnapshot.empty) {
-          const teamDocSnapshot = teamQuerySnapshot.docs[0];
-          const teamId = teamDocSnapshot.id;
-          const teamRef = doc(firestore, 'team', teamId);
-          const teamSnap = await getDoc(teamRef);
-
-          if (teamSnap.exists() && teamSnap.data().players) {
-            // 提取玩家鍵（key）數組
-            const playerKeys = Object.keys(teamSnap.data().players);
-            setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
-            console.log('Player keys:', playerKeys);
-            console.log('code name:', codeName)
+        if (gameSnap.exists()) {
+          const awayTeamId = gameSnap.data().awayteam;
+          console.log("Away Team ID:", awayTeamId);
+        
+          // 使用 awayTeamId 獲取隊伍的 codeName
+          const awayTeamRef = doc(firestore, "team", awayTeamId);
+          const awayTeamSnap = await getDoc(awayTeamRef);
+        
+          if (awayTeamSnap.exists()) {
+            const awayTeamCodeName = awayTeamSnap.data().codeName;
+            console.log("Away Team Code Name:", awayTeamCodeName);
           } else {
-            console.log('No players data found for team:', teamId);
+            console.log("No data found for Away Team ID:", awayTeamId);
           }
         } else {
-          console.log('No team document found with codeName:', codeName);
-        }
+          console.log("No game found with ID:", gameId);
+        } 
       } catch (error) {
         console.error('Error fetching players:', error);
       }

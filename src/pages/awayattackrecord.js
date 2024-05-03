@@ -130,7 +130,7 @@ const Page = () => {
                             if (gameSnap.exists()) {
                                 // 獲取遊戲文檔數據
                                 const gameData = gameSnap.data();
-
+                                console.log('lala', codeName)
                                 // 更新狀態以保存投手名稱
                                 setPitcher(gameData.position.P);
                                 console.log("Fetched pitcher name:", gameData.position.P);
