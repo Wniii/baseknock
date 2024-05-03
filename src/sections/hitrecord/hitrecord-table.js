@@ -34,7 +34,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   const updateLocations = (newLocation) => {
     setSelectedLocation([newLocation]); // 將單個對象包裹在數組中
   };
-  
 
   // 計算球員統計數據的方法
   const calculateStats = (playerId, hits, plateAppearances) => {
@@ -532,83 +531,81 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   }, [playersData, playerHits, playerPlateAppearances]);
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "descending" });
+  const [sortedColumn, setSortedColumn] = useState(null);
 
   const onSortChange = (key) => {
     // 固定设置为降序
     setSortConfig({ key, direction: "descending" });
+    setSortedColumn(key);
   };
-  
 
-function getValueByKey(player, key,) {
-  const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
-  switch (key) {
-    case '打席':
-      return playerPlateAppearances[player.p_id] || 0;
-    case '打數':
-      return playerPlateAppearances[player.p_id] ?
-        playerPlateAppearances[player.p_id] - (
-          (playerHits[player.p_id]?.bb || 0) +
-          (playerHits[player.p_id]?.touchball || 0) +
-          (playerHits[player.p_id]?.sf || 0) +
-          (playerHits[player.p_id]?.bunt || 0)
-        ) : 0;
-    case '安打':
-      return playerHits[player.p_id] ?
-        playerHits[player.p_id].single +
-        playerHits[player.p_id].double +
-        playerHits[player.p_id].triple +
-        playerHits[player.p_id].homerun : 0;
-    case '壘打數':
-      return stats.totalBases || 0;
-    case '上壘數':
-      return stats.onBaseCount || 0;
-    case '打點':
-      return playerHits[player.p_id]?.rbi || 0;
-    case '一安':
-      return playerHits[player.p_id]?.single || 0;
-    case '二安':
-      return playerHits[player.p_id]?.double || 0;
-    case '三安':
-      return playerHits[player.p_id]?.triple || 0;
-    case '全壘打':
-      return playerHits[player.p_id]?.homerun || 0;
-    case '雙殺':
-      return playerHits[player.p_id]?.doubleplay || 0;
-    case '四壞':
-      return playerHits[player.p_id]?.bb || 0;
-    case '犧飛':
-      return playerHits[player.p_id]?.sf || 0;
-    case '犧觸':
-      return playerHits[player.p_id]?.bunt || 0;
-    case '觸身':
-      return playerHits[player.p_id]?.touchball || 0;
-    case '打擊率':
-      return parseFloat(stats.battingAverage || 0);
-    case '上壘率':
-      return parseFloat(stats.onBasePercentage || 0);
-    case '長打率':
-      return parseFloat(stats.sluggingPercentage || 0);
-    case 'OPS':
-      return parseFloat(stats.onBasePercentage || 0) + parseFloat(stats.sluggingPercentage || 0);
-    default:
-      return 0; // Default return 0 to avoid undefined errors
+  function getValueByKey(player, key) {
+    const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
+    switch (key) {
+      case "打席":
+        return playerPlateAppearances[player.p_id] || 0;
+      case "打數":
+        return playerPlateAppearances[player.p_id]
+          ? playerPlateAppearances[player.p_id] -
+              ((playerHits[player.p_id]?.bb || 0) +
+                (playerHits[player.p_id]?.touchball || 0) +
+                (playerHits[player.p_id]?.sf || 0) +
+                (playerHits[player.p_id]?.bunt || 0))
+          : 0;
+      case "安打":
+        return playerHits[player.p_id]
+          ? playerHits[player.p_id].single +
+              playerHits[player.p_id].double +
+              playerHits[player.p_id].triple +
+              playerHits[player.p_id].homerun
+          : 0;
+      case "壘打數":
+        return stats.totalBases || 0;
+      case "上壘數":
+        return stats.onBaseCount || 0;
+      case "打點":
+        return playerHits[player.p_id]?.rbi || 0;
+      case "一安":
+        return playerHits[player.p_id]?.single || 0;
+      case "二安":
+        return playerHits[player.p_id]?.double || 0;
+      case "三安":
+        return playerHits[player.p_id]?.triple || 0;
+      case "全壘打":
+        return playerHits[player.p_id]?.homerun || 0;
+      case "雙殺":
+        return playerHits[player.p_id]?.doubleplay || 0;
+      case "四壞":
+        return playerHits[player.p_id]?.bb || 0;
+      case "犧飛":
+        return playerHits[player.p_id]?.sf || 0;
+      case "犧觸":
+        return playerHits[player.p_id]?.bunt || 0;
+      case "觸身":
+        return playerHits[player.p_id]?.touchball || 0;
+      case "打擊率":
+        return parseFloat(stats.battingAverage || 0);
+      case "上壘率":
+        return parseFloat(stats.onBasePercentage || 0);
+      case "長打率":
+        return parseFloat(stats.sluggingPercentage || 0);
+      case "OPS":
+        return parseFloat(stats.onBasePercentage || 0) + parseFloat(stats.sluggingPercentage || 0);
+      default:
+        return 0; // Default return 0 to avoid undefined errors
+    }
   }
-}
 
+  const sortedPlayers = useMemo(() => {
+    let sortableItems = [...playersData];
+    sortableItems.sort((a, b) => {
+      const valueA = getValueByKey(a, sortConfig.key, playerHits, playerPlateAppearances);
+      const valueB = getValueByKey(b, sortConfig.key, playerHits, playerPlateAppearances);
+      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+    });
 
-  
-const sortedPlayers = useMemo(() => {
-  let sortableItems = [...playersData];
-  sortableItems.sort((a, b) => {
-    const valueA = getValueByKey(a, sortConfig.key, playerHits, playerPlateAppearances);
-    const valueB = getValueByKey(b, sortConfig.key, playerHits, playerPlateAppearances);
-    return valueA > valueB ? -1 : (valueA < valueB ? 1 : 0); 
-  });
-
-  return sortableItems;
-}, [playersData, sortConfig, playerHits, playerPlateAppearances]);
-
-  
+    return sortableItems;
+  }, [playersData, sortConfig, playerHits, playerPlateAppearances]);
 
   // 渲染組件
   return (
@@ -637,138 +634,250 @@ const sortedPlayers = useMemo(() => {
                 </TableCell>
                 {selectedColumns.includes("打席") && (
                   <TableCell
-                    key={"打席"}
-                    style={{ fontSize: "1.0em", cursor: "pointer" }}
+                    key="打席"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "打席" ? "red" : "black",
+                    }}
                     onClick={() => onSortChange("打席")}
                   >
                     打席
                   </TableCell>
                 )}
                 {selectedColumns.includes("打數") && (
-                   <TableCell
-                   key={"打數"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("打數")}
-                 >打數</TableCell>
+                  <TableCell
+                    key="打數"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "打數" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("打數")}
+                  >
+                    打數
+                  </TableCell>
                 )}
                 {selectedColumns.includes("安打") && (
-                   <TableCell
-                   key={"安打"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("安打")}
-                 >安打</TableCell>
+                  <TableCell
+                    key="安打"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "安打" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("安打")}
+                  >
+                    安打
+                  </TableCell>
                 )}
                 {selectedColumns.includes("壘打數") && (
-                   <TableCell
-                   key={"壘打數"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("壘打數")}
-                 >壘打數</TableCell>
+                  <TableCell
+                    key="壘打數"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "壘打數" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("壘打數")}
+                  >
+                    壘打數
+                  </TableCell>
                 )}
                 {selectedColumns.includes("上壘數") && (
-                   <TableCell
-                   key={"上壘數"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("上壘數")}
-                 >上壘數</TableCell>
+                  <TableCell
+                    key="上壘數"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "上壘數" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("上壘數")}
+                  >
+                    上壘數
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打點") && (
-                   <TableCell
-                   key={"打點"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("打點")}
-                 >打點</TableCell>
+                  <TableCell
+                    key="打點"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "打點" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("打點")}
+                  >
+                    打點
+                  </TableCell>
                 )}
                 {selectedColumns.includes("一安") && (
-                   <TableCell
-                   key={"一安"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("一安")}
-                 >一安</TableCell>
+                  <TableCell
+                    key="一安"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "一安" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("一安")}
+                  >
+                    一安
+                  </TableCell>
                 )}
                 {selectedColumns.includes("二安") && (
-                   <TableCell
-                   key={"二安"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("二安")}
-                 >二安</TableCell>
+                  <TableCell
+                    key="二安"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "二安" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("二安")}
+                  >
+                    二安
+                  </TableCell>
                 )}
                 {selectedColumns.includes("三安") && (
-                   <TableCell
-                   key={"三安"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("三安")}
-                 >三安</TableCell>
+                  <TableCell
+                    key="三安"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "三安" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("三安")}
+                  >
+                    三安
+                  </TableCell>
                 )}
                 {selectedColumns.includes("全壘打") && (
-                   <TableCell
-                   key={"全壘打"}
-                   style={{ fontSize: "1.0em", cursor: "pointer" }}
-                   onClick={() => onSortChange("全壘打")}
-                 >全壘打</TableCell>
+                  <TableCell
+                    key="全壘打"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "全壘打" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("全壘打")}
+                  >
+                    全壘打
+                  </TableCell>
                 )}
                 {selectedColumns.includes("雙殺") && (
                   <TableCell
-                  key={"雙殺"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("雙殺")}
-                >雙殺</TableCell>
+                    key="雙殺"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "雙殺" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("雙殺")}
+                  >
+                    雙殺
+                  </TableCell>
                 )}
                 {selectedColumns.includes("四壞") && (
                   <TableCell
-                  key={"四壞"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("四壞")}
-                >四壞</TableCell>
+                    key="四壞"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "四壞" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("四壞")}
+                  >
+                    四壞
+                  </TableCell>
                 )}
                 {selectedColumns.includes("犧飛") && (
                   <TableCell
-                  key={"犧飛"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("犧飛")}
-                >犧飛</TableCell>
+                    key="犧飛"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "犧飛" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("犧飛")}
+                  >
+                    犧飛
+                  </TableCell>
                 )}
                 {selectedColumns.includes("犧觸") && (
                   <TableCell
-                  key={"犧觸"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("犧觸")}
-                >犧觸</TableCell>
+                    key="犧觸"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "犧觸" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("犧觸")}
+                  >
+                    犧觸
+                  </TableCell>
                 )}
                 {selectedColumns.includes("觸身") && (
                   <TableCell
-                  key={"觸身"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("觸身")}
-                >觸身</TableCell>
+                    key="觸身"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "觸身" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("觸身")}
+                  >
+                    觸身
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打擊率") && (
                   <TableCell
-                  key={"打擊率"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("打擊率")}
-                >打擊率</TableCell>
+                    key="打擊率"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "打擊率" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("打擊率")}
+                  >
+                    打擊率
+                  </TableCell>
                 )}
                 {selectedColumns.includes("上壘率") && (
                   <TableCell
-                  key={"上壘率"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("上壘率")}
-                >上壘率</TableCell>
+                    key="上壘率"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "上壘率" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("上壘率")}
+                  >
+                    上壘率
+                  </TableCell>
                 )}
                 {selectedColumns.includes("長打率") && (
                   <TableCell
-                  key={"長打率"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("長打率")}
-                >長打率</TableCell>
+                    key="長打率"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "長打率" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("長打率")}
+                  >
+                    長打率
+                  </TableCell>
                 )}
                 {selectedColumns.includes("OPS") && (
                   <TableCell
-                  key={"OPS"}
-                  style={{ fontSize: "1.0em", cursor: "pointer" }}
-                  onClick={() => onSortChange("OPS")}
-                >OPS</TableCell>
+                    key="OPS"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "OPS" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("OPS")}
+                  >
+                    OPS
+                  </TableCell>
                 )}
               </TableRow>
               <TableRow>
@@ -791,64 +900,194 @@ const sortedPlayers = useMemo(() => {
                 </TableCell>
 
                 {selectedColumns.includes("打席") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.plateAppearances}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "打席" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.plateAppearances}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.atBats}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "打數" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.atBats}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("安打") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.hits}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "安打" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.hits}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("壘打數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalBases}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "壘打數" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.totalBases}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("上壘數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.onBaseCount}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "上壘數" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.onBaseCount}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打點") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.trbi}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "打點" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.trbi}
+                  </TableCell>
                 )}
-
                 {selectedColumns.includes("一安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.singles}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "一安" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.singles}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("二安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.doubles}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "二安" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.doubles}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("三安") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.triples}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "三安" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.triples}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("全壘打") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.homeruns}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "全壘打" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.homeruns}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("雙殺") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.doublePlays}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "雙殺" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.doublePlays}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("四壞") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.walks}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "四壞" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.walks}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("犧飛") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.sacrificeFlies}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "犧飛" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.sacrificeFlies}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("犧觸") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.sacrificeHits}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "犧觸" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.sacrificeHits}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("觸身") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.hitByPitch}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "觸身" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.hitByPitch}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("打擊率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.battingAverage}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "打擊率" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.battingAverage}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("上壘率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.onBasePercentage}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "上壘率" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.onBasePercentage}
+                  </TableCell>
                 )}
                 {selectedColumns.includes("長打率") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "長打率" ? "red" : "black",
+                    }}
+                  >
                     {teamTotals.sluggingPercentage}
                   </TableCell>
                 )}
                 {selectedColumns.includes("OPS") && (
-                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.t_ops}</TableCell>
+                  <TableCell
+                    style={{
+                      fontSize: "1.0em",
+                      color: sortedColumn === "OPS" ? "red" : "black",
+                    }}
+                  >
+                    {teamTotals.t_ops}
+                  </TableCell>
                 )}
               </TableRow>
             </TableHead>
@@ -883,10 +1122,22 @@ const sortedPlayers = useMemo(() => {
                       {index + 1}
                     </TableCell>
                     {selectedColumns.includes("打席") && (
-                      <TableCell>{playerPlateAppearances[player.p_id] || "N/A"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "打席" ? "red" : "black", // 使用相同的逻辑应用样式
+                        }}
+                      >
+                        {playerPlateAppearances[player.p_id] || "N/A"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("打數") && (
-                      <TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "打數" ? "red" : "black",
+                        }}
+                      >
                         {playerHits[player.p_id]
                           ? playerPlateAppearances[player.p_id] -
                             ((playerHits[player.p_id]?.bb || 0) +
@@ -897,7 +1148,12 @@ const sortedPlayers = useMemo(() => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("安打") && (
-                      <TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "安打" ? "red" : "black",
+                        }}
+                      >
                         {playerHits[player.p_id]
                           ? playerHits[player.p_id].single +
                             playerHits[player.p_id].double +
@@ -907,54 +1163,162 @@ const sortedPlayers = useMemo(() => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("壘打數") && (
-                      <TableCell>{stats.totalBases}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "壘打數" ? "red" : "black",
+                        }}
+                      >
+                        {stats.totalBases}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("上壘數") && (
-                      <TableCell>{stats.onBaseCount}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "上壘數" ? "red" : "black",
+                        }}
+                      >
+                        {stats.onBaseCount}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("打點") && (
-                      <TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "打點" ? "red" : "black",
+                        }}
+                      >
                         {playerHits[player.p_id] ? playerHits[player.p_id].rbi : "0"}
                       </TableCell>
                     )}
                     {selectedColumns.includes("一安") && (
-                      <TableCell>{playerHits[player.p_id]?.single || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "一安" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.single || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("二安") && (
-                      <TableCell>{playerHits[player.p_id]?.double || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "二安" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.double || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("三安") && (
-                      <TableCell>{playerHits[player.p_id]?.triple || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "三安" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.triple || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("全壘打") && (
-                      <TableCell>{playerHits[player.p_id]?.homerun || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "全壘打" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.homerun || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("雙殺") && (
-                      <TableCell>{playerHits[player.p_id]?.doubleplay || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "雙殺" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.doubleplay || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("四壞") && (
-                      <TableCell>{playerHits[player.p_id]?.bb || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "四壞" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.bb || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("犧飛") && (
-                      <TableCell>{playerHits[player.p_id]?.sf || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "犧飛" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.sf || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("犧觸") && (
-                      <TableCell>{playerHits[player.p_id]?.bunt || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "犧觸" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.bunt || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("觸身") && (
-                      <TableCell>{playerHits[player.p_id]?.touchball || "0"}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "觸身" ? "red" : "black",
+                        }}
+                      >
+                        {playerHits[player.p_id]?.touchball || "0"}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("打擊率") && (
-                      <TableCell>{stats.battingAverage}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "打擊率" ? "red" : "black",
+                        }}
+                      >
+                        {stats.battingAverage}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("上壘率") && (
-                      <TableCell>{stats.onBasePercentage}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "上壘率" ? "red" : "black",
+                        }}
+                      >
+                        {stats.onBasePercentage}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("長打率") && (
-                      <TableCell>{stats.sluggingPercentage}</TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "長打率" ? "red" : "black",
+                        }}
+                      >
+                        {stats.sluggingPercentage}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("OPS") && (
-                      <TableCell>
+                      <TableCell
+                        style={{
+                          fontSize: "1.0em",
+                          color: sortedColumn === "OPS" ? "red" : "black",
+                        }}
+                      >
                         {(
                           parseFloat(stats.onBasePercentage) + parseFloat(stats.sluggingPercentage)
                         ).toFixed(3)}
