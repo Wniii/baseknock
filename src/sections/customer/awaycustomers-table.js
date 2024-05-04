@@ -238,9 +238,9 @@ export const AwayCustomersTable = (props) => {
 
     const gameData = gameDocSnapshot.data();
 
-    const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 1;
+    const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
     console.log("d",orderMainLength)
-    const lastValidIndex = orderMainLength;
+    const lastValidIndex = orderMainLength +1;
 
     setLastValidIndex(lastValidIndex);
     setAwayAttackListData(gameData.awayattacklist || []);
@@ -308,12 +308,21 @@ export const AwayCustomersTable = (props) => {
   };
 
   let buttonRow = -1;
+
+  // 在迴圈外計算按鈕的行數和按鈕的列數
   let buttonColumn = -1;
   if (gameDocSnapshot && gameDocSnapshot.data()) {
     const outs = gameDocSnapshot.data().outs || 0;
     buttonColumn = Math.floor(outs / 6) + 1;
-    const remainder = (lastValidIndex % 9);
+  
+    // 計算按鈕應該放置的行數
+    let remainder = (lastValidIndex % 10);
+    if (remainder === 0) {
+        remainder += 1;
+    }
+    console.log("第幾行",remainder)
     buttonRow = remainder;
+  
   }
 
   return (
