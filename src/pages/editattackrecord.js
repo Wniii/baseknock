@@ -72,43 +72,53 @@ const Page = () => {
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
     const [loading, setLoading] = useState(true);
-    const [orderMain, setOrderMain] = useState([]); // 儲存 ordermain 數據
-    const [attackList, setAttackList] = useState([]); // 儲存 attacklist 數據
 
 
-    useEffect(() => {
-        const fetchGameData = async () => {
-            if (!codeName || !timestamp || !firestore || (gameDocIds.length > 0 && currentInning > 0)) {
-                return;
+
+    // 全局範圍內定義 fetchGameData 函數
+    async function fetchGameData() {
+        if (!codeName || !timestamp || !firestore || (gameDocIds.length > 0 && currentInning > 0)) {
+            return null; // 確保當不應該執行時，返回 null
+        }
+
+        try {
+            const teamQuerySnapshot = await getDocs(
+                query(collection(firestore, 'team'), where('codeName', '==', codeName))
+            );
+
+            if (teamQuerySnapshot.empty) {
+                console.log('No team document found with codeName:', codeName);
+                setTeamDocId(null);
+                setGameDocIds([]);
+                return null;
             }
 
-            try {
-                const teamQuerySnapshot = await getDocs(
-                    query(collection(firestore, 'team'), where('codeName', '==', codeName))
-                );
+            const teamDocSnapshot = teamQuerySnapshot.docs[0];
+            const teamId = teamDocSnapshot.id;
+            setTeamDocId(teamId);
 
-                if (teamQuerySnapshot.empty) {
-                    console.log('No team document found with codeName:', codeName);
-                    setTeamDocId(null);
-                    setGameDocIds([]);
-                    return;
-                }
+            const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
+            const gameDocRef = doc(gamesCollectionRef, timestamp);
+            const gameDocSnapshot = await getDoc(gameDocRef);
 
-                const teamDocSnapshot = teamQuerySnapshot.docs[0];
-                const teamId = teamDocSnapshot.id;
-                setTeamDocId(teamId);
+            if (!gameDocSnapshot.exists()) {
+                console.log("No matching game document with ID:", timestamp);
+                setGameDocIds([]);
+                return null;
+            }
 
-                const gamesCollectionRef = collection(teamDocSnapshot.ref, 'games');
-                const gameDocRef = doc(gamesCollectionRef, timestamp);
-                const gameDocSnapshot = await getDoc(gameDocRef);
+            return gameDocSnapshot.data();  // 返回數據供進一步處理
+        } catch (error) {
+            console.error('Error fetching documents:', error);
+            return null;
+        }
+    }
 
-                if (!gameDocSnapshot.exists()) {
-                    console.log("No matching game document with ID:", timestamp);
-                    setGameDocIds([]);
-                    return;
-                }
-
-                const gameData = gameDocSnapshot.data();
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            const gameData = await fetchGameData(); // 獲取數據
+            if (gameData) {
+                const { ordermain, attacklist } = gameData;
                 setValues(prevValues => ({
                     ...prevValues,
                     hometeam: gameData.hometeam || "",
@@ -125,61 +135,30 @@ const Page = () => {
                     setPitcher(positionPContent);
                 }
 
-                // Assuming you need to process data for some other logic here
-                if (gameData.ordermain && gameData.attacklist) {
-                    processGameData(gameData.ordermain, gameData.attacklist);
-                }
+                // 使用 router.query 的數據處理 ordermain 和 attacklist
+                if (router.query.column && router.query.row) {
+                    const inning = parseInt(router.query.column, 10);
+                    const playerIndex = parseInt(router.query.row, 10);
 
-            } catch (error) {
-                console.error('Error fetching documents:', error);
+                    const filteredOrderMain = ordermain.filter(item => item.inn === inning);
+                    const playerName = attacklist[playerIndex];
+                    const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
+
+                    console.log("Matching players:", matchingPlayers);
+
+                    if (matchingPlayers.length > 0) {
+                        const pitcherData = matchingPlayers[0].pitcher;
+                        updatePitchCounts(pitcherData);
+                        // console.log('Pitcher Data:', pitcherData)
+                    }
+                }
             }
         };
 
-        fetchGameData();
-    }, [codeName, timestamp, firestore, gameDocIds.length, currentInning]);
+        fetchInitialData();
+    }, [codeName, timestamp, firestore, gameDocIds.length, currentInning, router.query.column, router.query.row]); // 這裡列出所有 fetchInitialData 依賴的變數
 
 
-    const processGameData = (ordermain, attacklist) => {
-        if (!router.query.column || !router.query.row) {
-            return;
-        }
-
-        const { column, row } = router.query;
-        const inning = parseInt(column, 10);
-        const playerIndex = parseInt(row, 10);
-        console.log('inning(column): ', inning, 'playerIndex(row): ', playerIndex)
-
-        const filteredOrderMain = ordermain.filter(item => item.inn === inning);
-        const playerName = attacklist[playerIndex];
-        const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
-
-        console.log("Matching players:", matchingPlayers);
-    };
-
-
-
-
-    // 使用 useEffect 直接处理路由参数
-    useEffect(() => {
-        if (!router.isReady) {
-            return;
-        }
-
-        // 提取查詢參數
-        const { attack, row, column, timestamp, codeName, teamId, outs } = router.query;
-
-        console.log("Attack:", attack);
-        console.log("Row:", row);
-        console.log("Column:", column);
-        console.log("Timestamp:", timestamp);
-        console.log("Code Name:", codeName);
-        console.log("Team ID:", teamId);
-        console.log("Outs:", outs);
-
-        setLoading(false);
-
-        // 这里可以添加更多的逻辑来处理这些参数
-    }, [router.isReady]);
 
 
 
@@ -433,6 +412,21 @@ const Page = () => {
         const currentBallsCount = balls.filter(Boolean).length;
         const currentStrikesCount = strikes.filter(Boolean).length;
     }
+
+    const updatePitchCounts = (pitcherData) => {
+        // 從資料庫數據中讀取好球與壞球數量
+        const { ball, strike, name } = pitcherData;
+
+        // 創建更新後的好球與壞球陣列
+        const updatedBalls = Array.from({ length: 4 }, (_, index) => index < ball);
+        const updatedStrikes = Array.from({ length: 3 }, (_, index) => index < strike);
+
+        // 更新狀態
+        setBalls(updatedBalls);
+        setStrikes(updatedStrikes);
+        setPitcher(name);
+    };
+
 
     const handleToggle4 = (hitType) => {
         console.log('hitType', hitType);
