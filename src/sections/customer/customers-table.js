@@ -293,7 +293,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleEditClick(attack, index + 1, i + 1)} 
+                              onClick={() => handleEditClick(attack, index, i + 1)} 
                             >
                               {buttonProps.text}
                             </Button>
