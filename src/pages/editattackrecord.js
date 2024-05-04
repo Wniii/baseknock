@@ -72,6 +72,8 @@ const Page = () => {
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
     const [loading, setLoading] = useState(true);
+    const [orderMain, setOrderMain] = useState([]); // 儲存 ordermain 數據
+    const [attackList, setAttackList] = useState([]); // 儲存 attacklist 數據
 
 
     useEffect(() => {
@@ -143,17 +145,12 @@ const Page = () => {
         }
 
         const { column, row } = router.query;
-        const inning = parseInt(column);
-        const playerIndex = parseInt(row);
-        console('haha', inning, playerIndex)
+        const inning = parseInt(column, 10);
+        const playerIndex = parseInt(row, 10);
+        console.log('inning(column): ', inning, 'playerIndex(row): ', playerIndex)
 
-        // 过滤 ordermain 来找到相应的局次
         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
-
-        // 获取 attacklist 中的球员名
         const playerName = attacklist[playerIndex];
-
-        // 在 filteredOrderMain 中找到对应的 p_name
         const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
 
         console.log("Matching players:", matchingPlayers);
