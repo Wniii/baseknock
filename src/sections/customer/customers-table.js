@@ -123,7 +123,7 @@ export const CustomersTable = (props) => {
 
         if (gameDocSnapshot.exists()) {
           const gameData = gameDocSnapshot.data();
-          const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
+          const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 1;
           const lastValidIndex = orderMainLength ;
 
           setLastValidIndex(lastValidIndex);
@@ -186,6 +186,7 @@ export const CustomersTable = (props) => {
     router.push({
         pathname: '/attackrecord',
         query: {
+            
             attack: attack,
             timestamp: timestamp,
             codeName: codeName,
@@ -220,7 +221,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   buttonColumn = Math.floor(outs / 6) + 1;
 
   // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+1;
+  const remainder = (lastValidIndex % 9);
   console.log("第幾行",remainder)
     buttonRow = remainder;
 

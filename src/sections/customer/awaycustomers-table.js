@@ -238,7 +238,8 @@ export const AwayCustomersTable = (props) => {
 
     const gameData = gameDocSnapshot.data();
 
-    const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
+    const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 1;
+    console.log("d",orderMainLength)
     const lastValidIndex = orderMainLength;
 
     setLastValidIndex(lastValidIndex);
