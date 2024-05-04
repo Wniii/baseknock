@@ -150,7 +150,22 @@ const Page = () => {
                         const pitcherData = matchingPlayers[0].pitcher;
                         updatePitchCounts(pitcherData);
                         // console.log('Pitcher Data:', pitcherData)
+
+                        const content = matchingPlayers[0].content;
+                        if (content) {
+                            const contents = content.split(',').map(item => item.trim());  // 分割 content 並去除空白
+                            setSelectedHits(prev => ({
+                                ...Object.keys(prev).reduce((acc, cur) => ({ ...acc, [cur]: false }), {}), // 先重設所有值為 false
+                                ...contents.reduce((acc, cur) => ({ ...acc, [cur]: true }), {}) // 將每個 content 設置為 true
+                            }));
+                        }
+                        const onbase = matchingPlayers[0].onbase;
+                        if (onbase) {
+                            updateBaseStatus(onbase);
+                        }
                     }
+
+
                     updateOut(filteredOrderMain);
                 }
             }
@@ -251,9 +266,11 @@ const Page = () => {
         if (selectedHits['四分']) rbiCount += 4;
 
         const markerData = {
-            x: markers.x.toString(),
-            y: markers.y.toString()
+            x: location.x.toString(),
+            y: location.y.toString()
         };
+
+        
 
         try {
             await updateDoc(HgameRef, {
@@ -263,7 +280,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'markers': markers,
+                    'location': location,
                     'pitcher': {
                         name: pitcher,
                         ball: balls.filter(Boolean).length,
@@ -299,7 +316,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'markers': markers,
+                    'location': location,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
@@ -328,7 +345,7 @@ const Page = () => {
     };
 
     const handleSaveToFirebase = () => {
-        if (selectedHits['一壘'] || selectedHits['二壘'] || selectedHits['三壘']) {
+        if (selectedBases['一壘'] || selectedBases['二壘'] || selectedBases['三壘']) {
             setOpenDialog(true);
         } else {
             saveData();  // 如果没有基壘被选中，直接保存数据
@@ -498,19 +515,19 @@ const Page = () => {
     };
 
     const renderOutsCheckboxes = () => {
-        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
+        const remainder = outs; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
-          <FormControlLabel
-            key={index}
-            control={
-              <Checkbox
-                checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
-                color="primary"
-                readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
-              />
-            }
-            label="" // 沒有標籤
-          />
+            <FormControlLabel
+                key={index}
+                control={
+                    <Checkbox
+                        checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
+                        color="primary"
+                        readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
+                    />
+                }
+                label="" // 沒有標籤
+            />
         ));
     };
 
@@ -563,21 +580,37 @@ const Page = () => {
 
 
     //落點
-    const [markers, setMarkers] = useState({ x: '', y: '' });
+    const [location, setLocation] = useState({ x: '', y: '' });
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
     const handleImageClick = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
         setClickCoordinates({ x: offsetX, y: offsetY });
-        setMarkers({ x: offsetX.toString(), y: offsetY.toString() });
+        setLocation({ x: offsetX.toString(), y: offsetY.toString() });
     };
 
     const handleDeleteLastMarker = () => {
         // 直接重置 markers 对象
-        setMarkers({ x: '', y: '' });
+        setLocation({ x: '', y: '' });
     };
 
     //出局數彈跳視窗
+    const [selectedBases, setSelectedBases] = useState({
+        一壘: false,
+        二壘: false,
+        三壘: false,
+        四壘: false  // 假設四壘代表本壘
+    });
+
+    const updateBaseStatus = (baseStatus) => {
+        if (baseStatus) {
+            const bases = baseStatus.split(',').map(item => item.trim());
+            setSelectedBases(prev => ({
+                ...Object.keys(prev).reduce((acc, cur) => ({ ...acc, [cur]: false }), {}),
+                ...bases.reduce((acc, cur) => ({ ...acc, [cur]: true }), {})
+            }));
+        }
+    };
 
 
 
@@ -740,12 +773,12 @@ const Page = () => {
                                                     style={{ cursor: 'pointer' }}
                                                 />
                                                 {/* 檢查是否有設置 markers */}
-                                                {markers.x && markers.y && (
+                                                {location.x && location.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${markers.y}px`,
-                                                            left: `${markers.x}px`,
+                                                            top: `${location.y}px`,
+                                                            left: `${location.x}px`,
                                                             transform: 'translate(-50%, -50%)'
                                                         }}
                                                     >
@@ -1047,19 +1080,19 @@ const Page = () => {
                                                 </div>
                                                 <div style={{ marginLeft: '150px', marginTop: '10px' }}>
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedHits['一壘']} onChange={() => handleCheckboxChange('一壘')} />}
+                                                        control={<Checkbox checked={selectedBases['一壘']} onChange={() => handleCheckboxChange('一壘')} />}
                                                         label="一壘"
                                                     />
-
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedHits['二壘']} onChange={() => handleCheckboxChange('二壘')} />}
+                                                        control={<Checkbox checked={selectedBases['二壘']} onChange={() => handleCheckboxChange('二壘')} />}
                                                         label="二壘"
                                                     />
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedHits['三壘']} onChange={() => handleCheckboxChange('三壘')} />}
+                                                        control={<Checkbox checked={selectedBases['三壘']} onChange={() => handleCheckboxChange('三壘')} />}
                                                         label="三壘"
                                                     />
                                                 </div>
+
                                             </CardContent>
                                         </Card>
                                     </form>
