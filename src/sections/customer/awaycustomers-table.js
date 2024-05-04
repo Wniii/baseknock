@@ -239,7 +239,7 @@ export const AwayCustomersTable = (props) => {
     const gameData = gameDocSnapshot.data();
 
     const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-    const lastValidIndex = orderMainLength - 1;
+    const lastValidIndex = orderMainLength;
 
     setLastValidIndex(lastValidIndex);
     setAwayAttackListData(gameData.awayattacklist || []);
@@ -311,7 +311,7 @@ export const AwayCustomersTable = (props) => {
   if (gameDocSnapshot && gameDocSnapshot.data()) {
     const outs = gameDocSnapshot.data().outs || 0;
     buttonColumn = Math.floor(outs / 6) + 1;
-    const remainder = (lastValidIndex % 9) + 2;
+    const remainder = (lastValidIndex % 9);
     buttonRow = remainder;
   }
 
