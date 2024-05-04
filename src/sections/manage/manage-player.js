@@ -21,11 +21,14 @@ import {
     ImageList,
     ImageListItem,
     ImageListItemBar,
-    DialogContentText
+    DialogContentText,
+    Input
 } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from '@mui/icons-material/Close';
+
 
 
 const CurrentTeamSx = {
@@ -203,16 +206,41 @@ export const ManagePlayer = ({ teamInfo }) => {
             setDialogTitle(player.author);
 
         }
-        
-        
-       
     };
-
-
 
     // 关闭对话框
     const handleCloseDialog = () => {
         setOpenDialog(false);
+    };
+
+    const handleUpdatePlayer = async () => {
+        if (!selectedPlayer || !teamInfo || !teamInfo.id) {
+            console.error("Missing team or player information.");
+            return;
+        }
+
+        const playerKey = dialogTitle; // Assuming the dialogTitle is the player key, adjust as necessary
+        const teamRef = doc(firestore, 'team', teamInfo.id);
+        const playerPath = `players.${playerKey}`; // The path to the player in the Firestore document
+
+        // Create the update object
+        const playerUpdate = {
+            [`${playerPath}.PNum`]: selectedPlayer.PNum,
+            [`${playerPath}.position`]: selectedPlayer.position,
+            [`${playerPath}.habit`]: selectedPlayer.habit
+        };
+
+        try {
+            await updateDoc(teamRef, playerUpdate);
+            console.log("Player updated successfully:", playerKey);
+            alert("修改成功！");
+            window.location.reload();  // 刷新页面
+
+        } catch (error) {
+            console.error("Error updating player:", error);
+        }
+
+        handleCloseDialog(); // Close the dialog after updating
     };
 
 
@@ -248,7 +276,7 @@ export const ManagePlayer = ({ teamInfo }) => {
                                 />
                                 {editMode && (
                                     <IconButton
-                                    onClick={(event) => handleDelete(item.title, event)}
+                                        onClick={(event) => handleDelete(item.title, event)}
                                         color="error"
                                         aria-label="delete team"
                                         sx={{
@@ -260,7 +288,7 @@ export const ManagePlayer = ({ teamInfo }) => {
                                             backgroundColor: "rgba(255, 255, 255, 0.7)", // 半透明背景增加可见性
                                         }}
                                     >
-                                        <DeleteIcon  />
+                                        <DeleteIcon />
                                     </IconButton>
                                 )}
                             </ImageListItem>
@@ -268,18 +296,40 @@ export const ManagePlayer = ({ teamInfo }) => {
                     </ImageList>
                 </List>
                 <Dialog open={openDialog} onClose={handleCloseDialog}>
-                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogTitle>
+                        {dialogTitle}
+                        <DialogActions>
+                            <Button onClick={handleCloseDialog} style={{ position: 'absolute', right: 2, top: 5 }}>
+                                <CloseIcon />
+                            </Button>
+                        </DialogActions>
+                    </DialogTitle>
                     <DialogContent>
                         {selectedPlayer && (
-                            <DialogContentText>
-                                背號: {selectedPlayer.PNum}<br />
-                                投打習慣: {selectedPlayer.habit}<br />
-                                守備位置: {selectedPlayer.position}<br />
-                            </DialogContentText>
+                            <>
+                                <TextField margin="dense" label="背號" fullWidth variant="standard" value={selectedPlayer.PNum} onChange={e => setSelectedPlayer({ ...selectedPlayer, PNum: e.target.value })} />
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel>守備位置</InputLabel>
+                                    <Select value={selectedPlayer.position} onChange={e => setSelectedPlayer({ ...selectedPlayer, position: e.target.value })} label="守備位置">
+                                        {positionOptions.map((option) => (
+                                            <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+
+                                <FormControl fullWidth margin="normal">
+                                    <InputLabel>投打習慣</InputLabel>
+                                    <Select value={selectedPlayer.habit} onChange={e => setSelectedPlayer({ ...selectedPlayer, habit: e.target.value })} label="投打習慣">
+                                        {habitOptions.map((option) => (
+                                            <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </>
                         )}
                     </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDialog}>關閉</Button>
+                    <DialogActions >
+                        <Button onClick={handleUpdatePlayer}>確認修改</Button>
                     </DialogActions>
                 </Dialog>
                 <Dialog open={confirmDeleteOpen} onClose={cancelDelete}>
