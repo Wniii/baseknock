@@ -151,6 +151,7 @@ const Page = () => {
                         updatePitchCounts(pitcherData);
                         // console.log('Pitcher Data:', pitcherData)
                     }
+                    updateOut(filteredOrderMain);
                 }
             }
         };
@@ -459,7 +460,12 @@ const Page = () => {
     };
 
 
-
+    const updateOut = (filteredOrderMain) => {
+        // 累加所有的 'innouts'
+        const totalOuts = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
+        setOuts(totalOuts);  // 更新 outs 狀態
+        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
+    };
 
     const handleOutChange = (hitType = null, baseOuts) => {
         console.log("hitytype", hitType)
@@ -494,17 +500,17 @@ const Page = () => {
     const renderOutsCheckboxes = () => {
         const remainder = outs % 3; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
-            <FormControlLabel
-                key={index}
-                control={
-                    <Checkbox
-                        checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
-                        color="primary"
-                        readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
-                    />
-                }
-                label="" // 沒有標籤
-            />
+          <FormControlLabel
+            key={index}
+            control={
+              <Checkbox
+                checked={index < remainder} // 只有當 index 小於餘數時，checkbox 才會被打勾
+                color="primary"
+                readOnly // 保持 readOnly 屬性，因為這些 checkbox 不應該被用戶直接修改
+              />
+            }
+            label="" // 沒有標籤
+          />
         ));
     };
 
