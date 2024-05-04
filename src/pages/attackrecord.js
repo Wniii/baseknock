@@ -200,6 +200,10 @@ const Page = () => {
             setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
             console.log('Player keys:', playerKeys);
             console.log('code name:', codeName)
+            
+            if (pitcher && !playerKeys.includes(pitcher)) {
+              playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
+            }
           } else {
             console.log('No players data found for team:', teamId);
           }
@@ -212,7 +216,7 @@ const Page = () => {
     };
 
     fetchPlayers();
-  }, [codeName, firestore]);
+  }, [codeName, firestore, awayAttackList, pitcherNames]); // 更新依賴數組
 
 
 
@@ -656,22 +660,24 @@ const Page = () => {
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
-                            <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                          <FormControl sx={{ mt: 1, minWidth: 120 }}>
                               <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
-                              <Select
-                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
-                                labelId="pitcher-label"
-                                id="pitcher-select"
-                                value={pitcher} // 使用 state 中的值
-                                label="投手"
-                                onChange={(e) => setPitcher(e.target.value)}
-                              >
-                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                {players.map((playerKey, index) => (
-                                  <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
+                            <Select
+                              sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                              labelId="pitcher-label"
+                              id="pitcher-select"
+                              value={pitcher} // 使用 state 中的值
+                              label="投手"
+                              onChange={(e) => setPitcher(e.target.value)}
+                            >
+                              {/* 確保當前選擇的投手始終存在於選單中 */}
+                              {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
+                              {players.map((playerKey, index) => (
+                                <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
                             <Box
                               noValidate
                               component="form"
