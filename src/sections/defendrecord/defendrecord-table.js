@@ -20,67 +20,71 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     totalWalks: 0,
     totalStrikeouts: 0,
     totalRunsBattedIn: 0,
-    // 其他總和數據
+    totalOuts: 0,
+    totalEarnedRuns: 0,  // 新增自責分總和
+    teamK9: 0,
+    teamBB9: 0,
+    teamH9: 0,
   });
 
   let totalGamesCount = 0;
 
   const calculateHits = (gamesData, playerNames) => {
     const statsByPitcher = playerNames.reduce((acc, name) => {
-        acc[name] = {
-            hits: 0,
-            walks: 0,
-            hitByPitches: 0,  // 新增觸身球數據
-            homeRuns: 0,  // 新增全壘打數據
-            strikeouts: 0,
-            totalBalls: 0,
-            totalStrikes: 0,
-            runsBattedIn: 0,
-        };
-        return acc;
+      acc[name] = {
+        hits: 0,
+        walks: 0,
+        hitByPitches: 0,  // 新增觸身球數據
+        homeRuns: 0,  // 新增全壘打數據
+        strikeouts: 0,
+        totalBalls: 0,
+        totalStrikes: 0,
+        runsBattedIn: 0,
+      };
+      return acc;
     }, {});
 
     gamesData.forEach((gameData) => {
-        ["ordermain", "orderoppo"].forEach((orderKey) => {
-            const orders = gameData[orderKey];
-            if (Array.isArray(orders)) {
-                orders.forEach((order) => {
-                    const pitcherName = order.pitcher?.name;
-                    if (pitcherName && statsByPitcher.hasOwnProperty(pitcherName)) {
-                        const content = order.content || order.o_content;
-                        const pitcherStats = statsByPitcher[pitcherName];
-                        // 假設内容字符串包含這些事件
-                        if (content.includes("一安") || content.includes("二安") || 
-                            content.includes("三安") || content.includes("全壘打")) {
-                            pitcherStats.hits += 1;
-                        }
-                        if (content.includes("四壞")) {
-                            pitcherStats.walks += 1;
-                        }
-                        if (content.includes("觸身")) {
-                            pitcherStats.hitByPitches += 1;  // 計算觸身球
-                        }
-                        if (content.includes("奪三振")) {
-                            pitcherStats.strikeouts += 1;
-                        }
-                        if (content.includes("全壘打")) {
-                          pitcherStats.homeRuns += 1;
-                        }
-                    }
-                });
+      ["ordermain", "orderoppo"].forEach((orderKey) => {
+        const orders = gameData[orderKey];
+        if (Array.isArray(orders)) {
+          orders.forEach((order) => {
+            const pitcherName = order.pitcher?.name;
+            if (pitcherName && statsByPitcher.hasOwnProperty(pitcherName)) {
+              const content = order.content || order.o_content;
+              const pitcherStats = statsByPitcher[pitcherName];
+              // 假設内容字符串包含這些事件
+              if (content.includes("一安") || content.includes("二安") ||
+                content.includes("三安") || content.includes("全壘打")) {
+                pitcherStats.hits += 1;
+              }
+              if (content.includes("四壞")) {
+                pitcherStats.walks += 1;
+              }
+              if (content.includes("觸身")) {
+                pitcherStats.hitByPitches += 1;  // 計算觸身球
+              }
+              if (content.includes("奪三振")) {
+                pitcherStats.strikeouts += 1;
+              }
+              if (content.includes("全壘打")) {
+                pitcherStats.homeRuns += 1;
+              }
             }
-        });
+          });
+        }
+      });
     });
 
     return statsByPitcher;
-};
+  };
 
   const calculateInningsPitched = (gamesData, playerNames) => {
     const inningsByPitcher = playerNames.reduce((acc, name) => {
       acc[name] = 0;
       return acc;
     }, {});
-  
+
     gamesData.forEach((gameData) => {
       ["ordermain", "orderoppo"].forEach((orderKey) => {
         const orders = gameData[orderKey];
@@ -95,7 +99,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
         }
       });
     });
-  
+
     // 计算整数局数和余数
     Object.keys(inningsByPitcher).forEach(pitcher => {
       const totalOuts = inningsByPitcher[pitcher];
@@ -103,47 +107,47 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       const extraOuts = totalOuts % 3;
       inningsByPitcher[pitcher] = innings + (extraOuts * 0.1);
     });
-  
+
     return inningsByPitcher;
   };
 
   // 计算 WHIP
-const calculateWHIP = (statsByPitcher, inningsByPitcher) => {
-  const whipByPitcher = {};
-  Object.keys(statsByPitcher).forEach(pitcher => {
+  const calculateWHIP = (statsByPitcher, inningsByPitcher) => {
+    const whipByPitcher = {};
+    Object.keys(statsByPitcher).forEach(pitcher => {
       const { hits, walks, hitByPitches } = statsByPitcher[pitcher];
       const innings = inningsByPitcher[pitcher];
       whipByPitcher[pitcher] = innings > 0 ? ((hits + walks + hitByPitches) / innings) : 0;
-  });
-  return whipByPitcher;
-};
+    });
+    return whipByPitcher;
+  };
 
-const calculateRates = (statsByPitcher, inningsByPitcher) => {
-  const ratesByPitcher = {};
-  Object.keys(statsByPitcher).forEach(pitcher => {
-    const { hits, strikeouts, walks } = statsByPitcher[pitcher];
-    const innings = inningsByPitcher[pitcher];
-    ratesByPitcher[pitcher] = {
-      H9: innings > 0 ? (hits * 9 / innings).toFixed(2) : 0,
-      K9: innings > 0 ? (strikeouts * 9 / innings).toFixed(2) : 0,
-      BB9: innings > 0 ? (walks * 9 / innings).toFixed(2) : 0
-    };
-  });
-  return ratesByPitcher;
-};
+  const calculateRates = (statsByPitcher, inningsByPitcher) => {
+    const ratesByPitcher = {};
+    Object.keys(statsByPitcher).forEach(pitcher => {
+      const { hits, strikeouts, walks } = statsByPitcher[pitcher];
+      const innings = inningsByPitcher[pitcher];
+      ratesByPitcher[pitcher] = {
+        H9: innings > 0 ? (hits * 9 / innings).toFixed(2) : 0,
+        K9: innings > 0 ? (strikeouts * 9 / innings).toFixed(2) : 0,
+        BB9: innings > 0 ? (walks * 9 / innings).toFixed(2) : 0
+      };
+    });
+    return ratesByPitcher;
+  };
 
-const calculateERA = (statsByPitcher, inningsByPitcher) => {
-  const eraByPitcher = {};
-  Object.keys(statsByPitcher).forEach(pitcher => {
-    const { walks, hitByPitches, homeRuns, strikeouts } = statsByPitcher[pitcher];
-    const innings = inningsByPitcher[pitcher];
-    // 確保我們有有效的局數來避免除以零的錯誤
-    eraByPitcher[pitcher] = innings > 0 
-      ? (3 + (3 * (walks + hitByPitches) + 13 * homeRuns - 2 * strikeouts) / innings).toFixed(2)
-      : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
-  });
-  return eraByPitcher;
-};
+  const calculateERA = (statsByPitcher, inningsByPitcher) => {
+    const eraByPitcher = {};
+    Object.keys(statsByPitcher).forEach(pitcher => {
+      const { walks, hitByPitches, homeRuns, strikeouts } = statsByPitcher[pitcher];
+      const innings = inningsByPitcher[pitcher];
+      // 確保我們有有效的局數來避免除以零的錯誤
+      eraByPitcher[pitcher] = innings > 0
+        ? (3 + (3 * (walks + hitByPitches) + 13 * homeRuns - 2 * strikeouts) / innings).toFixed(2)
+        : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
+    });
+    return eraByPitcher;
+  };
 
   // 使用 useEffect 钩子获取球队球员数据
   useEffect(() => {
@@ -286,6 +290,11 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
       totalWalks: 0,
       totalStrikeouts: 0,
       totalRunsBattedIn: 0,
+      totalOuts: 0,
+      totalEarnedRuns: 0,  // 新增自責分總和
+      teamK9: 0,
+      teamBB9: 0,
+      teamH9: 0,
     };
 
     playersData.forEach((player) => {
@@ -297,10 +306,19 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
       totals.totalWalks += player.totalWalks; //四壞
       totals.totalStrikeouts += player.totalStrikeouts; //奪三振
       totals.totalRunsBattedIn += player.runsBattedIn; //失分
+      totals.totalOuts += Math.floor(player.inningsPitched) * 3 + (player.inningsPitched % 1 * 10);
+      totals.totalEarnedRuns += player.era * player.inningsPitched / 9;
     });
+    const innings = Math.floor(totals.totalOuts / 3);
+    const extraOuts = totals.totalOuts % 3;
 
-    totals.strikeBallRatio =
-      totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
+    totals.totalInningsPitched = innings + extraOuts / 10;  // 轉換成傳統記錄方式
+    totals.strikeBallRatio = totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
+    totals.teamERA = totals.totalInningsPitched > 0 ? ((totals.totalEarnedRuns * 9) / totals.totalInningsPitched).toFixed(2) : "∞"; //ERA
+    totals.teamWHIP = totals.totalInningsPitched > 0 ? ((totals.totalHits + totals.totalWalks) / totals.totalInningsPitched).toFixed(2) : "∞"; //WHIP
+    totals.teamK9 = totals.totalInningsPitched > 0 ? ((totals.totalStrikeouts * 9) / totals.totalInningsPitched).toFixed(2) : 0;
+    totals.teamBB9 = totals.totalInningsPitched > 0 ? ((totals.totalWalks * 9) / totals.totalInningsPitched).toFixed(2) : 0;
+    totals.teamH9 = totals.totalInningsPitched > 0 ? ((totals.totalHits * 9) / totals.totalInningsPitched).toFixed(2) : 0;
 
     setTeamTotals(totals);
   }, [playersData]);
@@ -402,7 +420,7 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
                   <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalBalls}</TableCell>
                 )}
                 {selectedColumns.includes("ERA") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.teamERA}</TableCell>
                 )}
                 {selectedColumns.includes("先發") && (
                   <TableCell style={{ fontSize: "1.0em" }}>
@@ -413,7 +431,7 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
                   <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalGamesPlayed}</TableCell>
                 )}
                 {selectedColumns.includes("局數") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalInningsPitched.toFixed(1)}</TableCell>
                 )}
                 {selectedColumns.includes("安打") && (
                   <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalHits}</TableCell>
@@ -430,19 +448,19 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
                   <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.totalStrikeouts}</TableCell>
                 )}
                 {selectedColumns.includes("WHIP") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.teamWHIP}</TableCell>
                 )}
                 {selectedColumns.includes("好壞球比") && (
                   <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.strikeBallRatio}</TableCell>
                 )}
                 {selectedColumns.includes("K/9") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.teamK9}</TableCell>
                 )}
                 {selectedColumns.includes("BB/9") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.teamBB9}</TableCell>
                 )}
                 {selectedColumns.includes("H/9") && (
-                  <TableCell style={{ fontSize: "1.0em" }}></TableCell>
+                  <TableCell style={{ fontSize: "1.0em" }}>{teamTotals.teamH9}</TableCell>
                 )}
               </TableRow>
             </TableHead>
@@ -473,7 +491,7 @@ const calculateERA = (statsByPitcher, inningsByPitcher) => {
                   {selectedColumns.includes("先發") && <TableCell>{player.gamesStarted}</TableCell>}
                   {selectedColumns.includes("出賽") && <TableCell>{player.gamesPlayed}</TableCell>}
                   {selectedColumns.includes("局數") && (
-                     <TableCell>{player.inningsPitched.toFixed(1)}</TableCell> 
+                    <TableCell>{player.inningsPitched.toFixed(1)}</TableCell>
                   )}
                   {selectedColumns.includes("安打") && <TableCell>{player.totalHits}</TableCell>}
                   {selectedColumns.includes("失分") && <TableCell>{player.runsBattedIn}</TableCell>}

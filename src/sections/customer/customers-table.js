@@ -92,7 +92,7 @@ export const CustomersTable = (props) => {
     acodeName,
   } = props;
 
-
+console.log("s",acodeName)
 
 
   const [attackListData, setAttackListData] = useState([]);
@@ -157,7 +157,6 @@ export const CustomersTable = (props) => {
 
         if (teamDocSnapshot.exists()) {
             const teamData = teamDocSnapshot.data();
-            console.log("Team data:", teamData);
 
             if (teamData.players) {
 
@@ -169,14 +168,12 @@ export const CustomersTable = (props) => {
                       }
                   });
 
-                console.log("dsd", filteredPlayers);
                 // 更新状态
                 Object.entries(filteredPlayers).forEach(([key, value]) => {
                   console.log(key); // 键名
                   console.log(value); // 对应的属性值
                 });
                 setTeamPlayers(Object.entries(filteredPlayers) || []);
-                console.log("c",Object.entries(filteredPlayers) || [])
               } else {
                 console.log("No players data available.");
             }
@@ -233,7 +230,6 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   if (remainder === 0) {
       remainder += 1;
   }
-  console.log("第幾行",remainder)
   buttonRow = remainder;
 
 }
@@ -293,7 +289,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleEditClick(attack, index + 1, i + 1)} 
+                              onClick={() => handleEditClick(attack, index, i + 1)} 
                             >
                               {buttonProps.text}
                             </Button>

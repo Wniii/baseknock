@@ -25,12 +25,18 @@ import { useCallback } from 'react';
 const Page = () => {
   const router = useRouter();
   const attackData = router.query.attack;
-  const { codeName, timestamp, teamId } = router.query;
+  const { codeName, timestamp, teamId,acodeName } = router.query;
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
   const [pitcher, setPitcher] = useState('');// 儲存投手名稱
   const [players, setPlayers] = useState([]);
+  const [awayAttackList, setawayAttackList] = useState([]);
+  const [pitcherNames, setpitcherNames] = useState([]);
+
+
+ 
+  console.log("attacklist",awayAttackList)
   const [alertInfo, setAlertInfo] = useState({
     open: false,
     severity: 'info',
@@ -123,8 +129,16 @@ const Page = () => {
                 const outs = gameData.outs || 0;
                 const inningsCompleted = Math.floor(outs / 6) + 1;
                 setCurrentInning(inningsCompleted);
+                setawayAttackList(gameData.awayattacklist || [])
+               // 使用 map 方法遍歷 gameData.ordermain 數組
+                const pitcherNames = gameData.ordermain.map(item => {
+                  // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
+                  return item.pitcher && item.pitcher.name ? item.pitcher.name : '';
+                });
 
-              }
+                // 使用 setordermain 更新 state
+                setpitcherNames(pitcherNames);
+                          }
               if (gameSnap.exists()) {
                 const gameData = gameSnap.data();
                 // 检查是否存在 awayposition 字段，并且它是一个对象，然后获取 P 的内容
@@ -171,7 +185,7 @@ const Page = () => {
 
       try {
         const teamQuerySnapshot = await getDocs(
-          query(collection(firestore, 'team'), where('codeName', '==', codeName))
+          query(collection(firestore, 'team'), where('codeName', '==', acodeName))
         );
 
         if (!teamQuerySnapshot.empty) {
@@ -182,10 +196,14 @@ const Page = () => {
 
           if (teamSnap.exists() && teamSnap.data().players) {
             // 提取玩家鍵（key）數組
-            const playerKeys = Object.keys(teamSnap.data().players);
+            const playerKeys = Object.keys(teamSnap.data().players).filter(key => !awayAttackList.includes(key) && !pitcherNames.includes(key));
             setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
             console.log('Player keys:', playerKeys);
             console.log('code name:', codeName)
+            
+            if (pitcher && !playerKeys.includes(pitcher)) {
+              playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
+            }
           } else {
             console.log('No players data found for team:', teamId);
           }
@@ -198,7 +216,7 @@ const Page = () => {
     };
 
     fetchPlayers();
-  }, [codeName, firestore]);
+  }, [codeName, firestore, awayAttackList, pitcherNames]); // 更新依賴數組
 
 
 
@@ -309,6 +327,7 @@ const Page = () => {
       router.push({
         pathname: '/test',
         query: {
+          acodeName: acodeName,
           timestamp: timestamp,
           codeName: codeName,
           teamId: teamId
@@ -641,22 +660,24 @@ const Page = () => {
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
-                            <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                          <FormControl sx={{ mt: 1, minWidth: 120 }}>
                               <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
-                              <Select
-                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
-                                labelId="pitcher-label"
-                                id="pitcher-select"
-                                value={pitcher} // 使用 state 中的值
-                                label="投手"
-                                onChange={(e) => setPitcher(e.target.value)}
-                              >
-                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                {players.map((playerKey, index) => (
-                                  <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
+                            <Select
+                              sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                              labelId="pitcher-label"
+                              id="pitcher-select"
+                              value={pitcher} // 使用 state 中的值
+                              label="投手"
+                              onChange={(e) => setPitcher(e.target.value)}
+                            >
+                              {/* 確保當前選擇的投手始終存在於選單中 */}
+                              {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
+                              {players.map((playerKey, index) => (
+                                <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+
                             <Box
                               noValidate
                               component="form"
