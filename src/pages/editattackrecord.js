@@ -72,6 +72,9 @@ const Page = () => {
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
     const [loading, setLoading] = useState(true);
+    const [playerName, setPlayerName] = useState('');
+    const [inning, setInning] = useState(0);
+
 
 
 
@@ -116,7 +119,7 @@ const Page = () => {
 
     useEffect(() => {
         const fetchInitialData = async () => {
-            const gameData = await fetchGameData(); // 獲取數據
+            const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
                 const { ordermain, attacklist } = gameData;
                 setValues(prevValues => ({
@@ -135,44 +138,47 @@ const Page = () => {
                     setPitcher(positionPContent);
                 }
 
-                // 使用 router.query 的數據處理 ordermain 和 attacklist
+                // 使用 router.query 的数据处理 ordermain 和 attacklist
                 if (router.query.column && router.query.row) {
                     const inning = parseInt(router.query.column, 10);
                     const playerIndex = parseInt(router.query.row, 10);
 
-                    const filteredOrderMain = ordermain.filter(item => item.inn === inning);
-                    const playerName = attacklist[playerIndex];
-                    const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
+                    if (playerIndex < attacklist.length) {
+                        const playerName = attacklist[playerIndex];
+                        setPlayerName(attacklist[playerIndex]);
+                        setInning(inning)
+                        const filteredOrderMain = ordermain.filter(item => item.inn === inning);
+                        const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
 
-                    console.log("Matching players:", matchingPlayers);
+                        console.log("Matching players:", matchingPlayers);
 
-                    if (matchingPlayers.length > 0) {
-                        const pitcherData = matchingPlayers[0].pitcher;
-                        updatePitchCounts(pitcherData);
-                        // console.log('Pitcher Data:', pitcherData)
+                        if (matchingPlayers.length > 0) {
+                            const pitcherData = matchingPlayers[0].pitcher;
+                            updatePitchCounts(pitcherData);
 
-                        const content = matchingPlayers[0].content;
-                        if (content) {
-                            const contents = content.split(',').map(item => item.trim());  // 分割 content 並去除空白
-                            setSelectedHits(prev => ({
-                                ...Object.keys(prev).reduce((acc, cur) => ({ ...acc, [cur]: false }), {}), // 先重設所有值為 false
-                                ...contents.reduce((acc, cur) => ({ ...acc, [cur]: true }), {}) // 將每個 content 設置為 true
-                            }));
+                            const content = matchingPlayers[0].content;
+                            if (content) {
+                                const contents = content.split(',').map(item => item.trim());
+                                setSelectedHits(prev => ({
+                                    ...Object.keys(prev).reduce((acc, cur) => ({ ...acc, [cur]: false }), {}),
+                                    ...contents.reduce((acc, cur) => ({ ...acc, [cur]: true }), {})
+                                }));
+                            }
+                            const onbase = matchingPlayers[0].onbase;
+                            if (onbase) {
+                                updateBaseStatus(onbase);
+                            }
                         }
-                        const onbase = matchingPlayers[0].onbase;
-                        if (onbase) {
-                            updateBaseStatus(onbase);
-                        }
+
+                        updateOut(filteredOrderMain);
                     }
-
-
-                    updateOut(filteredOrderMain);
                 }
             }
         };
 
         fetchInitialData();
-    }, [codeName, timestamp, firestore, gameDocIds.length, currentInning, router.query.column, router.query.row]); // 這裡列出所有 fetchInitialData 依賴的變數
+    }, [codeName, timestamp, firestore, gameDocIds.length, currentInning, router.query.column, router.query.row]);
+
 
 
 
@@ -223,22 +229,43 @@ const Page = () => {
 
 
     const saveData = async () => {
-
         const hitContents = ['一安', '二安', '三安', '全打', '一分',
             '三振', '飛球', '滾地', '失誤', '兩分',
             '野選', '雙殺', '違規', '不知', '三分',
             '四壞', '犧飛', '犧觸', '觸身', '四分'];
 
         const baseStatuses = ['一壘', '二壘', '三壘'];
-        const selectedBases = baseStatuses.filter(base => selectedHits[base]);
-        const baseOuts = ['0', '1', '2', '3'];
+        
 
         const selectedContent = Object.entries(selectedHits)
             .filter(([key, value]) => value && hitContents.includes(key))
             .map(([key, _]) => key)
             .join(', ');
 
-        let bases = baseStatuses.filter((base) => selectedHits[base]).join(',');
+        // 从 selectedBases 中筛选出激活的基座状态
+        const bases = Object.entries(selectedBases)
+            .filter(([_, value]) => value)
+            .map(([key, _]) => key)
+            .join(',');
+
+        const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
+        const docSnapshot = await getDoc(gameRef);
+
+        if (!docSnapshot.exists()) {
+            console.error("Document does not exist!");
+            alert("Document does not exist!");
+            return;
+        }
+
+        let ordermain = docSnapshot.data().ordermain;
+        const indexToUpdate = ordermain.findIndex(item => item.p_name === playerName && item.inn === inning);
+
+        if (indexToUpdate === -1) {
+            console.error("Matching player not found in ordermain");
+            alert("Matching player not found in ordermain");
+            return;
+        }
+
         const hquerySnapshot = await getDocs(
             query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
         );
@@ -265,31 +292,27 @@ const Page = () => {
         if (selectedHits['三分']) rbiCount += 3;
         if (selectedHits['四分']) rbiCount += 4;
 
-        const markerData = {
-            x: location.x.toString(),
-            y: location.y.toString()
-        };
+        const currentInnOuts = innOuts;
 
-        
+        ordermain[indexToUpdate] = {
+            ...ordermain[indexToUpdate],
+            content: selectedContent,
+            onbase: bases,
+            pitcher: {
+                ...ordermain[indexToUpdate].pitcher,
+                ball: balls.filter(Boolean).length,
+                strike: strikes.filter(Boolean).length,
+                name: pitcher
+            },
+            rbi: rbiCount,
+            innouts: currentInnOuts
+
+        };
 
         try {
             await updateDoc(HgameRef, {
-                'ordermain': arrayUnion({
-                    'content': selectedContent,
-                    'inn': currentInning,
-                    'onbase': bases,
-                    'p_name': attackData,
-                    'rbi': rbiCount,
-                    'location': location,
-                    'pitcher': {
-                        name: pitcher,
-                        ball: balls.filter(Boolean).length,
-                        strike: strikes.filter(Boolean).length,
-                        name: pitcher
-                    },
-                    'innouts': innOuts
-                }),
-                'outs': outs
+                ordermain: ordermain,
+                outs: outs
             });
             console.log('Document successfully updated!');
             alert('Document successfully updated!');
@@ -308,26 +331,15 @@ const Page = () => {
             alert('Error updating document: ' + error.message);
         }
 
+
+
         try {
             await updateDoc(AgameRef, {
-                'ordermain': arrayUnion({
-                    'content': selectedContent,
-                    'inn': currentInning,
-                    'onbase': bases,
-                    'p_name': attackData,
-                    'rbi': rbiCount,
-                    'location': location,
-                    'pitcher': {
-                        ball: balls.filter(Boolean).length,
-                        strike: strikes.filter(Boolean).length,
-                        name: pitcher
-                    },
-                    'innouts': innOuts
-                }),
-
-                'outs': outs
+                ordermain: ordermain,
+                outs: outs
             });
             console.log('Document successfully updated!');
+            alert('Document successfully updated!');
             router.push({
                 pathname: '/test',
                 query: {
@@ -337,6 +349,7 @@ const Page = () => {
                 },
             });
             setOpenDialog(false);
+            setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
         } catch (error) {
             console.error('Error updating document:', error);
             alert('Error updating document: ' + error.message);
@@ -365,6 +378,15 @@ const Page = () => {
             [hitType]: !prev[hitType],
         }));
     };
+
+    const handleBaseChange = (baseType) => {
+        console.log(`Toggling base: ${baseType}`);
+        setSelectedBases(prevBases => ({
+            ...prevBases,
+            [baseType]: !prevBases[baseType]  // 切换当前壘的选中状态
+        }));
+    };
+
 
     const handleToggle = (hitType) => {
         console.log('hitType', hitType);
@@ -1080,17 +1102,18 @@ const Page = () => {
                                                 </div>
                                                 <div style={{ marginLeft: '150px', marginTop: '10px' }}>
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedBases['一壘']} onChange={() => handleCheckboxChange('一壘')} />}
+                                                        control={<Checkbox checked={selectedBases['一壘']} onChange={() => handleBaseChange('一壘')} />}
                                                         label="一壘"
                                                     />
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedBases['二壘']} onChange={() => handleCheckboxChange('二壘')} />}
+                                                        control={<Checkbox checked={selectedBases['二壘']} onChange={() => handleBaseChange('二壘')} />}
                                                         label="二壘"
                                                     />
                                                     <FormControlLabel
-                                                        control={<Checkbox checked={selectedBases['三壘']} onChange={() => handleCheckboxChange('三壘')} />}
+                                                        control={<Checkbox checked={selectedBases['三壘']} onChange={() => handleBaseChange('三壘')} />}
                                                         label="三壘"
                                                     />
+
                                                 </div>
 
                                             </CardContent>
