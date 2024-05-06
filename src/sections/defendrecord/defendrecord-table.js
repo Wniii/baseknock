@@ -91,7 +91,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
         if (Array.isArray(orders)) {
           orders.forEach((order) => {
             const pitcherName = order.pitcher?.name;
-            const innout = parseInt(order.innout, 10) || 0;
+            const innout = parseInt(order.innouts, 10) || 0;
             if (pitcherName && inningsByPitcher.hasOwnProperty(pitcherName)) {
               inningsByPitcher[pitcherName] += innout;
             }
@@ -211,11 +211,23 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
 
       gamesQuerySnapshot.docs.forEach((doc) => {
         const gameData = doc.data();
+        const gameId = doc.id; // 用比賽的文檔 ID 來唯一識別每場比賽
+      
+        // 使用一個 Map 來跟蹤每場比賽中已計算過的投手
+        const countedPitchers = new Map();
+      
         ["ordermain", "orderoppo"].forEach((orderKey) => {
           (gameData[orderKey] || []).forEach((order, index) => {
             const pitcherName = order.pitcher?.name;
+      
             if (pitcherName && playerNames.includes(pitcherName)) {
-              hitsByPitcher[pitcherName].gamesPlayed++;
+              // 如果這場比賽中的這個投手還沒有被計算過
+              if (!countedPitchers.has(pitcherName)) {
+                hitsByPitcher[pitcherName].gamesPlayed++;
+                countedPitchers.set(pitcherName, true);
+              }
+      
+              // 計算該投手的其他統計數據
               if (index === 0) {
                 // 假設第一位投手是先發
                 hitsByPitcher[pitcherName].gamesStarted++;
@@ -240,6 +252,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
           });
         });
       });
+      
 
       const playersList = playerNames
         .filter((name) => pitchersInGames.has(name)) // 過濾掉沒有出現在 games 中的投手

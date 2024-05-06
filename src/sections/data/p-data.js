@@ -80,7 +80,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                       // Add counts for balls and strikes
                       totalBalls += Number(order.pitcher?.ball) || 0;
                       totalStrikes += Number(order.pitcher?.strike) || 0;
-                      outs += Number(order.innout) || 0; // 計算局數
+                      outs += Number(order.innouts) || 0; // 計算局數
 
                       // 累加打点
                       rbi += Number(order.rbi) || 0;  // 假设 RBI 数据位于 order 对象上
