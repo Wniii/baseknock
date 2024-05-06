@@ -197,9 +197,17 @@ const Page = () => {
                     console.log('teamData:', teamData);
     
                     if (teamData && teamData.players) {
+                        // 過濾出符合條件的球員鍵
                         const playerKeys = Object.keys(teamData.players)
-                            .filter(key => !AttackList.includes(key) && !pitcherNames.includes(key));
-                        
+                            .filter(key => {
+                                const player = teamData.players[key];
+                                console.log(`Player: ${key}, Position: ${player.position}`);
+    
+                                return player.position === 'P' &&
+                                    !AttackList.includes(key) &&
+                                    !pitcherNames.includes(key);
+                            });
+    
                         console.log('playerKeys before adding pitcher:', playerKeys);
     
                         if (pitcher && !playerKeys.includes(pitcher)) {
