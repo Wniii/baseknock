@@ -24,12 +24,16 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const awayattackData = router.query.attack;
-    const { codeName, timestamp, teamId } = router.query;
+    const { codeName, timestamp, teamId,acodeName } = router.query;
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [pitcher, setPitcher] = useState(''); // 儲存投手名稱
     const [players, setPlayers] = useState([]);
+    const [AttackList, setAttackList] = useState([]);
+    const [pitcherNames, setpitcherNames] = useState([]);
     const [gameDocIds, setGameDocIds] = useState([]);
+
+
     const [alertInfo, setAlertInfo] = useState({
         open: false,
         severity: 'info',
@@ -125,6 +129,14 @@ const Page = () => {
                                 const oldouts = gameData.outs || 0;
                                 const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
+                                setAttackList(gameData.attacklist || [])
+                                const pitcherNames = gameData.orderoppo.map(item => {
+                                    // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
+                                    return item.pitcher && item.pitcher.name ? item.pitcher.name : '';
+                                  });
+                                  console.log("d",pitcherNames)
+                                  // 使用 setordermain 更新 state
+                                  setpitcherNames(pitcherNames);
 
                             }
                             if (gameSnap.exists()) {
@@ -164,23 +176,48 @@ const Page = () => {
     useEffect(() => {
         const fetchHomeTeamPlayers = async () => {
             if (!values.hometeam || !firestore) {
+                console.log('Missing hometeam or firestore:', { hometeam: values.hometeam, firestore });
                 return;
             }
-
+    
             try {
+                console.log('Fetching home team players for:', values.hometeam);
+    
                 const teamQuerySnapshot = await getDocs(
                     query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
-
+    
+                console.log('teamQuerySnapshot:', teamQuerySnapshot);
+    
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-
+    
+                    console.log('teamDocSnapshot:', teamDocSnapshot);
+                    console.log('teamData:', teamData);
+    
                     if (teamData && teamData.players) {
-                        const playerKeys = Object.keys(teamData.players);
+                        // 過濾出符合條件的球員鍵
+                        const playerKeys = Object.keys(teamData.players)
+                            .filter(key => {
+                                const player = teamData.players[key];
+                                console.log(`Player: ${key}, Position: ${player.position}`);
+    
+                                return player.position === 'P' &&
+                                    !AttackList.includes(key) &&
+                                    !pitcherNames.includes(key);
+                            });
+    
+                        console.log('playerKeys before adding pitcher:', playerKeys);
+    
+                        if (pitcher && !playerKeys.includes(pitcher)) {
+                            playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
+                        }
+    
                         setPlayers(playerKeys); // 更新玩家鍵的狀態
-                        console.log('Home team player keys:', playerKeys);
-                        console.log('home team code name:', values.hometeam);
+                        console.log('Home team player keys after processing:', playerKeys);
+                        console.log('Home team code name:', values.hometeam);
+                    } else {
                         console.log('No players data found for home team with codeName:', values.hometeam);
                     }
                 } else {
@@ -190,10 +227,10 @@ const Page = () => {
                 console.error('Error fetching home team players:', error);
             }
         };
-
+    
         fetchHomeTeamPlayers();
-    }, [values.hometeam, firestore]); // 依賴於 values.hometeam
-
+    }, [values.hometeam, firestore, AttackList, pitcherNames]); // 依賴於 values.hometeam
+    
 
 
 
@@ -243,9 +280,9 @@ const Page = () => {
         if (selectedHits['三分']) rbiCount += 3;
         if (selectedHits['四分']) rbiCount += 4;
 
-        const markerData = {
-            x: location.x.toString(),
-            y: location.y.toString()
+        const locationData = {
+            x: location.x || '',
+            y: location.y || ''
         };
 
         try {
@@ -256,7 +293,7 @@ const Page = () => {
                     'o_content': selectedContent,
                     'o_onbase': bases,
                     'o_rbi': rbiCount,
-                    'location': location,
+                    'location': locationData,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
@@ -274,6 +311,7 @@ const Page = () => {
             router.push({
                 pathname: '/test',
                 query: {
+                    acodeName: acodeName,
                     timestamp: timestamp,
                     codeName: codeName,
                     teamId: teamId
@@ -483,7 +521,15 @@ const Page = () => {
 
 
     const renderOutsCheckboxes = () => {
-        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
+        let remainder = 0; // 默認餘數為 0
+    
+        if (outs > 0) {
+            remainder = outs % 3; // 計算 outs 除以 3 的餘數
+            if (remainder === 0) {
+                remainder = 3; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
+            }
+        }
+    
         return [...Array(3)].map((_, index) => (
             <FormControlLabel
                 key={index}
@@ -498,6 +544,7 @@ const Page = () => {
             />
         ));
     };
+    
 
 
 
@@ -656,24 +703,23 @@ const Page = () => {
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
 
-                                                        <FormControl sx={{ mt: 1, minWidth: 120 }}>
-                                                            <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
-                                                            <Select
-                                                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
-                                                                labelId="pitcher-label"
-                                                                id="pitcher-select"
-                                                                value={pitcher}
-                                                                label="投手"
-                                                                onChange={(e) => setPitcher(e.target.value)}
-                                                            >
-                                                                {/* 這裡顯示主隊投手 */}
-                                                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                                                {/* 這裡顯示 fetch 到的其他球員 */}
-                                                                {players.map((playerKey, index) => (
-                                                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                        </FormControl>
+                                                    <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                                        <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
+                                                        <Select
+                                                        sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                                                        labelId="pitcher-label"
+                                                        id="pitcher-select"
+                                                        value={pitcher} // 使用 state 中的值
+                                                        label="投手"
+                                                        onChange={(e) => setPitcher(e.target.value)}
+                                                        >
+                                                        {/* 確保當前選擇的投手始終存在於選單中 */}
+                                                        {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
+                                                        {players.map((playerKey, index) => (
+                                                            <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                                        ))}
+                                                        </Select>
+                                                    </FormControl>
                                                         <Box
                                                             noValidate
                                                             component="form"
@@ -754,7 +800,7 @@ const Page = () => {
                                                 )}
                                             </div>
                                             <Button onClick={handleDeleteLastMarker} color="secondary" style={{ marginBottom: '-10px' }}>
-                                                返回
+                                                清除標記
                                             </Button>
                                         </CardContent>
                                     </Card>

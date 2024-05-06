@@ -74,6 +74,8 @@ const Page = () => {
     const [loading, setLoading] = useState(true);
     const [playerName, setPlayerName] = useState('');
     const [inning, setInning] = useState(0);
+    const [marker, setMarker] = useState({ x: 0, y: 0 });
+    const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
 
 
 
@@ -121,7 +123,8 @@ const Page = () => {
         const fetchInitialData = async () => {
             const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
-                const { ordermain, attacklist } = gameData;
+                const { ordermain, attacklist,orderoppo } = gameData;
+
                 setValues(prevValues => ({
                     ...prevValues,
                     hometeam: gameData.hometeam || "",
@@ -148,11 +151,14 @@ const Page = () => {
                         setPlayerName(attacklist[playerIndex]);
                         setInning(inning)
                         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
+                        const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
+                        console.log("d",filteredOrderoppo)
                         const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
 
                         console.log("Matching players:", matchingPlayers);
 
                         if (matchingPlayers.length > 0) {
+
                             const pitcherData = matchingPlayers[0].pitcher;
                             updatePitchCounts(pitcherData);
 
@@ -168,9 +174,12 @@ const Page = () => {
                             if (onbase) {
                                 updateBaseStatus(onbase);
                             }
+                            updateLocations(matchingPlayers); // 呼叫 updateLocations 函數來處理位置資訊
+
+                            
                         }
 
-                        updateOut(filteredOrderMain);
+                        updateOut(filteredOrderMain,filteredOrderoppo);
                     }
                 }
             }
@@ -233,71 +242,71 @@ const Page = () => {
             '三振', '飛球', '滾地', '失誤', '兩分',
             '野選', '雙殺', '違規', '不知', '三分',
             '四壞', '犧飛', '犧觸', '觸身', '四分'];
-
+    
         const baseStatuses = ['一壘', '二壘', '三壘'];
-        
-
+    
         const selectedContent = Object.entries(selectedHits)
             .filter(([key, value]) => value && hitContents.includes(key))
             .map(([key, _]) => key)
             .join(', ');
-
-        // 从 selectedBases 中筛选出激活的基座状态
+    
+        // 從 selectedBases 中篩選出激活的基座狀態
         const bases = Object.entries(selectedBases)
             .filter(([_, value]) => value)
             .map(([key, _]) => key)
             .join(',');
-
+    
         const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
         const docSnapshot = await getDoc(gameRef);
-
+    
         if (!docSnapshot.exists()) {
             console.error("Document does not exist!");
             alert("Document does not exist!");
             return;
         }
-
+    
         let ordermain = docSnapshot.data().ordermain;
         const indexToUpdate = ordermain.findIndex(item => item.p_name === playerName && item.inn === inning);
-
+    
         if (indexToUpdate === -1) {
             console.error("Matching player not found in ordermain");
             alert("Matching player not found in ordermain");
             return;
         }
-
+    
         const hquerySnapshot = await getDocs(
             query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
         );
-        let hteam = hquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-
-        // 查询客队ID
+        let hteam = hquerySnapshot.docs[0]?.id; // 假設只有一個匹配的文檔
+    
+        // 查詢客隊 ID
         const aquerySnapshot = await getDocs(
             query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
         );
-        let ateam = aquerySnapshot.docs[0]?.id; // 假设只有一个匹配的文档
-
+        let ateam = aquerySnapshot.docs[0]?.id; // 假設只有一個匹配的文檔
+    
         if (!hteam || !ateam) {
-            console.error("未找到相应的主队或客队");
-            alert("未找到相应的主队或客队");
-            return; // 如果没有找到队伍，就中止操作
+            console.error("未找到相應的主隊或客隊");
+            alert("未找到相應的主隊或客隊");
+            return; // 如果沒有找到隊伍，就中止操作
         }
         const HgameRef = doc(firestore, 'team', hteam, 'games', timestamp);
         const AgameRef = doc(firestore, 'team', ateam, 'games', timestamp);
-
-        // Calculate RBIs from selected run scoring hits
+    
+        // 計算選中的打點
         let rbiCount = 0;
         if (selectedHits['一分']) rbiCount += 1;
         if (selectedHits['兩分']) rbiCount += 2;
         if (selectedHits['三分']) rbiCount += 3;
         if (selectedHits['四分']) rbiCount += 4;
-
+    
         const currentInnOuts = innOuts;
-
+    
         ordermain[indexToUpdate] = {
             ...ordermain[indexToUpdate],
             content: selectedContent,
             onbase: bases,
+            location: marker,
             pitcher: {
                 ...ordermain[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
@@ -306,9 +315,23 @@ const Page = () => {
             },
             rbi: rbiCount,
             innouts: currentInnOuts
-
         };
-
+    
+        // 放置 `updateOut` 函數
+        const updateOut = (filteredOrderMain, filteredOrderoppo) => {
+            // 累加所有的 'innouts'
+            const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
+            const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
+            console.log("totalOutsMain", totalOutsMain)
+            console.log("totalOutsOppo", totalOutsOppo)
+            const totalOuts = totalOutsMain + totalOutsOppo;
+            setOuts(totalOuts);  // 更新 outs 狀態
+            console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
+        };
+    
+        // 使用 `updateOut` 函數進行出局數計算
+        updateOut(ordermain);
+    
         try {
             await updateDoc(HgameRef, {
                 ordermain: ordermain,
@@ -322,7 +345,7 @@ const Page = () => {
                     timestamp: timestamp,
                     codeName: codeName,
                     teamId: teamId
-                },
+                }
             });
             setOpenDialog(false);
             setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
@@ -330,9 +353,7 @@ const Page = () => {
             console.error('Error updating document:', error);
             alert('Error updating document: ' + error.message);
         }
-
-
-
+    
         try {
             await updateDoc(AgameRef, {
                 ordermain: ordermain,
@@ -346,7 +367,7 @@ const Page = () => {
                     timestamp: timestamp,
                     codeName: codeName,
                     teamId: teamId
-                },
+                }
             });
             setOpenDialog(false);
             setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
@@ -354,8 +375,8 @@ const Page = () => {
             console.error('Error updating document:', error);
             alert('Error updating document: ' + error.message);
         }
-
     };
+    
 
     const handleSaveToFirebase = () => {
         if (selectedBases['一壘'] || selectedBases['二壘'] || selectedBases['三壘']) {
@@ -467,7 +488,16 @@ const Page = () => {
         setPitcher(name);
     };
 
+    const updateLocations = (matchingPlayers) => {
+        const newLocation = matchingPlayers.map(player => {
+            const { x, y } = player.location; // 從 player 的 location 對象解構 x 和 y
+            return { x, y }; // 返回一個新的對象包含 x 和 y
+        })[0]; // 假設只處理第一個匹配的玩家
 
+        setMarker(newLocation); // 更新狀態
+        setOriginalLocation(newLocation); // 保存原始位置
+
+    };
     const handleToggle4 = (hitType) => {
         console.log('hitType', hitType);
         setActive(!Active); // 切換激活狀態
@@ -499,12 +529,15 @@ const Page = () => {
     };
 
 
-    const updateOut = (filteredOrderMain) => {
+    const updateOut = (filteredOrderMain, filteredOrderoppo) => {
         // 累加所有的 'innouts'
-        const totalOuts = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
+        const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
+        const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.innouts, 0);
+        const totalOuts = totalOutsMain + totalOutsOppo;
         setOuts(totalOuts);  // 更新 outs 狀態
         console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
     };
+    
 
     const handleOutChange = (hitType = null, baseOuts) => {
         console.log("hitytype", hitType)
@@ -603,18 +636,28 @@ const Page = () => {
 
     //落點
     const [location, setLocation] = useState({ x: '', y: '' });
+    const [markers, setMarkers] = useState({ x: '', y: '' });
+
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
     const handleImageClick = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
-        setClickCoordinates({ x: offsetX, y: offsetY });
-        setLocation({ x: offsetX.toString(), y: offsetY.toString() });
+        setMarker({ x: offsetX, y: offsetY });  // 更新標記位置
+
+
     };
 
-    const handleDeleteLastMarker = () => {
-        // 直接重置 markers 对象
-        setLocation({ x: '', y: '' });
+
+
+
+    const handleClearMarker = () => {
+        setMarker({ x: '', y: '' });  // 清除標記
     };
+
+    const handleRestoreMarker = () => {
+        setMarker(originalLocation);  // 恢复到原始位置
+    };
+
 
     //出局數彈跳視窗
     const [selectedBases, setSelectedBases] = useState({
@@ -785,7 +828,7 @@ const Page = () => {
                                     item
                                 >
                                     <Card>
-                                        <CardContent>
+                                    <CardContent>
                                             <div style={{ position: 'relative' }}>
                                                 <img
                                                     src='https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
@@ -795,26 +838,29 @@ const Page = () => {
                                                     style={{ cursor: 'pointer' }}
                                                 />
                                                 {/* 檢查是否有設置 markers */}
-                                                {location.x && location.y && (
+                                                {marker.x && marker.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${location.y}px`,
-                                                            left: `${location.x}px`,
+                                                            top: `${marker.y}px`,
+                                                            left: `${marker.x}px`,
                                                             transform: 'translate(-50%, -50%)'
                                                         }}
                                                     >
                                                         <img
-                                                            src="baseball-16-32.png"  // 這裡放置你的棒球圖片網址
+                                                            src="baseball-16-32.png"
                                                             alt="棒球"
                                                             style={{ width: '21px', height: '21px' }}
                                                         />
                                                     </div>
                                                 )}
                                             </div>
-                                            <Button onClick={handleDeleteLastMarker} color="secondary">
-                                                返回
+                                            <Button onClick={handleClearMarker} color="secondary">
+                                                清除標記
                                             </Button>
+                                            <Button onClick={handleRestoreMarker} color="primary">
+                                            恢復先前狀態
+                                        </Button>   
                                         </CardContent>
                                     </Card>
                                 </Grid>

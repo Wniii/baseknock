@@ -292,10 +292,10 @@ export const EditGame = () => {
       }
 
       // 更新或新增新主队的比赛数据和比赛日期
-      await setDoc(doc(firestore, "team", hteam, "games", g_id), values);
+      await updateDoc(doc(firestore, "team", hteam, "games", g_id), values);
       await updateGamesField(hteam, g_id, values.GDate);
       // 更新或新增新客队的比赛数据和比赛日期
-      await setDoc(doc(firestore, "team", ateam, "games", g_id), values);
+      await updateDoc(doc(firestore, "team", ateam, "games", g_id), values);
       await updateGamesField(ateam, g_id, values.GDate);
 
       alert("比賽資料更新成功！");
