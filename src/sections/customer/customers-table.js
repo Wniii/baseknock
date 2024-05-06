@@ -88,8 +88,13 @@ export const CustomersTable = (props) => {
     teamId,
     codeName,
     timestamp,
-    outs
+    outs,
+    acodeName,
   } = props;
+
+console.log("s",acodeName)
+
+
   const [attackListData, setAttackListData] = useState([]);
   const [ordermain, setordermain] = useState([]);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
@@ -98,6 +103,9 @@ export const CustomersTable = (props) => {
   const [filteredPlayers, setTeamPlayers] = useState([]);
   const [open, setOpen] = useState(false); // 定義 open 狀態
   const router = useRouter();
+
+
+  console.log()
   useEffect(() => {
     const fetchGameData = async () => {
       await fetchGames();
@@ -124,7 +132,7 @@ export const CustomersTable = (props) => {
         if (gameDocSnapshot.exists()) {
           const gameData = gameDocSnapshot.data();
           const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-          const lastValidIndex = orderMainLength ;
+          const lastValidIndex = orderMainLength +1 ;
 
           setLastValidIndex(lastValidIndex);
           setAttackListData(gameData.attacklist || []);
@@ -149,7 +157,6 @@ export const CustomersTable = (props) => {
 
         if (teamDocSnapshot.exists()) {
             const teamData = teamDocSnapshot.data();
-            console.log("Team data:", teamData);
 
             if (teamData.players) {
 
@@ -161,14 +168,12 @@ export const CustomersTable = (props) => {
                       }
                   });
 
-                console.log("dsd", filteredPlayers);
                 // 更新状态
                 Object.entries(filteredPlayers).forEach(([key, value]) => {
                   console.log(key); // 键名
                   console.log(value); // 对应的属性值
                 });
                 setTeamPlayers(Object.entries(filteredPlayers) || []);
-                console.log("c",Object.entries(filteredPlayers) || [])
               } else {
                 console.log("No players data available.");
             }
@@ -186,6 +191,7 @@ export const CustomersTable = (props) => {
     router.push({
         pathname: '/attackrecord',
         query: {
+            acodeName: acodeName,
             attack: attack,
             timestamp: timestamp,
             codeName: codeName,
@@ -220,9 +226,11 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   buttonColumn = Math.floor(outs / 6) + 1;
 
   // 計算按鈕應該放置的行數
-  const remainder = (lastValidIndex % 9)+1;
-  console.log("第幾行",remainder)
-    buttonRow = remainder;
+  let remainder = (lastValidIndex % 10);
+  if (remainder === 0) {
+      remainder += 1;
+  }
+  buttonRow = remainder;
 
 }
   
@@ -281,7 +289,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleEditClick(attack, index + 1, i + 1)} 
+                              onClick={() => handleEditClick(attack, index, i + 1)} 
                             >
                               {buttonProps.text}
                             </Button>

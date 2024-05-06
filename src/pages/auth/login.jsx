@@ -111,7 +111,7 @@ const LoginPage = () => {
           router.push(`/?userId=${auth.user.id}`);
         } else {
           // Handle case where auth.user is undefined
-          throw new Error("Authentication state was not set correctly.");
+          //throw new Error("Authentication state was not set correctly.");
         }
       } catch (error) {
         helpers.setStatus({ success: false });

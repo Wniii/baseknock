@@ -17,11 +17,22 @@ import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
 import { items } from './config';
 import { SideNavItem } from './side-nav-item';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import { useState } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
 
 export const SideNav = (props) => {
   const { open, onClose } = props;
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
 
   const content = (
     <Scrollbar
@@ -107,42 +118,55 @@ export const SideNav = (props) => {
     </Scrollbar>
   );
 
-  if (lgUp) {
-    return (
-      <Drawer
-        anchor="left"
-        open
-        PaperProps={{
-          sx: {
-            backgroundColor: 'neutral.800',
-            color: 'common.white',
-            width: 280
-          }
-        }}
-        variant="permanent"
-      >
-        {content}
-      </Drawer>
-    );
-  }
-
   return (
-    <Drawer
-      anchor="left"
-      onClose={onClose}
-      open={open}
-      PaperProps={{
-        sx: {
-          backgroundColor: 'neutral.800',
-          color: 'common.white',
-          width: 280
-        }
-      }}
-      sx={{ zIndex: (theme) => theme.zIndex.appBar + 100 }}
-      variant="temporary"
-    >
-      {content}
-    </Drawer>
+    <>
+      {lgUp ? (
+        <Drawer
+          anchor="left"
+          open
+          PaperProps={{
+            sx: {
+              backgroundColor: 'neutral.800',
+              color: 'common.white',
+              width: 280
+            }
+          }}
+          variant="permanent"
+        >
+          {content}
+        </Drawer>
+      ) : (
+        <>
+          <Toolbar>
+            <IconButton
+              //color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={toggleDrawer}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Toolbar>
+          <Drawer
+            anchor="left"
+            onClose={toggleDrawer}
+            open={isDrawerOpen}
+            PaperProps={{
+              sx: {
+                backgroundColor: 'neutral.800',
+                color: 'common.white',
+                width: 280
+              }
+            }}
+            sx={{ zIndex: (theme) => theme.zIndex.appBar + 100 }}
+            variant="temporary"
+          >
+            {content}
+          </Drawer>
+        </>
+      )}
+    </>
   );
 };
 

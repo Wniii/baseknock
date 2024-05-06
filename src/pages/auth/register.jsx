@@ -38,13 +38,20 @@ const Page = () => {
 
     onSubmit: async (values, helpers) => {
       try {
-        // 其他代碼...
-    
+        const emailAlreadyExists = await checkEmailExists(values.u_email);
+        if (emailAlreadyExists) {
+          setEmailExistsError("This email is already registered. Please use another email.");
+          helpers.setSubmitting(false);  // 停止提交過程
+          return;  // 結束函式執行
+        } else {
+          setEmailExistsError("");  // 清除之前的錯誤訊息
+        }
+
         // 檢查並處理提供的隊伍 ID，如果沒有提供則略過
         if (values.u_team) {
           const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
           const teamCodeName = [];
-    
+
           for (const teamId of teamIds) {
             const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
             if (teamSnapshot.exists()) {
@@ -54,7 +61,7 @@ const Page = () => {
               return;
             }
           }
-    
+
           // 更新用戶信息，將獲取的codeName添加到用戶的隊伍數組中
           const userId = uuidv4();
           await auth.signUp(userId, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
@@ -79,7 +86,7 @@ const Page = () => {
             u_team: [],
           });
         }
-    
+
         // 其他代碼...
       } catch (error) {
         console.error("Error creating user document:", error);
@@ -90,8 +97,8 @@ const Page = () => {
       router.push('/auth/login');
 
     }
-    
-    
+
+
   });
 
   const checkEmailExists = async (email) => {
