@@ -64,7 +64,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               if (content.includes("觸身")) {
                 pitcherStats.hitByPitches += 1;  // 計算觸身球
               }
-              if (content.includes("奪三振")) {
+              if (content.includes("三振")) {
                 pitcherStats.strikeouts += 1;
               }
               if (content.includes("全壘打")) {
@@ -237,7 +237,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                 content.includes(hitType)
               );
               const hasWalk = content.includes("四壞");
-              const hasStrikeout = content.includes("奪三振");
+              const hasStrikeout = content.includes("三振");
               if (hasHit) hitsByPitcher[pitcherName].hits++;
               if (hasWalk) hitsByPitcher[pitcherName].walks++;
               if (hasStrikeout) hitsByPitcher[pitcherName].strikeouts++;
