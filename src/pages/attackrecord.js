@@ -73,7 +73,7 @@ const Page = () => {
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
     const [loading, setLoading] = useState(true);
-    const [marker, setMarker] = useState({ x: 0, y: 0 });
+    const [location, setLocation] = useState({ x: 0, y: 0 });
     const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
 
 
@@ -260,10 +260,11 @@ const Page = () => {
         if (selectedHits['三分']) rbiCount += 3;
         if (selectedHits['四分']) rbiCount += 4;
 
-        const markerData = {
-            x: markers.x.toString(),
-            y: markers.y.toString()
-        };
+        const locationData = {
+          x: location.x || '',
+          y: location.y || ''
+      };
+  
 
         try {
             await updateDoc(HgameRef, {
@@ -273,7 +274,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'location': marker,
+                    'location': locationData,
                     'pitcher': {
                         name: pitcher,
                         ball: balls.filter(Boolean).length,
@@ -309,7 +310,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'location': markers,
+                    'location': location,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
@@ -446,7 +447,7 @@ const Page = () => {
             return { x, y }; // 返回一個新的對象包含 x 和 y
         })[0]; // 假設只處理第一個匹配的玩家
 
-        setMarker(newLocation); // 更新狀態
+        setLocation(newLocation); // 更新狀態
         setOriginalLocation(newLocation); // 保存原始位置
 
     };
@@ -592,26 +593,25 @@ const Page = () => {
     };
 
 
-    //落點
-    const [markers, setMarkers] = useState({ x: '', y: '' });
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
-    const handleImageClick = (event) => {
-        const { offsetX, offsetY } = event.nativeEvent;
-        setMarker({ x: offsetX, y: offsetY });  // 更新標記位置
 
+    //落點
+    
+  const handleImageClick = (event) => {
+        const { offsetX, offsetY } = event.nativeEvent;
+        setClickCoordinates({ x: offsetX, y: offsetY });
+        setLocation({ x: offsetX.toString(), y: offsetY.toString() });
     };
 
 
     //
 
     const handleClearMarker = () => {
-        setMarker({ x: '', y: '' });  // 清除標記
+        setLocation({ x: '', y: '' });  // 清除標記
     };
 
-    const handleRestoreMarker = () => {
-        setMarker(originalLocation);  // 恢复到原始位置
-    };
+   
 
 
 
@@ -770,12 +770,12 @@ const Page = () => {
                                                     style={{ cursor: 'pointer' }}
                                                 />
                                                 {/* 檢查是否有設置 markers */}
-                                                {marker.x && marker.y && (
+                                                {location.x && location.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${marker.y}px`,
-                                                            left: `${marker.x}px`,
+                                                            top: `${location.y}px`,
+                                                            left: `${location.x}px`,
                                                             transform: 'translate(-50%, -50%)'
                                                         }}
                                                     >
@@ -790,9 +790,7 @@ const Page = () => {
                                             <Button onClick={handleClearMarker} color="secondary">
                                                 清除標記
                                             </Button>
-                                            <Button onClick={handleRestoreMarker} color="primary">
-                                            恢復先前狀態
-                                        </Button>   
+                                            
                                         </CardContent>
                                     </Card>
                                 </Grid>
