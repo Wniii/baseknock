@@ -194,13 +194,28 @@ const Page = () => {
                     const teamId = teamDocSnapshot.id;
                     const teamRef = doc(firestore, 'team', teamId);
                     const teamSnap = await getDoc(teamRef);
+                    const teamData = teamDocSnapshot.data();
 
-                    if (teamSnap.exists() && teamSnap.data().players) {
-                        // 提取玩家鍵（key）數組
-                        const playerKeys = Object.keys(teamSnap.data().players);
-                        setPlayers(playerKeys); // 假設 setPlayers 是用來更新玩家鍵的狀態
-                        // console.log('Player keys:', playerKeys);
-                        // console.log('code name:', codeName)
+                    if (teamData && teamData.players) {
+                      // 過濾出符合條件的球員鍵
+                      const playerKeys = Object.keys(teamData.players)
+                          .filter(key => {
+                              const player = teamData.players[key];
+                              console.log(`Player: ${key}, Position: ${player.position}`);
+  
+                              return player.position === 'P' &&
+                                  !AttackList.includes(key) &&
+                                  !pitcherNames.includes(key);
+                          });
+  
+                      console.log('playerKeys before adding pitcher:', playerKeys);
+  
+                      if (pitcher && !playerKeys.includes(pitcher)) {
+                          playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
+                      }
+  
+                      setPlayers(playerKeys); // 更新玩家鍵的狀態
+                      console.log('Home team player keys after processing:', playerKeys);
                     } else {
                         console.log('No players data found for team:', teamId);
                     }
@@ -595,7 +610,7 @@ const Page = () => {
 
 
 
-    
+
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
 
