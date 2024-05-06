@@ -70,49 +70,82 @@ export const AwayCustomersTable = (props) => {
 
   const handleSwap = (playerName) => {
     console.log("Player to swap:", playerName);
-    setSelectedPlayerName(playerName);  // 保存被选择的球员名字
+    setSelectedPlayerName(playerName);  // 保存被選擇的球員名字
     setOpen(true);
-    // 你可以在這裡設置更多的邏輯來處理換人操作
-  };
+  };  
 
-  const updateSubstituteInFirestore = async (originalPlayer, substitutePlayer) => {
-    const gameRef = doc(firestore, "games", timestamp);
+  
+  const updateSubstitutesForBothTeams = async (teamId, acodeName, timestamp, originalPlayer, substitutePlayer) => {
+    const updateSubstituteInFirestore = async (teamId, timestamp, originalPlayer, substitutePlayer) => {
+      const teamRef = doc(firestore, "team", teamId);
+      const gamesCollectionRef = collection(teamRef, "games");
+      
+      // 查找符合 g_id 的比賽文檔
+      const q = query(gamesCollectionRef, where("g_id", "==", timestamp));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach(async (doc) => {
+          const gameRef = doc.ref;
+          try {
+            await updateDoc(gameRef, {
+              [`substitute.${originalPlayer}`]: substitutePlayer
+            });
+            // console.log(`Substitute updated successfully for game ${doc.id} in team ${teamId}`);
+          } catch (error) {
+            // console.error(`Failed to update substitute for game ${doc.id} in team ${teamId}`, error);
+          }
+        });
+      } else {
+        // console.error(`No games found with g_id: ${timestamp} for team: ${teamId}`);
+      }
+    };
   
     try {
-      // 更新或创建 substitute map
-      await updateDoc(gameRef, {
-        [`substitute.${originalPlayer}`]: substitutePlayer
+      // 取得所有隊伍的資料，並建立一個映射表
+      const teamsData = await getDocs(collection(firestore, "team"));
+      const teamIdMap = new Map();
+      teamsData.forEach(doc => {
+        const data = doc.data();
+        teamIdMap.set(data.codeName, doc.id);
       });
-      console.log("Substitute updated successfully");
+  
+      // 更新主隊的 substitute
+      await updateSubstituteInFirestore(teamId, timestamp, originalPlayer, substitutePlayer);
+  
+      // 獲取客隊 ID 並更新客隊的 substitute
+      const awayTeamId = teamIdMap.get(acodeName);
+      if (awayTeamId) {
+        await updateSubstituteInFirestore(awayTeamId, timestamp, originalPlayer, substitutePlayer);
+      } else {
+        // console.error(`No away team found with codeName: ${acodeName}`);
+      }
     } catch (error) {
-      console.error("Failed to update substitute:", error);
+      // console.error("Failed to update substitutes for both teams:", error);
     }
   };
-
-  const ReplacementDialog = ({ open, onClose, filteredPlayers, onSelectPlayer }) => {
+  
+  const ReplacementDialog = ({ open, onClose, filteredPlayers, originalPlayer, teamId, acodeName, timestamp, onSelectPlayer }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-
+  
     const handleSelectPlayer = (player) => {
       setSelectedPlayer(player);
     };
-
+  
     const handleConfirm = () => {
-      if (selectedPlayer && selectedPlayerName) { // 确保选择了替补球员和被替换的球员名字
-        onSelectPlayer(selectedPlayer); // 可以在这个函数中调用 Firestore 更新逻辑
-        updateSubstituteInFirestore("gameId", selectedPlayerName, selectedPlayer.name);
+      if (selectedPlayer && originalPlayer) {
+        console.log(`Updating substitutes for teamId: ${teamId}, acodeName: ${acodeName}`);
+        onSelectPlayer(selectedPlayer);
+        updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
         onClose();
       } else {
         console.log("No player or substitute selected");
       }
     };
-
+  
     return (
-      <Dialog open={open} onClose={() => {
-        onClose();  // 处理关闭逻辑
-        setSelectedPlayerName("");  // 清空选择的球员名字
-        setSelectedPlayer(null);  // 清空选择的替补球员
-      }} maxWidth="md">
-        <DialogTitle>選擇替補球員- {selectedPlayerName}</DialogTitle>
+      <Dialog open={open} onClose={onClose} maxWidth="md">
+        <DialogTitle>選擇替補球員 - {originalPlayer}</DialogTitle>
         <DialogContent>
           <Box display="flex" justifyContent="space-between">
             <List>
@@ -137,9 +170,6 @@ export const AwayCustomersTable = (props) => {
       </Dialog>
     );
   };
-
-
-
 
   const handleSelectPlayer = async (player) => {
     if (player) {
@@ -214,6 +244,8 @@ export const AwayCustomersTable = (props) => {
     }
   }, [teamId, timestamp, acodeName, awayattackListData]);
 
+  const [substituteMap, setSubstituteMap] = useState({});
+
   const fetchGames = async () => {
     if (!teamId || !timestamp) {
       console.log('Required IDs are missing.');
@@ -225,7 +257,7 @@ export const AwayCustomersTable = (props) => {
       console.log("No team document found with ID:", teamId);
       return;
     }
-
+  
     const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
     const gameDocRef = doc(gamesCollectionRef, timestamp);
     const gameDocSnapshot = await getDoc(gameDocRef);
@@ -233,21 +265,20 @@ export const AwayCustomersTable = (props) => {
       console.log("No matching game document with ID:", timestamp);
       return;
     }
-
-
-
+  
     const gameData = gameDocSnapshot.data();
-
     const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-    console.log("d",orderMainLength)
-    const lastValidIndex = orderMainLength +1;
-
+    const lastValidIndex = orderMainLength + 1;
+  
     setLastValidIndex(lastValidIndex);
     setAwayAttackListData(gameData.awayattacklist || []);
     setorderoppo(gameData.orderoppo || []);
     setGameDocSnapshot(gameDocSnapshot);
-    fetchTeamPlayers(gameData.awayattacklist || []);
-
+  
+    if (gameData.substitute) {
+      setSubstituteMap(gameData.substitute);
+    }
+  
     const teamQuerySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", gameData.awayteam)));
     if (!teamQuerySnapshot.empty) {
       const teamDoc = teamQuerySnapshot.docs[0];
@@ -258,7 +289,7 @@ export const AwayCustomersTable = (props) => {
       console.log("No matching team found for codeName:", gameData.awayteam);
     }
   };
-
+  
   const fetchTeamPlayers = async (acodeName, awayattackListData) => {
     const teamsData = await getDocs(collection(firestore, "team"));
     const teamIdMap = new Map();
@@ -314,11 +345,14 @@ export const AwayCustomersTable = (props) => {
   if (gameDocSnapshot && gameDocSnapshot.data()) {
     const outs = gameDocSnapshot.data().outs || 0;
     buttonColumn = Math.floor(outs / 6) + 1;
-  
+  if(lastValidIndex == 0)
+  {
+    buttonRow = lastValidIndex + 1
+  }
     // 計算按鈕應該放置的行數
-    let remainder = (lastValidIndex % 10);
+    let remainder = (lastValidIndex % 9);
     if (remainder === 0) {
-        remainder += 1;
+        remainder += 9;
     }
     console.log("第幾行",remainder)
     buttonRow = remainder;
@@ -330,10 +364,12 @@ export const AwayCustomersTable = (props) => {
       <ReplacementDialog
         open={open}
         onClose={() => setOpen(false)}
-        awayattackListData={awayattackListData}
         filteredPlayers={filteredPlayers}
-        onSelectPlayer={handleSelectPlayer}
+        originalPlayer={selectedPlayerName}
+        teamId={teamId}
         acodeName={acodeName}
+        timestamp={timestamp}
+        onSelectPlayer={handleSelectPlayer}
       />
       <Scrollbar>
         <Box sx={{ minWidth: 800 }}>
@@ -353,7 +389,7 @@ export const AwayCustomersTable = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {awayattackListData.map((attack, index) => {
+              {awayattackListData.slice(0, 9).map((attack, index) => {
                 const orderOppoItems = orderoppo.filter((item) => item.o_p_name === attack);
                 const contentArray = new Array(9).fill('');
                 orderOppoItems.forEach((orderOppoItem) => {
@@ -362,72 +398,102 @@ export const AwayCustomersTable = (props) => {
                     contentArray[innContent - 1] = orderOppoItem.o_content.split(',')[0];
                   }
                 });
-
-                return (
-                  <TableRow hover key={index}>
-                    {/* 把交換圖標放在和打者名字同一個 TableCell */}
-                    <TableCell>
-                      <Box sx={{ position: 'relative' }}>
-                        <IconButton
-                          onClick={() => handleSwap(attack)}
-                          sx={{
-                            position: 'absolute',
-                            left: '-15px',
-                            top: '-10px',
-                            minWidth: '10px',
-                            height: '10px',
-                            width: '1px',
-                            borderRadius: '50%',
-                            backgroundColor: 'lightblue',
-                            color: 'white',
-                            '&:hover': {
-                              backgroundColor: 'darkblue'
-                            }
-                          }}
-                        >
-                          <SwapHorizIcon fontSize="small" />
-                        </IconButton>
-                        {attack}
-                      </Box>
-                    </TableCell>
-                    {contentArray.map((content, i) => {
-                      if (content) {
-                        const buttonProps = determineButtonProps(content, i);
-                        return (
-                          <TableCell key={i}>
-                            <Button
-                              variant="contained"
-                              style={{
-                                height: '30px',
-                                backgroundColor: buttonProps.color,
+  
+                // 只顯示前 8 個元素
+                const visibleContentArray = contentArray.slice(0, 9);
+  
+                const renderRowWithSubstitutes = (attack, substituteMap, visibleContentArray, index) => {
+                  return (
+                    <>
+                      {/* 顯示主要打者 */}
+                      <TableRow hover key={index}>
+                        <TableCell>
+                          <Box sx={{ position: 'relative' }}>
+                            <IconButton
+                              onClick={() => handleSwap(attack)}
+                              sx={{
+                                position: 'absolute',
+                                left: '-15px',
+                                top: '-10px',
+                                minWidth: '10px',
+                                height: '10px',
+                                width: '1px',
+                                borderRadius: '50%',
+                                backgroundColor: 'lightblue',
                                 color: 'white',
+                                '&:hover': {
+                                  backgroundColor: 'darkblue'
+                                }
                               }}
-                              onClick={() => handleClick(attack)}
                             >
-                              {buttonProps.text}
-                            </Button>
+                              <SwapHorizIcon fontSize="small" />
+                            </IconButton>
+                            {attack}
+                          </Box>
+                        </TableCell>
+                        {visibleContentArray.map((content, i) => {
+                          if (content) {
+                            const buttonProps = determineButtonProps(content, i);
+                            return (
+                              <TableCell key={i}>
+                                <Button
+                                  variant="contained"
+                                  style={{
+                                    height: '30px',
+                                    backgroundColor: buttonProps.color,
+                                    color: 'white',
+                                  }}
+                                  onClick={() => handleClick(attack)}
+                                >
+                                  {buttonProps.text}
+                                </Button>
+                              </TableCell>
+                            );
+                          } else {
+                            return <TableCell key={i}></TableCell>;
+                          }
+                        })}
+                        {Array(9 - visibleContentArray.length).fill(null).map((_, i) => (
+                          <TableCell key={visibleContentArray.length + i}></TableCell>
+                        ))}
+                      </TableRow>
+            
+                      {/* 顯示替補球員 */}
+                      {substituteMap[attack] && (
+                        <TableRow hover key={`${attack}-substitute`}>
+                          <TableCell>
+                            <Box sx={{ position: 'relative' }}>
+                              <IconButton
+                                onClick={() => handleSwap(substituteMap[attack])}
+                                sx={{
+                                  position: 'absolute',
+                                  left: '-15px',
+                                  top: '-10px',
+                                  minWidth: '10px',
+                                  height: '10px',
+                                  width: '1px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'lightblue',
+                                  color: 'white',
+                                  '&:hover': {
+                                    backgroundColor: 'darkblue'
+                                  }
+                                }}
+                              >
+                                <SwapHorizIcon fontSize="small" />
+                              </IconButton>
+                              (替){substituteMap[attack]}
+                            </Box>
                           </TableCell>
-                        );
-                      } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
-                        return (
-                          <TableCell key={i}>
-                            <Button
-                              variant="outlined"
-                              color="inherit"
-                              sx={{ height: '30px', padding: 0 }}
-                              type="button"
-                              onClick={() => handleClick(attack)}
-                            >
-                              <AddIcon />
-                            </Button>
-                          </TableCell>
-                        );
-                      } else {
-                        return <TableCell key={i}></TableCell>;
-                      }
-                    })}
-                  </TableRow>
-                );
+                          {Array(8).fill(null).map((_, i) => (
+                            <TableCell key={i}></TableCell>
+                          ))}
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                };
+                return renderRowWithSubstitutes(attack, substituteMap, visibleContentArray, index);
               })}
             </TableBody>
           </Table>
@@ -444,6 +510,8 @@ export const AwayCustomersTable = (props) => {
       />
     </Card>
   );
+  
+  
 };
 
 AwayCustomersTable.propTypes = {
