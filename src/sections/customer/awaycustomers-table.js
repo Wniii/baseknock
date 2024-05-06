@@ -1,16 +1,14 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { collection, getDoc, getDocs, doc, query, where, updateDoc, writeBatch, arrayUnion } from "firebase/firestore";
+import { collection, getDoc, getDocs, doc, query, where, updateDoc, writeBatch } from "firebase/firestore";
 import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'; // 引入交換圖標
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { firestore } from '../../pages/firebase';
 import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
 import { IconButton } from '@mui/material';
-
-
 
 const determineButtonProps = (content, index) => {
   let buttonColor;
@@ -19,7 +17,7 @@ const determineButtonProps = (content, index) => {
     case '二安':
     case '三安':
     case '全打':
-      buttonColor = green[300]; // 绿色
+      buttonColor = green[300]; // 綠色
       break;
     case '三振':
     case '飛球':
@@ -28,13 +26,13 @@ const determineButtonProps = (content, index) => {
     case '野選':
     case '雙殺':
     case '違規':
-      buttonColor = red[300]; // 红色
+      buttonColor = red[300]; // 紅色
       break;
     case '四壞':
     case '犧飛':
     case '犧觸':
     case '觸身':
-      buttonColor = 'lightblue'; // 淡蓝色
+      buttonColor = 'lightblue'; // 淡藍色
       break;
     default:
       buttonColor = 'black'; // 黑色
@@ -48,7 +46,7 @@ const determineButtonProps = (content, index) => {
 const AwayCustomersTable = (props) => {
   const {
     count = 0,
-    onPageChange = () => { },
+    onPageChange = () => {},
     onRowsPerPageChange,
     page = 0,
     rowsPerPage = 0,
@@ -69,7 +67,6 @@ const AwayCustomersTable = (props) => {
   const [selectedPlayerName, setSelectedPlayerName] = useState("");
 
   const handleSwap = (playerName) => {
-    console.log("Player to swap:", playerName);
     setSelectedPlayerName(playerName);
     setOpen(true);
   };
@@ -124,7 +121,6 @@ const AwayCustomersTable = (props) => {
 
     const handleConfirm = () => {
       if (selectedPlayer && originalPlayer) {
-        console.log(`Updating substitutes for teamId: ${teamId}, acodeName: ${acodeName}`);
         onSelectPlayer(selectedPlayer);
         updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
         onClose();
@@ -250,8 +246,8 @@ const AwayCustomersTable = (props) => {
     }
 
     const gameData = gameDocSnapshot.data();
-    const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-    const lastValidIndex = orderMainLength + 1;
+    const orderOppoLength = gameData.orderoppo ? gameData.orderoppo.length : 0;
+    const lastValidIndex = orderOppoLength + 1;
 
     setLastValidIndex(lastValidIndex);
     setAwayAttackListData(gameData.awayattacklist || []);
@@ -285,7 +281,7 @@ const AwayCustomersTable = (props) => {
 
     const ateam = teamIdMap.get(acodeName);
     if (!ateam) {
-      console.log("No such team found for code:", acodeName);
+      console.log("No such team found for", acodeName);
       return;
     }
 
@@ -395,6 +391,19 @@ const AwayCustomersTable = (props) => {
                 </Button>
               </TableCell>
             );
+          } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+            return (
+              <TableCell key={i}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  sx={{ height: '30px', padding: 0 }}
+                  onClick={() => handleClick(attack)}
+                >
+                  <AddIcon />
+                </Button>
+              </TableCell>
+            );
           } else {
             return <TableCell key={i}></TableCell>;
           }
@@ -423,19 +432,17 @@ const AwayCustomersTable = (props) => {
   };
 
   let buttonRow = -1;
-
   let buttonColumn = -1;
+
   if (gameDocSnapshot && gameDocSnapshot.data()) {
     const outs = gameDocSnapshot.data().outs || 0;
     buttonColumn = Math.floor(outs / 6) + 1;
-    if (lastValidIndex == 0) {
-      buttonRow = lastValidIndex + 1;
-    }
-    let remainder = (lastValidIndex % 9);
+    let remainder = lastValidIndex % 9;
     if (remainder === 0) {
-      remainder += 9;
+      remainder = 9;
     }
     buttonRow = remainder;
+    console.log("aaaa:",buttonRow)
   }
 
   return (
