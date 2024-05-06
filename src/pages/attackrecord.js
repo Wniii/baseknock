@@ -593,6 +593,9 @@ const Page = () => {
     };
 
 
+
+
+    
     const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
 
