@@ -270,7 +270,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                   newPlayerHits[playerEntry.p_id].double += 1;
                 if (playerStat.content && playerStat.content.includes("三安"))
                   newPlayerHits[playerEntry.p_id].triple += 1;
-                if (playerStat.content && playerStat.content.includes("全壘打"))
+                if (playerStat.content && playerStat.content.includes("全打"))
                   newPlayerHits[playerEntry.p_id].homerun += 1;
                 if (playerStat.content && playerStat.content.includes("雙殺"))
                   newPlayerHits[playerEntry.p_id].doubleplay += 1;
@@ -320,7 +320,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                   newPlayerHits[playerEntry.p_id].double += 1;
                 if (playerStat.o_content && playerStat.o_content.includes("三安"))
                   newPlayerHits[playerEntry.p_id].triple += 1;
-                if (playerStat.o_content && playerStat.o_content.includes("全壘打"))
+                if (playerStat.o_content && playerStat.o_content.includes("全打"))
                   newPlayerHits[playerEntry.p_id].homerun += 1;
                 if (playerStat.o_content && playerStat.o_content.includes("雙殺"))
                   newPlayerHits[playerEntry.p_id].doubleplay += 1;
