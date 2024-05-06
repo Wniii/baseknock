@@ -273,7 +273,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'markers': marker,
+                    'location': marker,
                     'pitcher': {
                         name: pitcher,
                         ball: balls.filter(Boolean).length,
@@ -309,7 +309,7 @@ const Page = () => {
                     'onbase': bases,
                     'p_name': attackData,
                     'rbi': rbiCount,
-                    'markers': markers,
+                    'location': markers,
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
