@@ -17,10 +17,8 @@ import React, { useState, useEffect } from 'react';
 import { firestore } from 'src/pages/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
-export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo,selectedTeam }) => {
+export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo, selectedTeam }) => {
   const [playerGames, setPlayerGames] = useState([]);
-
-
 
   useEffect(() => {
     const fetchPlayerGames = async () => {
@@ -85,68 +83,70 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
   }, [selectedPlayer, selectedTeam]);
   
   const countPlayerStats = (content, stats, additionalStats = {}) => {
-    // content 可以是 'single', 'double', 'triple', 'home_run', 'walk', 'hit_by_pitch' 等
-    switch(content) {
-      case '一安':
-        stats.hits += 1;
-        stats.single_hits += 1;
-        stats.total_bases += 1;
-        break;
-      case '二安':
-        stats.hits += 1;
-        stats.double_hits += 1;
-        stats.total_bases += 2;
-        break;
-      case '三安':
-        stats.hits += 1;
-        stats.triple_hits += 1;
-        stats.total_bases += 3;
-        break;
-      case '全壘打':
-        stats.hits += 1;
-        stats.home_runs += 1;
-        stats.total_bases += 4;
-        break;
-      case '雙殺':
-        stats.double_plays += 1;
-      break;
-      case '四壞':
-        stats.walks += 1;
-        break;
-      case '觸身':
-        stats.hit_by_pitch += 1;
-        break;
-      case '犧飛':
-        stats.sac_fly += 1;
-        break;
-      case '犧觸':
-        stats.sac_bunt += 1;
-        break;
-    }
+    // 將事件拆分成列表，以逗號或其他分隔符號分隔
+    const events = content.split(',');
+  
+    events.forEach(event => {
+      switch(event.trim()) {
+        case '一安':
+          stats.hits += 1;
+          stats.single_hits += 1;
+          stats.total_bases += 1;
+          break;
+        case '二安':
+          stats.hits += 1;
+          stats.double_hits += 1;
+          stats.total_bases += 2;
+          break;
+        case '三安':
+          stats.hits += 1;
+          stats.triple_hits += 1;
+          stats.total_bases += 3;
+          break;
+        case '全打':
+          stats.hits += 1;
+          stats.home_runs += 1;
+          stats.total_bases += 4;
+          break;
+        case '雙殺':
+          stats.double_plays += 1;
+          break;
+        case '四壞':
+          stats.walks += 1;
+          break;
+        case '觸身':
+          stats.hit_by_pitch += 1;
+          break;
+        case '犧飛':
+          stats.sac_fly += 1;
+          break;
+        case '犧觸':
+          stats.sac_bunt += 1;
+          break;
+      }
+    });
+
     if (additionalStats.rbi) {
       stats.rbi += additionalStats.rbi;
     }
   };
   
-  const calculateBattingAverage = (hits, plate_appearances) => {
-    return plate_appearances > 0 ? (hits / plate_appearances).toFixed(3) : '.000';
+  const calculateBattingAverage = (hits, at_bats) => {
+    return at_bats > 0 ? (hits / at_bats).toFixed(3) : '.000';
   };
   
-  const calculateOnBasePercentage = (hits, walks, hitByPitch, plate_appearances) => {
-    const totalChances = plate_appearances + walks + hitByPitch;
+  const calculateOnBasePercentage = (hits, walks, hitByPitch, at_bats) => {
+    const totalChances = at_bats + walks + hitByPitch;
     return totalChances > 0 ? ((hits + walks + hitByPitch) / totalChances).toFixed(3) : '.000';
   };
   
-  const calculateSluggingPercentage = (totalBases, plate_appearances) => {
-    return plate_appearances > 0 ? (totalBases / plate_appearances).toFixed(3) : '.000';
+  const calculateSluggingPercentage = (totalBases, at_bats) => {
+    return at_bats > 0 ? (totalBases / at_bats).toFixed(3) : '.000';
   };
   
   const calculateOPS = (onBasePct, sluggingPct) => {
     return (parseFloat(onBasePct) + parseFloat(sluggingPct)).toFixed(3);
   };
-  
-  
-  
   
   useEffect(() => {
     console.log('更新後的遊戲數據:', playerGames);
@@ -191,34 +191,34 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               </TableRow>
             </TableHead>
             <TableBody>
-  {playerGames.length > 0 ? playerGames.map((game) => (
-    <TableRow hover key={game.id}>
-      <TableCell>{game.formattedDate}</TableCell>
-      <TableCell>{game.plate_appearances}</TableCell>
-      <TableCell>{game.at_bats}</TableCell>
-      <TableCell>{game.hits}</TableCell>
-      <TableCell>{game.total_bases}</TableCell>
-      <TableCell>{game.rbi}</TableCell>
-      <TableCell>{game.single_hits}</TableCell>
-      <TableCell>{game.double_hits}</TableCell>
-      <TableCell>{game.triple_hits}</TableCell>
-      <TableCell>{game.home_runs}</TableCell>
-      <TableCell>{game.double_plays}</TableCell>
-      <TableCell>{game.walks}</TableCell>
-      <TableCell>{game.sac_fly}</TableCell>
-      <TableCell>{game.sac_bunt}</TableCell>
-      <TableCell>{game.hit_by_pitch}</TableCell>
-      <TableCell>{calculateBattingAverage(game.hits, game.plate_appearances)}</TableCell>
-      <TableCell>{calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.plate_appearances)}</TableCell>
-      <TableCell>{calculateSluggingPercentage(game.total_bases, game.plate_appearances)}</TableCell>
-      <TableCell>{calculateOPS(calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.plate_appearances), calculateSluggingPercentage(game.total_bases, game.at_bat))}</TableCell>
-    </TableRow>
-  )) : (
-    <TableRow>
-      <TableCell colSpan={19}>該球員還沒有比賽數據</TableCell>
-    </TableRow>
-  )}
-</TableBody>
+              {playerGames.length > 0 ? playerGames.map((game) => (
+                <TableRow hover key={game.id}>
+                  <TableCell>{game.formattedDate}</TableCell>
+                  <TableCell>{game.plate_appearances}</TableCell>
+                  <TableCell>{game.at_bats}</TableCell>
+                  <TableCell>{game.hits}</TableCell>
+                  <TableCell>{game.total_bases}</TableCell>
+                  <TableCell>{game.rbi}</TableCell>
+                  <TableCell>{game.single_hits}</TableCell>
+                  <TableCell>{game.double_hits}</TableCell>
+                  <TableCell>{game.triple_hits}</TableCell>
+                  <TableCell>{game.home_runs}</TableCell>
+                  <TableCell>{game.double_plays}</TableCell>
+                  <TableCell>{game.walks}</TableCell>
+                  <TableCell>{game.sac_fly}</TableCell>
+                  <TableCell>{game.sac_bunt}</TableCell>
+                  <TableCell>{game.hit_by_pitch}</TableCell>
+                  <TableCell>{calculateBattingAverage(game.hits, game.at_bats)}</TableCell>
+                  <TableCell>{calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.at_bats)}</TableCell>
+                  <TableCell>{calculateSluggingPercentage(game.total_bases, game.at_bats)}</TableCell>
+                  <TableCell>{calculateOPS(calculateOnBasePercentage(game.hits, game.walks, game.hit_by_pitch, game.at_bats), calculateSluggingPercentage(game.total_bases, game.at_bats))}</TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={19}>該球員還沒有比賽數據</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
           </Table>
         </Box>
       </Scrollbar>
