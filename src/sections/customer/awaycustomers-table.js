@@ -17,7 +17,7 @@ const determineButtonProps = (content, index) => {
     case '二安':
     case '三安':
     case '全打':
-      buttonColor = green[300]; // 綠色
+      buttonColor = green[300]; // 绿色
       break;
     case '三振':
     case '飛球':
@@ -26,17 +26,19 @@ const determineButtonProps = (content, index) => {
     case '野選':
     case '雙殺':
     case '違規':
-      buttonColor = red[300]; // 紅色
+      buttonColor = red[300]; // 红色
       break;
     case '四壞':
     case '犧飛':
     case '犧觸':
     case '觸身':
-      buttonColor = 'lightblue'; // 淡藍色
+      buttonColor = 'lightblue'; // 淡蓝色
       break;
-    default:
-      buttonColor = 'black'; // 黑色
-  }
+      case '不知':
+        buttonColor = 'black'; // 黑色
+      default:
+        buttonColor = 'gray'; // 黑色
+    }
   return {
     color: buttonColor,
     text: content
@@ -314,6 +316,21 @@ const AwayCustomersTable = (props) => {
     });
   };
 
+  const handleEditClick = (attack, row, column) => {
+    router.push({
+      pathname: '/editattackrecord',
+      query: {
+        attack: attack,
+        timestamp: timestamp,
+        codeName: codeName,
+        teamId: teamId,
+        outs: outs,
+        row: row,
+        column: column
+      }
+    });
+  };
+
   const renderRowWithSubstitutes = (attack, substituteMap, visibleContentArray, index) => {
     const generateSubstituteRow = (playerName) => (
       <TableRow hover key={`${playerName}-substitute`}>
@@ -385,7 +402,7 @@ const AwayCustomersTable = (props) => {
                     backgroundColor: buttonProps.color,
                     color: 'white',
                   }}
-                  onClick={() => handleClick(attack)}
+                  onClick={() => handleEditClick(attack, index, i + 1)}
                 >
                   {buttonProps.text}
                 </Button>

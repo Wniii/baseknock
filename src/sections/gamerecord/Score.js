@@ -72,26 +72,56 @@ export const Score = (props) => {
   const [AwayrbiTotalByInn, setAwayRbiTotalByInn] = useState({}); // 使用 useState 保存 rbiTotalByInn
   const [hitTotal, setHitTotal] = useState(0);
   const [awayHitTotal, setAwayHitTotal] = useState(0);
+  const [ErrorCount, setErrorCount] = useState(0);
+  const [awayErrorCount, setAwayErrorCount] = useState(0);
 
   const calculateHit = (ordermain) => {
     let hitCount = 0;
     ordermain.forEach((order) => {
-      if (["一安", "二安", "三安", "全打"].includes(order.content)) {
-        hitCount += 1;
-      }
+      // 將 o_content 按逗號拆分，並檢查每個元素是否為安打
+      const hits = order.content.split(',');
+      hits.forEach((hit) => {
+        if (["一安", "二安", "三安", "全打"].includes(hit.trim())) {
+          hitCount += 1;
+        }
+      });
     });
     return hitCount;
   };
 
+
   const calculateAwayHit = (orderoppo) => {
     let awayHitCount = 0;
     orderoppo.forEach((order) => {
-      if (["一安", "二安", "三安", "全打"].includes(order.o_content)) {
-        awayHitCount += 1;
-      }
+      const hits = order.o_content.split(',');
+      hits.forEach((hit) => {
+        if (["一安", "二安", "三安", "全打"].includes(hit.trim())) {
+          awayHitCount += 1;
+        }
+      });
     });
     return awayHitCount;
   };
+
+  const calculateError = (orderoppo) => {
+    let ErrorCount = 0;
+    orderoppo.forEach((order) => {
+      if (["失誤"].includes(order.o_content)) {
+        ErrorCount += 1;
+      }
+    });
+    return ErrorCount;
+  };
+
+  const AwaycalculateError = (ordermain) => {
+    let awayErrorCount = 0;
+    ordermain.forEach((order) => {
+      if (["失誤"].includes(order.content)) {
+        awayErrorCount += 1;
+      }
+    });
+    return awayErrorCount;
+  };  
 
 
   useEffect(() => {
@@ -101,10 +131,14 @@ export const Score = (props) => {
     if (ordermain.length > 0) {
       const totalHits = calculateHit(ordermain);
       setHitTotal(totalHits);
+      const totolawayerror = AwaycalculateError(ordermain);
+      setAwayErrorCount(totolawayerror)
     }
     if (orderoppo.length > 0) {
       const totalAwayHits = calculateAwayHit(orderoppo);
       setAwayHitTotal(totalAwayHits);
+      const totolerror = calculateError(orderoppo);
+      setErrorCount(totolerror)
     }
   }, [ordermain, orderoppo]);
 
@@ -170,12 +204,13 @@ export const Score = (props) => {
                 <TableCell></TableCell>
                 <TableCell>R</TableCell>
                 <TableCell>H</TableCell>
+                <TableCell>E</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {[
-                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal },
-                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal }
+                { teamName: awayteam, rbiTotals: AwayrbiTotalByInn, hitTotals: awayHitTotal, TotalError: awayErrorCount},
+                { teamName: hometeam, rbiTotals: rbiTotalByInn, hitTotals: hitTotal, TotalError: ErrorCount }
               ].map((team, rowIndex) => (
                 <TableRow key={rowIndex} hover>
                   <TableCell>{team.teamName}</TableCell>
@@ -191,6 +226,7 @@ export const Score = (props) => {
                   <TableCell>
                     {team.hitTotals}
                   </TableCell>
+                  <TableCell>{team.TotalError}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

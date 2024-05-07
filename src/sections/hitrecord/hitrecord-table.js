@@ -384,50 +384,53 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     try {
       const querySnapshot = await getDocs(gamesRef);
       const locations = [];
-
+  
       querySnapshot.forEach((docSnapshot) => {
         const gameData = docSnapshot.data();
-
-        // Check if ordermain exists and is an array before processing
+  
+        // 檢查並處理 ordermain
         if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
           gameData.ordermain.forEach((play) => {
             if (play.p_name === playerId && play.location) {
-              // Ensure the location data is not undefined or null
-              if (play.location.x !== undefined && play.location.y !== undefined) {
-                // Include content in the location object
+              // 確保 location 數據有效且非空
+              const x = parseFloat(play.location.x);
+              const y = parseFloat(play.location.y);
+              if (!isNaN(x) && !isNaN(y) && x !== 0 && y !== 0) {
                 locations.push({
-                  x: play.location.x,
-                  y: play.location.y,
-                  content: play.content, // Add content to the location data
+                  x: x,
+                  y: y,
+                  content: play.content // 添加 content 到 location
                 });
               }
             }
           });
         }
-
-        // Check if orderoppo exists and is an array before processing
+  
+        // 檢查並處理 orderoppo
         if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
           gameData.orderoppo.forEach((play) => {
             if (play.o_p_name === playerId && play.location) {
-              // Ensure the location data is not undefined or null
-              if (play.location.x !== undefined && play.location.y !== undefined) {
-                // Include o_content in the location object
+              // 確保 location 數據有效且非空
+              const x = parseFloat(play.location.x);
+              const y = parseFloat(play.location.y);
+              if (!isNaN(x) && !isNaN(y) && x !== 0 && y !== 0) {
                 locations.push({
-                  x: play.location.x,
-                  y: play.location.y,
-                  content: play.o_content, // Add o_content to the location data
+                  x: x,
+                  y: y,
+                  content: play.o_content // 添加 o_content 到 location
                 });
               }
             }
           });
         }
       });
-
-      setSelectedLocation(locations); // Update state with all found locations
+  
+      setSelectedLocation(locations); // 更新狀態
     } catch (error) {
       console.error("Error fetching player locations: ", error);
     }
   };
+  
 
   useEffect(() => {
     const handleResize = () => {
