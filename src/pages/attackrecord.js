@@ -133,10 +133,10 @@ const Page = () => {
         const inningsCompleted = Math.floor((gameData.outs || 0) / 6) + 1;
         setCurrentInning(inningsCompleted);
 
-        if (gameData.awayposition && typeof gameData.awayposition === 'object') {
-          const positionPContent = gameData.awayposition.P;
-          setPitcher(positionPContent);
-        }
+        const pitcherName = gameData.position.P;
+
+          setPitcher(pitcherName);
+        
 
         // 使用 router.query 的數據處理 ordermain 和 attacklist
         if (router.query.column && router.query.row) {

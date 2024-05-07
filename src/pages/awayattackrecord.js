@@ -114,11 +114,9 @@ const Page = () => {
                                 awayteam: gameData.awayteam || "",
                             }));
 
-                            console.log('Updated hometeam:', values.hometeam, 'awayteam:', values.awayteam);
                             if (gameData.outs) {
                                 setOuts(gameData.outs || 0); // 直接設置 outs 的初始值
                                 setoldouts(gameData.outs || 0);
-                                console.log('Initial Outs:', gameData.outs || 0);
                             }
                             if (gameSnap.exists()) {
                                 const gameData = gameSnap.data();
@@ -130,22 +128,20 @@ const Page = () => {
                                 const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
                                 setAttackList(gameData.attacklist || [])
-                                const pitcherNames = gameData.orderoppo.map(item => {
-                                    // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
-                                    return item.pitcher && item.pitcher.name ? item.pitcher.name : '';
-                                  });
-                                  console.log("d",pitcherNames)
+                                console.log("Dd",gameData)
+                                const pitcherName = gameData.position.P;
+
+                                
+                                  console.log("ddddd",pitcherName)
                                   // 使用 setordermain 更新 state
-                                  setpitcherNames(pitcherNames);
+                                  setpitcherNames(pitcherName);
 
                             }
                             if (gameSnap.exists()) {
                                 // 獲取遊戲文檔數據
                                 const gameData = gameSnap.data();
-                                console.log('lala', codeName)
                                 // 更新狀態以保存投手名稱
                                 setPitcher(gameData.position.P);
-                                console.log("Fetched pitcher name:", gameData.position.P);
                             } else {
                                 console.log("No such game document!");
                             }
@@ -181,42 +177,36 @@ const Page = () => {
             }
     
             try {
-                console.log('Fetching home team players for:', values.hometeam);
     
                 const teamQuerySnapshot = await getDocs(
                     query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
     
-                console.log('teamQuerySnapshot:', teamQuerySnapshot);
     
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
     
-                    console.log('teamDocSnapshot:', teamDocSnapshot);
-                    console.log('teamData:', teamData);
+
     
                     if (teamData && teamData.players) {
                         // 過濾出符合條件的球員鍵
                         const playerKeys = Object.keys(teamData.players)
                             .filter(key => {
                                 const player = teamData.players[key];
-                                console.log(`Player: ${key}, Position: ${player.position}`);
     
                                 return player.position === 'P' &&
                                     !AttackList.includes(key) &&
                                     !pitcherNames.includes(key);
                             });
     
-                        console.log('playerKeys before adding pitcher:', playerKeys);
     
                         if (pitcher && !playerKeys.includes(pitcher)) {
                             playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
                         }
     
                         setPlayers(playerKeys); // 更新玩家鍵的狀態
-                        console.log('Home team player keys after processing:', playerKeys);
-                        console.log('Home team code name:', values.hometeam);
+            
                     } else {
                         console.log('No players data found for home team with codeName:', values.hometeam);
                     }
