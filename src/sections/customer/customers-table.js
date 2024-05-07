@@ -225,14 +225,19 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   const outs = gameDocSnapshot.data().outs || 0;
   buttonColumn = Math.floor(outs / 6) + 1;
 
-  // 計算按鈕應該放置的行數
-  let remainder = (lastValidIndex % 10);
-  if (remainder === 0) {
-      remainder += 1;
+     // 計算按鈕應該放置的行數
+     if (lastValidIndex == 0){
+      buttonRow = lastValidIndex +1
+    }
+    else {
+      let remainder = (lastValidIndex % 9);
+      if (remainder == 0 ){
+        remainder += 9
+      }
+   
+    buttonRow = remainder;
+    }
   }
-  buttonRow = remainder;
-
-}
   
   return (
     <Card>
