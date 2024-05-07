@@ -214,6 +214,13 @@ const DefencePlacePage = () => {
 
   const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
+    
+    const isEveryPositionFilled = Object.values(positions).every(player => player !== null);
+
+    if (!isEveryPositionFilled) {
+      setErrorMessage('所有守備位置必須填滿才能儲存');
+      return;
+    }
 
     try {
 
