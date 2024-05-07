@@ -932,7 +932,7 @@ const Page = () => {
                                                     </div>
                                                     <div style={{ width: '100px', textAlign: 'center' }}>
                                                         <Button
-                                                            variant={selectedHits[' 失誤'] ? 'contained' : 'outlined'}
+                                                            variant={selectedHits['失誤'] ? 'contained' : 'outlined'}
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'

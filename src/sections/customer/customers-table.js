@@ -68,9 +68,11 @@ const determineButtonProps = (content, index) => {
     case '觸身':
       buttonColor = 'lightblue'; // 淡蓝色
       break;
-    default:
-      buttonColor = 'black'; // 黑色
-  }
+      case '不知':
+        buttonColor = 'black'; // 黑色
+      default:
+        buttonColor = 'gray'; // 黑色
+    }
   return {
     color: buttonColor,
     text: content
