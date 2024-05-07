@@ -526,7 +526,7 @@ const Page = () => {
         if (outs > 0) {
             remainder = outs % 3; // 計算 outs 除以 3 的餘數
             if (remainder === 0) {
-                remainder = 3; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
+                remainder = 0; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
             }
         }
     
