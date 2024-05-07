@@ -318,7 +318,7 @@ const AwayCustomersTable = (props) => {
 
   const handleEditClick = (attack, row, column) => {
     router.push({
-      pathname: '/editattackrecord',
+      pathname: '/editawayattackrecord',
       query: {
         attack: attack,
         timestamp: timestamp,
