@@ -24,7 +24,8 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
-    const { codeName, timestamp, teamId } = router.query;
+    const { codeName, timestamp, teamId, row, column } = router.query;
+    const [currentRow, setCurrentRow] = useState(parseInt(row)); 
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [gameDocIds, setGameDocIds] = useState([]);
@@ -145,12 +146,12 @@ const Page = () => {
                 if (router.query.column && router.query.row) {
                     const inning = parseInt(router.query.column, 10);
                     const playerIndex = parseInt(router.query.row, 10);
-
                     if (playerIndex < attacklist.length) {
                         const playerName = attacklist[playerIndex];
                         setPlayerName(attacklist[playerIndex]);
                         setInning(inning)
                         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
+                        console.log("c",filteredOrderMain)
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
                         console.log("d", filteredOrderoppo)
                         const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
@@ -179,7 +180,6 @@ const Page = () => {
 
                         }
 
-                        updateOut(filteredOrderMain, filteredOrderoppo);
                     }
                 }
             }
@@ -258,6 +258,8 @@ const Page = () => {
 
         const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
         const docSnapshot = await getDoc(gameRef);
+        const ordermain = docSnapshot.data().ordermain;
+        const orderoppo = docSnapshot.data().orderoppo;
 
         if (!docSnapshot.exists()) {
             console.error("Document does not exist!");
@@ -265,7 +267,6 @@ const Page = () => {
             return;
         }
 
-        let ordermain = docSnapshot.data().ordermain;
         const indexToUpdate = ordermain.findIndex(item => item.p_name === playerName && item.inn === inning);
 
         if (indexToUpdate === -1) {
@@ -318,19 +319,14 @@ const Page = () => {
         };
 
         // 放置 `updateOut` 函數
-        const updateOut = (filteredOrderMain, filteredOrderoppo) => {
             // 累加所有的 'innouts'
-            const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-            const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
-            console.log("totalOutsMain", totalOutsMain)
-            console.log("totalOutsOppo", totalOutsOppo)
+            const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
+            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
             const totalOuts = totalOutsMain + totalOutsOppo;
             setOuts(totalOuts);  // 更新 outs 狀態
             console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-        };
 
         // 使用 `updateOut` 函數進行出局數計算
-        updateOut(ordermain);
 
         try {
             await updateDoc(HgameRef, {
@@ -529,14 +525,6 @@ const Page = () => {
     };
 
 
-    const updateOut = (filteredOrderMain, filteredOrderoppo) => {
-        // 累加所有的 'innouts'
-        const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOuts = totalOutsMain + totalOutsOppo;
-        setOuts(totalOuts);  // 更新 outs 狀態
-        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-    };
 
 
     const handleOutChange = (hitType = null, baseOuts) => {
@@ -675,6 +663,16 @@ const Page = () => {
         }
     };
 
+    useEffect(() => {
+        setCurrentRow(parseInt(row));
+    }, [row]);
+
+
+    // 对 row 进行加一操作
+    useEffect(() => {
+        setCurrentRow(prevRow => prevRow + 1);
+    }, []);
+
 
 
 
@@ -729,7 +727,7 @@ const Page = () => {
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
                                                         <Typography variant='body1'>
-                                                            第{currentBattingOrder}棒
+                                                            第{currentRow}棒
                                                         </Typography>
                                                         &nbsp;&nbsp;&nbsp;
                                                         <Paper
@@ -807,7 +805,7 @@ const Page = () => {
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center'}}>
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                                                                {currentInning}
+                                                                {column}
                                                             </Typography>
                                                             <ArrowDropDownIcon />
                                                         </div>

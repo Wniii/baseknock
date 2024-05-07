@@ -131,9 +131,10 @@ const Page = () => {
                                 setCurrentInning(inningsCompleted);
                                 setAttackList(gameData.attacklist || [])
                                 const pitcherNames = gameData.orderoppo.map(item => {
-                                    // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
-                                    return item.pitcher && item.pitcher.name ? item.pitcher.name : '';
+                                    // 检查每个元素中的 'position' 对象以及 'position.P' 是否存在
+                                    return item.position && item.position.P ? item.position.P : '';
                                   });
+                                  
                                   console.log("d",pitcherNames)
                                   // 使用 setordermain 更新 state
                                   setpitcherNames(pitcherNames);
