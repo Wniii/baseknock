@@ -332,7 +332,7 @@ const AwayCustomersTable = (props) => {
       <TableRow hover key={`${playerName}-substitute`}>
         <TableCell>
           <Box sx={{ position: 'relative' }}>
-            <IconButton
+            {/* <IconButton
               onClick={() => handleSwap(playerName)}
               sx={{
                 position: 'absolute',
@@ -350,7 +350,7 @@ const AwayCustomersTable = (props) => {
               }}
             >
               <SwapHorizIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             (替){playerName}
           </Box>
         </TableCell>
@@ -364,7 +364,7 @@ const AwayCustomersTable = (props) => {
       <TableRow hover key={index}>
         <TableCell>
           <Box sx={{ position: 'relative' }}>
-            <IconButton
+            {/* <IconButton
               onClick={() => handleSwap(attack)}
               sx={{
                 position: 'absolute',
@@ -382,7 +382,7 @@ const AwayCustomersTable = (props) => {
               }}
             >
               <SwapHorizIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             {attack}
           </Box>
         </TableCell>
