@@ -74,7 +74,7 @@ const Page = () => {
     const [loading, setLoading] = useState(true);
     const [playerName, setPlayerName] = useState('');
     const [inning, setInning] = useState(0);
-    const [marker, setMarker] = useState({ x: 0, y: 0 });
+    const [location, setLocation] = useState({ x: '', y: '' });
     const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
 
 
@@ -306,7 +306,7 @@ const Page = () => {
             ...ordermain[indexToUpdate],
             content: selectedContent,
             onbase: bases,
-            location: marker,
+            location: location,
             pitcher: {
                 ...ordermain[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
@@ -494,7 +494,7 @@ const Page = () => {
             return { x, y }; // 返回一個新的對象包含 x 和 y
         })[0]; // 假設只處理第一個匹配的玩家
 
-        setMarker(newLocation); // 更新狀態
+        setLocation(newLocation); // 更新狀態
         setOriginalLocation(newLocation); // 保存原始位置
 
     };
@@ -635,14 +635,12 @@ const Page = () => {
 
 
     //落點
-    const [location, setLocation] = useState({ x: '', y: '' });
-    const [markers, setMarkers] = useState({ x: '', y: '' });
+    
 
-    const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
     const handleImageClick = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
-        setMarker({ x: offsetX, y: offsetY });  // 更新標記位置
+        setLocation({ x: offsetX, y: offsetY });  // 更新標記位置
 
 
     };
@@ -650,12 +648,12 @@ const Page = () => {
 
 
 
-    const handleClearMarker = () => {
-        setMarker({ x: '', y: '' });  // 清除標記
+    const handleClearLocation = () => {
+        setLocation({ x: '', y: '' });  // 清除標記
     };
 
-    const handleRestoreMarker = () => {
-        setMarker(originalLocation);  // 恢复到原始位置
+    const handleRestoreLocation = () => {
+        setLocation(originalLocation);  // 恢复到原始位置
     };
 
 
@@ -842,13 +840,13 @@ const Page = () => {
                                                     onClick={handleImageClick}
                                                     style={{ cursor: 'pointer' }}
                                                 />
-                                                {/* 檢查是否有設置 markers */}
-                                                {marker.x && marker.y && (
+                                                {/* 檢查是否有設置 location */}
+                                                {location.x && location.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${marker.y}px`,
-                                                            left: `${marker.x}px`,
+                                                            top: `${location.y}px`,
+                                                            left: `${location.x}px`,
                                                             transform: 'translate(-50%, -50%)'
                                                         }}
                                                     >
@@ -860,10 +858,10 @@ const Page = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <Button onClick={handleClearMarker} color="secondary">
+                                            <Button onClick={handleClearLocation} color="secondary">
                                                 清除標記
                                             </Button>
-                                            <Button onClick={handleRestoreMarker} color="primary">
+                                            <Button onClick={handleRestoreLocation} color="primary">
                                                 恢復先前狀態
                                             </Button>
                                         </CardContent>

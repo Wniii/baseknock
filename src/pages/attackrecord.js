@@ -73,7 +73,7 @@ const Page = () => {
   const [selectedHitType, setSelectedHitType] = useState("");
   const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
   const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState({ x: 0, y: 0 });
+  const [location, setLocation] = useState({ x: '', y: '' });
   const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
 
 
