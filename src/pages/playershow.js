@@ -154,6 +154,10 @@ const handleSaveAndNavigate = async () => {
             alert("請選擇九位球員！");
             return;
         }
+        if (selectedPlayers.length > 9) {
+          alert("只能選擇九位球員！");
+          return;
+      }
         
         console.log('timestamp:', timestamp);
         console.log('codeName:', codeName);
