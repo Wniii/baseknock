@@ -249,7 +249,7 @@ const AwayCustomersTable = (props) => {
 
     const gameData = gameDocSnapshot.data();
     const orderOppoLength = gameData.orderoppo ? gameData.orderoppo.length : 0;
-    const lastValidIndex = orderMainLength + 1;
+    const lastValidIndex = orderOppoLength + 1;
 
     setLastValidIndex(lastValidIndex);
     setAwayAttackListData(gameData.awayattacklist || []);
