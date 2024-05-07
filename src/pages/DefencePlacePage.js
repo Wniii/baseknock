@@ -392,7 +392,7 @@ const DefencePlacePage = () => {
           )}
         </Grid>
       </Grid>
-      <Grid container justifyContent="center" style={{ marginTop: '-250px' }}>
+      <Grid container justifyContent="center" style={{ marginTop: '-230px' }}>
         <Button
           onClick={handleSaveAndNavigate}
           variant="contained"
