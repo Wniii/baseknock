@@ -519,7 +519,7 @@ const Page = () => {
             }
         }
     
-        return [...Array(3)].map((_, index) => (
+        return [...Array(2)].map((_, index) => (
             <FormControlLabel
                 key={index}
                 control={
@@ -1136,6 +1136,7 @@ const Page = () => {
                                             >
                                                 <FormControl sx={{ mt: 2, minWidth: 120 }}>
                                                     <Select
+                                                        value="0"
                                                         autoFocus
                                                         onChange={(event) => {
                                                             const baseOuts = parseInt(event.target.value);
@@ -1159,9 +1160,7 @@ const Page = () => {
                                                 儲存
                                             </Button>
 
-                                            <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                                                {alertInfo.message}
-                                            </Alert>
+                                            
 
                                         </DialogActions>
                                     </Dialog>

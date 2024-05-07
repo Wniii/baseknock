@@ -544,7 +544,7 @@ const Page = () => {
     // 計算 outs 除以 3 的餘數
     const remainder = currentInningOuts % 3;
 
-    return [...Array(3)].map((_, index) => (
+    return [...Array(2)].map((_, index) => (
       <FormControlLabel
         key={index}
         control={
@@ -1144,6 +1144,7 @@ const Page = () => {
                       >
                         <FormControl sx={{ mt: 2, minWidth: 120 }}>
                           <Select
+                            value="0"
                             autoFocus
                             onChange={(event) => {
                               const baseOuts = parseInt(event.target.value);
@@ -1168,11 +1169,7 @@ const Page = () => {
                           儲存
                         </Button>
                       </div>
-                      <Snackbar>
-                        <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                          {alertInfo.message}
-                        </Alert>
-                      </Snackbar>
+                      
                     </DialogActions>
                   </Dialog>
                 </CardContent>
