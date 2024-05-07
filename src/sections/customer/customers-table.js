@@ -82,11 +82,6 @@ const determineButtonProps = (content, index) => {
 
 export const CustomersTable = (props) => {
   const {
-    count = 0,
-    onPageChange = () => {},
-    onRowsPerPageChange,
-    page = 0,
-    rowsPerPage = 0,
     teamId,
     codeName,
     timestamp,
@@ -243,9 +238,9 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
   
   return (
     <Card>
-      <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+      {/* <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
         替補球員
-      </Button>
+      </Button> */}
       <ReplacementDialog
         open={open}
         onClose={() => setOpen(false)}
@@ -327,15 +322,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
           </Table>
         </Box>
       </Scrollbar>
-      <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
+      
     </Card>
   )
 };
