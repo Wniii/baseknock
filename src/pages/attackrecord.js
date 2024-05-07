@@ -644,6 +644,7 @@ const Page = () => {
         component="main"
         sx={{
           flexGrow: 1,
+          overflowY: 'hidden'
         }}
       >
         <Container maxWidth="lg">
