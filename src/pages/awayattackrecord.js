@@ -128,11 +128,11 @@ const Page = () => {
                                 const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
                                 setAttackList(gameData.attacklist || [])
-                                console.log("Dd",gameData)
-                                const pitcherName = gameData.position.P;
-
-                                
-                                  console.log("ddddd",pitcherName)
+                                const pitcherName = gameData.orderoppo.map(item => {
+                                    // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
+                                    return item.pitcher && item.pitcher.name ? item.pitcher.name : '';
+                                  });
+                                  console.log("d",pitcherName)
                                   // 使用 setordermain 更新 state
                                   setpitcherNames(pitcherName);
 

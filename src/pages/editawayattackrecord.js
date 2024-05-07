@@ -24,7 +24,8 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
-    const { codeName, timestamp, teamId } = router.query;
+    const { codeName, timestamp, teamId, row, column } = router.query;
+    const [currentRow, setCurrentRow] = useState(parseInt(row)); 
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [gameDocIds, setGameDocIds] = useState([]);
@@ -124,7 +125,7 @@ const Page = () => {
             const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
                 const { ordermain, awayattacklist, orderoppo } = gameData;
-
+                console.log("orderoppo",orderoppo)
                 setValues(prevValues => ({
                     ...prevValues,
                     hometeam: gameData.hometeam || "",
@@ -154,7 +155,7 @@ const Page = () => {
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
                         // console.log("d", filteredOrderoppo)
                         const matchingPlayers = filteredOrderoppo.filter(item => item.o_p_name === playerName);
-                        
+
                         console.log("Away Attack List:", awayattacklist);
                         console.log("Filtered Order Main:", filteredOrderMain);
                         
@@ -165,7 +166,7 @@ const Page = () => {
                             const pitcherData = matchingPlayers[0].pitcher;
                             updatePitchCounts(pitcherData);
 
-                            const content = matchingPlayers[0].content;
+                            const content = matchingPlayers[0].o_content;
                             if (content) {
                                 const contents = content.split(',').map(item => item.trim());
                                 setSelectedHits(prev => ({
@@ -182,7 +183,6 @@ const Page = () => {
 
                         }
 
-                        updateOut(filteredOrderMain, filteredOrderoppo);
                     }
                 }
             }
@@ -261,6 +261,8 @@ const Page = () => {
 
         const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
         const docSnapshot = await getDoc(gameRef);
+        const ordermain = docSnapshot.data().ordermain;
+        const orderoppo = docSnapshot.data().orderoppo;
 
         if (!docSnapshot.exists()) {
             console.error("Document does not exist!");
@@ -268,12 +270,11 @@ const Page = () => {
             return;
         }
 
-        let ordermain = docSnapshot.data().ordermain;
-        const indexToUpdate = ordermain.findIndex(item => item.p_name === playerName && item.inn === inning);
+        const indexToUpdate = orderoppo.findIndex(item => item.o_p_name === playerName && item.o_inn === inning);
 
         if (indexToUpdate === -1) {
-            console.error("Matching player not found in ordermain");
-            alert("Matching player not found in ordermain");
+            console.error("Matching player not found in orderoppo");
+            alert("Matching player not found in orderoppo");
             return;
         }
 
@@ -305,39 +306,38 @@ const Page = () => {
 
         const currentInnOuts = innOuts;
 
-        ordermain[indexToUpdate] = {
-            ...ordermain[indexToUpdate],
-            content: selectedContent,
-            onbase: bases,
+        orderoppo[indexToUpdate] = {
+            ...orderoppo[indexToUpdate],
+            o_content: selectedContent,
+            o_onbase: bases,
             location: marker,
             pitcher: {
-                ...ordermain[indexToUpdate].pitcher,
+                ...orderoppo[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
                 strike: strikes.filter(Boolean).length,
                 name: pitcher
             },
-            rbi: rbiCount,
+            o_rbi: rbiCount,
             innouts: currentInnOuts
         };
 
         // 放置 `updateOut` 函數
-        const updateOut = (filteredOrderMain, filteredOrderoppo) => {
             // 累加所有的 'innouts'
-            const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-            const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
+
+            const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
+            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
             console.log("totalOutsMain", totalOutsMain)
             console.log("totalOutsOppo", totalOutsOppo)
             const totalOuts = totalOutsMain + totalOutsOppo;
             setOuts(totalOuts);  // 更新 outs 狀態
             console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-        };
+        
 
         // 使用 `updateOut` 函數進行出局數計算
-        updateOut(ordermain);
 
         try {
             await updateDoc(HgameRef, {
-                ordermain: ordermain,
+                orderoppo: orderoppo,
                 outs: outs
             });
             console.log('Document successfully updated!');
@@ -359,7 +359,7 @@ const Page = () => {
 
         try {
             await updateDoc(AgameRef, {
-                ordermain: ordermain,
+                orderoppo: orderoppo,
                 outs: outs
             });
             console.log('Document successfully updated!');
@@ -532,14 +532,6 @@ const Page = () => {
     };
 
 
-    const updateOut = (filteredOrderMain, filteredOrderoppo) => {
-        // 累加所有的 'innouts'
-        const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOuts = totalOutsMain + totalOutsOppo;
-        setOuts(totalOuts);  // 更新 outs 狀態
-        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-    };
 
 
     const handleOutChange = (hitType = null, baseOuts) => {
@@ -680,6 +672,16 @@ const Page = () => {
         }
     };
 
+    useEffect(() => {
+        setCurrentRow(parseInt(row));
+    }, [row]);
+
+
+    // 对 row 进行加一操作
+    useEffect(() => {
+        setCurrentRow(prevRow => prevRow + 1);
+    }, []);
+
 
 
 
@@ -733,7 +735,7 @@ const Page = () => {
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
                                                         <Typography variant='body1'>
-                                                            第{currentBattingOrder}棒
+                                                            第{currentRow}棒
                                                         </Typography>
                                                         &nbsp;&nbsp;&nbsp;
                                                         <Paper
@@ -811,7 +813,7 @@ const Page = () => {
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center'}}>
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                                                                {currentInning}
+                                                                {column}
                                                             </Typography>
                                                             <ArrowDropDownIcon />
                                                         </div>

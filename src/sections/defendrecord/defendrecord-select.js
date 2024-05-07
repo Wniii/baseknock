@@ -83,7 +83,21 @@ export const DefendSelect = ({ onConfirm }) => {
     const selectedColumns = checkboxStates
       .filter((checkbox) => checkbox.checked)
       .map((checkbox) => checkbox.label);
-    onConfirm(selectedColumns, selectedTeam, selectedGameType); // 傳遞選擇的團隊和比賽性質
+    const selectedGameTypes = selectedGameType;
+
+    // 檢查是否至少選擇了一個比賽類型
+    if (selectedGameTypes.length === 0) {
+      alert("請至少選擇一個比賽類型！");
+      return; // 如果没有选择任何比赛类型，则不执行任何操作
+    }
+    // 檢查是否至少選擇了一個欄位
+    if (selectedColumns.length === 0) {
+      alert("請至少選擇一個欄位！");
+      return; // 如果没有选择任何列，则不执行任何操作
+    }
+
+    // 调用 onConfirm 函数传递选中的列、球队和比赛类型
+    onConfirm(selectedColumns, selectedTeam, selectedGameTypes);
   };
 
   const handleTeamChange = (event) => {
