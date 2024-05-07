@@ -680,7 +680,7 @@ const Page = () => {
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
                             <Typography variant='body1'>
-                              第{currentBattingOrder}棒次
+                              第{currentBattingOrder}棒
                             </Typography>
                             &nbsp;&nbsp;&nbsp;
                             <Paper
@@ -825,7 +825,7 @@ const Page = () => {
                   xs={12}
                   sm={6}
                   item
-                  style={{ marginTop: '-120px' }}
+                  style={{ marginTop: '-130px' }}
 
                 >
                   <form onSubmit={handleSubmit}>
