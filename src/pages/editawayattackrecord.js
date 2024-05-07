@@ -1221,11 +1221,7 @@ const Page = () => {
                                                     儲存
                                                 </Button>
                                             </div>
-                                            <Snackbar>
-                                                <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                                                    {alertInfo.message}
-                                                </Alert>
-                                            </Snackbar>
+                                        
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
