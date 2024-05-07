@@ -22,6 +22,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     totalRunsBattedIn: 0,
     totalOuts: 0,
     totalEarnedRuns: 0, // 新增自責分總和
+    totalHitByPitches: 0,
     teamK9: 0,
     teamBB9: 0,
     teamH9: 0,
@@ -121,6 +122,8 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     Object.keys(statsByPitcher).forEach((pitcher) => {
       const { hits, walks, hitByPitches } = statsByPitcher[pitcher];
       const innings = inningsByPitcher[pitcher];
+      const aaa = hitByPitches
+      console.log("ddddd",aaa)
       whipByPitcher[pitcher] = innings > 0 ? (hits + walks + hitByPitches) / innings : 0;
     });
     return whipByPitcher;
@@ -203,6 +206,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
         acc[name] = {
           hits: 0,
           walks: 0,
+          hitByPitches: 0, // 新增觸身球數據
           strikeouts: 0,
           totalBalls: 0,
           totalStrikes: 0,
@@ -242,13 +246,19 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               );
               const hasWalk = content.includes("四壞");
               const hasStrikeout = content.includes("三振");
+              const hashitByPitches = content.includes("觸身");
+
               if (hasHit) hitsByPitcher[pitcherName].hits++;
               if (hasWalk) hitsByPitcher[pitcherName].walks++;
               if (hasStrikeout) hitsByPitcher[pitcherName].strikeouts++;
+              if (hashitByPitches) hitsByPitcher[pitcherName].hitByPitches++;
               const balls = Number(order.pitcher?.ball) || 0;
               const strikes = Number(order.pitcher?.strike) || 0;
+              const  hitByPitches = Number(order.pitcher?. hitByPitches) || 0;
               hitsByPitcher[pitcherName].totalBalls += balls;
               hitsByPitcher[pitcherName].totalStrikes += strikes;
+              hitsByPitcher[pitcherName].hitByPitches += hitByPitches;
+
               const orderRBI = Number(order.rbi) || 0;
               const orderORBI = Number(order.o_rbi) || 0;
               hitsByPitcher[pitcherName].runsBattedIn += orderRBI + orderORBI;
@@ -275,6 +285,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
             totalStrikes: playerStats.totalStrikes,
             gamesPlayed: playerStats.gamesPlayed,
             gamesStarted: playerStats.gamesStarted,
+            hitByPitches:  playerStats.hitByPitches,
             strikeBallRatio:
               playerStats.totalBalls > 0
                 ? (playerStats.totalStrikes / playerStats.totalBalls).toFixed(2)
@@ -308,6 +319,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totalRunsBattedIn: 0,
       totalOuts: 0,
       totalEarnedRuns: 0, // 新增自責分總和
+      totalHitByPitches: 0,
       teamK9: 0,
       teamBB9: 0,
       teamH9: 0,
@@ -324,6 +336,9 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totals.totalRunsBattedIn += player.runsBattedIn; //失分
       totals.totalOuts += Math.floor(player.inningsPitched) * 3 + (player.inningsPitched % 1) * 10;
       totals.totalEarnedRuns += (player.era * player.inningsPitched) / 9;
+      totals.totalHitByPitches += player.hitByPitches;
+      
+
     });
     const innings = Math.floor(totals.totalOuts / 3);
     const extraOuts = totals.totalOuts % 3;
@@ -337,8 +352,13 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
         : "∞"; //ERA
     totals.teamWHIP =
       totals.totalInningsPitched > 0
-        ? ((totals.totalHits + totals.totalWalks) / totals.totalInningsPitched).toFixed(2)
+        ? ((totals.totalHits + totals.totalWalks+ totals.totalHitByPitches) / totals.totalInningsPitched).toFixed(2)
         : "∞"; //WHIP
+        
+
+
+
+
     totals.teamK9 =
       totals.totalInningsPitched > 0
         ? ((totals.totalStrikeouts * 9) / totals.totalInningsPitched).toFixed(2)
