@@ -126,14 +126,13 @@ const Page = () => {
           hometeam: gameData.hometeam || "",
           awayteam: gameData.awayteam || ""
         }));
-
         setOuts(gameData.outs || 0);
         setordermain(gameData.ordermain || []);
         setCurrentBattingOrder(gameData.ordermain ? (gameData.ordermain.length % 9 + 1) : 1);
         const inningsCompleted = Math.floor((gameData.outs || 0) / 6) + 1;
         setCurrentInning(inningsCompleted);
 
-        const pitcherName = gameData.position.P;
+        const pitcherName = gameData.awayposition.P;
 
           setPitcher(pitcherName);
         
