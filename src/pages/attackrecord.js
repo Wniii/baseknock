@@ -24,7 +24,7 @@ import { useCallback } from 'react';
 const Page = () => {
   const router = useRouter();
   const attackData = router.query.attack;
-  const { codeName, timestamp, teamId } = router.query;
+  const { codeName, timestamp, teamId, acodeName } = router.query;
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
@@ -179,13 +179,14 @@ const Page = () => {
 
   useEffect(() => {
     const fetchPlayers = async () => {
-      if (!codeName || !firestore) {
+      if (!acodeName || !firestore) {
         return;
       }
 
       try {
         const teamQuerySnapshot = await getDocs(
-          query(collection(firestore, 'team'), where('codeName', '==', codeName))
+          query(collection(firestore, 'team'), where('codeName', '==', acodeName))
+          
         );
 
         if (!teamQuerySnapshot.empty) {
@@ -194,7 +195,8 @@ const Page = () => {
           const teamRef = doc(firestore, 'team', teamId);
           const teamSnap = await getDoc(teamRef);
           const teamData = teamDocSnapshot.data();
-
+          const awayAttackList = teamData.awayattacklist
+          console.log('acodename', teamData)
           if (teamData && teamData.players) {
             // 過濾出符合條件的球員鍵
             const playerKeys = Object.keys(teamData.players)
@@ -203,7 +205,7 @@ const Page = () => {
                 console.log(`Player: ${key}, Position: ${player.position}`);
 
                 return player.position === 'P' &&
-                  !AttackList.includes(key) &&
+                  !awayAttackList.includes(key) &&
                   !pitcherNames.includes(key);
               });
 
@@ -535,13 +537,14 @@ const Page = () => {
 
   const renderOutsCheckboxes = () => {
     // 過濾出當前局的所有紀錄
-    const currentInningOuts = ordermain
-      .filter(item => item.inn === currentInning)
-      .reduce((total, current) => total + (current.innouts || 0), 0); // 計算這些項目的 innouts 總和
-
-    // 計算 outs 除以 3 的餘數
-    const remainder = currentInningOuts % 3;
-    console.log()
+    let remainder = 0; // 默認餘數為 0
+    
+        if (outs > 0) {
+            remainder = outs % 3; // 計算 outs 除以 3 的餘數
+            if (remainder === 0) {
+                remainder = 0; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
+            }
+        }
     return [...Array(2)].map((_, index) => (
       <FormControlLabel
         key={index}
