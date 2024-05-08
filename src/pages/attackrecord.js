@@ -233,10 +233,10 @@ const Page = () => {
 
   const saveData = async () => {
 
-    const hitContents = ['一安', '二安', '三安', '全打', '一分',
-      '三振', '飛球', '滾地', '失誤', '兩分',
-      '野選', '雙殺', '違規', '不知', '三分',
-      '四壞', '犧飛', '犧觸', '觸身', '四分'];
+    const hitContents = ['一安', '二安', '三安', '全打', 
+      '三振', '飛球', '滾地', '失誤', 
+      '野選', '雙殺', '違規', '不知', 
+      '四壞', '犧飛', '犧觸', '觸身', '一分', '兩分', '三分', '四分'];
 
     const baseStatuses = ['一壘', '二壘', '三壘'];
     const selectedBases = baseStatuses.filter(base => selectedHits[base]);
