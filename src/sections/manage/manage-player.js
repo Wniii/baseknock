@@ -147,6 +147,7 @@ export const ManagePlayer = ({ teamInfo }) => {
             handleCloseAddPlayerDialog();
 
             console.log('Player added successfully');
+            window.location.reload();
         } catch (error) {
             console.error('Error adding player:', error);
 
