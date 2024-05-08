@@ -533,7 +533,7 @@ const Page = () => {
     });
   };
 
-  const renderOutsCheckboxes = (ordermain) => {
+  const renderOutsCheckboxes = () => {
     // 過濾出當前局的所有紀錄
     const currentInningOuts = ordermain
       .filter(item => item.inn === currentInning)
