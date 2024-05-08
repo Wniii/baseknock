@@ -333,8 +333,6 @@ const Page = () => {
                 ordermain: ordermain,
                 outs: outs
             });
-            console.log('Document successfully updated!');
-            alert('Document successfully updated!');
             router.push({
                 pathname: '/test',
                 query: {
