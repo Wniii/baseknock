@@ -564,7 +564,7 @@ const Page = () => {
     };
 
     const renderOutsCheckboxes = () => {
-        const remainder = outs; // 計算 outs 除以 3 的餘數
+        const remainder = outs %3; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
             <FormControlLabel
                 key={index}

@@ -161,7 +161,6 @@ const Page = () => {
           updateOut(filteredOrderMain);
 
 
-
         }
       }
     };
@@ -534,7 +533,7 @@ const Page = () => {
     });
   };
 
-  const renderOutsCheckboxes = () => {
+  const renderOutsCheckboxes = (ordermain) => {
     // 過濾出當前局的所有紀錄
     const currentInningOuts = ordermain
       .filter(item => item.inn === currentInning)
@@ -542,7 +541,7 @@ const Page = () => {
 
     // 計算 outs 除以 3 的餘數
     const remainder = currentInningOuts % 3;
-
+    console.log()
     return [...Array(2)].map((_, index) => (
       <FormControlLabel
         key={index}
