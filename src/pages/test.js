@@ -20,6 +20,7 @@ const Page = () => {
   const [gameData, setGameData] = useState(null);
   const [row, setRow] = useState('');
   const [column, setColumn] = useState('');
+  const [currentTable, setCurrentTable] = useState('');
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -109,17 +110,12 @@ const Page = () => {
 
   // 定義每個範圍對應的表格類型
   const renderTableComponent = () => {
-    const numericOuts = Number(outs); // 確保outs是一個數字
-    const tableComponents = [AwayCustomersTable, CustomersTable];
+    const numericOuts = Number(outs); // 確保 outs 是一個數字
     const rangeIndex = Math.floor(numericOuts / 3) % 2;
+    const tableComponents = [CustomersTable, AwayCustomersTable]; // 注意：順序應該和 currentTable 條件相匹配
 
-    // 確保選擇的組件在範圍內，並檢查是否為 undefined
-    const TableComponent = tableComponents[rangeIndex];
-    if (!TableComponent) {
-      console.error('TableComponent is undefined. Check the rangeIndex and outs value:', rangeIndex, outs);
-      return <div>Error: Table component not found.</div>;  // 或其他錯誤處理方式
-    }
-
+    // 使用 currentTable 狀態來動態選擇要渲染的表格組件
+    const TableComponent = currentTable === 'CustomersTable' ? tableComponents[0] : tableComponents[1];
 
     return (
       <TableComponent
@@ -138,10 +134,16 @@ const Page = () => {
     );
   };
 
+
+
   const teamType = useMemo(() => {
-    const rangeIndex = Math.floor(Number(outs) / 3) % 2;
-    return rangeIndex === 0 ? "客隊" : "主隊";
-  }, [outs]);
+    return currentTable === 'CustomersTable' ? "主隊" : "客隊";
+  }, [currentTable]);
+
+  const toggleTable = () => {
+    setCurrentTable(prevTable => prevTable === 'CustomersTable' ? 'AwayCustomersTable' : 'CustomersTable');
+  };
+
 
 
 
@@ -222,7 +224,7 @@ const Page = () => {
                   </Typography>
                 </Box>
               </div>
-              <div>
+              <div style={{ marginRight: '10px' }}>
                 <Box
                   border={2}
                   borderRadius={5}
@@ -254,6 +256,33 @@ const Page = () => {
 
                 </Box>
               </div>
+              {outs === 54 && (
+                <div style={{ marginRight: '10px' }}>
+                  <Box
+                    border={2}
+                    borderRadius={5}
+                    borderColor="#FFD2D2"
+                    padding={1}
+                    width={100}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    bgcolor="#FFD2D2"
+                    onClick={toggleTable} // 確保這裡調用了 toggleTable 函數
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <Typography
+                      variant="button"
+                      display="flex"
+                      alignItems="center"
+                      fontWeight="bold"
+                      color="#005AB5"
+                    >
+                      切換球隊
+                    </Typography>
+                  </Box>
+                </div>
+              )}
             </div>
             <Score
               teamId={teamId}
