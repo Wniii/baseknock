@@ -151,15 +151,10 @@ const Page = () => {
                         const playerName = awayattacklist[playerIndex];
                         setPlayerName(awayattacklist[playerIndex]);
                         setInning(inning)
-                        const filteredOrderMain = ordermain.filter(item => item.inn === inning);
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
                         // console.log("d", filteredOrderoppo)
                         const matchingPlayers = filteredOrderoppo.filter(item => item.o_p_name === playerName);
 
-                        console.log("Away Attack List:", awayattacklist);
-                        console.log("Filtered Order Main:", filteredOrderMain);
-                        
-                        console.log("Matching players:", matchingPlayers);
 
                         if (matchingPlayers.length > 0) {
 
@@ -261,8 +256,8 @@ const Page = () => {
 
         const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
         const docSnapshot = await getDoc(gameRef);
-        const ordermain = docSnapshot.data().ordermain;
-        const orderoppo = docSnapshot.data().orderoppo;
+        const ordermain = docSnapshot.data().ordermain || "";
+        const orderoppo = docSnapshot.data().orderoppo || "";
 
         if (!docSnapshot.exists()) {
             console.error("Document does not exist!");
