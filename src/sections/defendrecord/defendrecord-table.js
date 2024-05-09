@@ -72,9 +72,12 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               if (content.includes("三振")) {
                 pitcherStats.strikeouts += 1;
               }
-              if (content.includes("全壘打")) {
+              if (content.includes("全打")) {
                 pitcherStats.homeRuns += 1;
               }
+              const orderRBI = Number(order.rbi) || 0;
+              const orderORBI = Number(order.o_rbi) || 0;
+              pitcherStats.runsBattedIn += orderRBI + orderORBI;
             }
           });
         }
@@ -146,13 +149,12 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
   const calculateERA = (statsByPitcher, inningsByPitcher) => {
     const eraByPitcher = {};
     Object.keys(statsByPitcher).forEach((pitcher) => {
-      const { walks, hitByPitches, homeRuns, strikeouts } = statsByPitcher[pitcher];
+      const { runsBattedIn } = statsByPitcher[pitcher];
       const innings = inningsByPitcher[pitcher];
       // 確保我們有有效的局數來避免除以零的錯誤
-      eraByPitcher[pitcher] =
-        innings > 0
-          ? (3 + (3 * (walks + hitByPitches) + 13 * homeRuns - 2 * strikeouts) / innings).toFixed(2)
-          : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
+      eraByPitcher[pitcher] = innings > 0
+        ? (9 * runsBattedIn / innings).toFixed(2)
+        : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
     });
     return eraByPitcher;
   };
@@ -241,7 +243,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                 hitsByPitcher[pitcherName].gamesStarted++;
               }
               const content = order.content || order.o_content;
-              const hasHit = ["一安", "二安", "三安", "全壘打"].some((hitType) =>
+              const hasHit = ["一安", "二安", "三安", "全打"].some((hitType) =>
                 content.includes(hitType)
               );
               const hasWalk = content.includes("四壞");
