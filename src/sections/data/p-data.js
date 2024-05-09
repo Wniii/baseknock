@@ -177,7 +177,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           </Table>
         </Box>
       </Scrollbar>
-      <TablePagination
+      {/* <TablePagination
         component="div"
         count={count}
         onPageChange={onPageChange}
@@ -185,7 +185,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[5, 10, 25]}
-      />
+      /> */}
     </Card>
   );
 };

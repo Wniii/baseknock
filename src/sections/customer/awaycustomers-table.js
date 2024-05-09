@@ -47,11 +47,7 @@ const determineButtonProps = (content, index) => {
 
 const AwayCustomersTable = (props) => {
   const {
-    count = 0,
-    onPageChange = () => {},
-    onRowsPerPageChange,
-    page = 0,
-    rowsPerPage = 0,
+    
     teamId,
     codeName,
     acodeName,
@@ -318,7 +314,7 @@ const AwayCustomersTable = (props) => {
 
   const handleEditClick = (attack, row, column) => {
     router.push({
-      pathname: '/editattackrecord',
+      pathname: '/editawayattackrecord',
       query: {
         attack: attack,
         timestamp: timestamp,
@@ -336,7 +332,7 @@ const AwayCustomersTable = (props) => {
       <TableRow hover key={`${playerName}-substitute`}>
         <TableCell>
           <Box sx={{ position: 'relative' }}>
-            <IconButton
+            {/* <IconButton
               onClick={() => handleSwap(playerName)}
               sx={{
                 position: 'absolute',
@@ -354,7 +350,7 @@ const AwayCustomersTable = (props) => {
               }}
             >
               <SwapHorizIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             (替){playerName}
           </Box>
         </TableCell>
@@ -368,7 +364,7 @@ const AwayCustomersTable = (props) => {
       <TableRow hover key={index}>
         <TableCell>
           <Box sx={{ position: 'relative' }}>
-            <IconButton
+            {/* <IconButton
               onClick={() => handleSwap(attack)}
               sx={{
                 position: 'absolute',
@@ -386,7 +382,7 @@ const AwayCustomersTable = (props) => {
               }}
             >
               <SwapHorizIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             {attack}
           </Box>
         </TableCell>
@@ -510,15 +506,7 @@ const AwayCustomersTable = (props) => {
           </Table>
         </Box>
       </Scrollbar>
-      <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
+      
     </Card>
   );
 };

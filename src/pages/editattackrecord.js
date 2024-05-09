@@ -24,7 +24,8 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
-    const { codeName, timestamp, teamId } = router.query;
+    const { codeName, timestamp, teamId, row, column } = router.query;
+    const [currentRow, setCurrentRow] = useState(parseInt(row)); 
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [gameDocIds, setGameDocIds] = useState([]);
@@ -74,7 +75,7 @@ const Page = () => {
     const [loading, setLoading] = useState(true);
     const [playerName, setPlayerName] = useState('');
     const [inning, setInning] = useState(0);
-    const [marker, setMarker] = useState({ x: 0, y: 0 });
+    const [location, setLocation] = useState({ x: '', y: '' });
     const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
 
 
@@ -123,7 +124,7 @@ const Page = () => {
         const fetchInitialData = async () => {
             const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
-                const { ordermain, attacklist,orderoppo } = gameData;
+                const { ordermain, attacklist, orderoppo } = gameData;
 
                 setValues(prevValues => ({
                     ...prevValues,
@@ -145,14 +146,14 @@ const Page = () => {
                 if (router.query.column && router.query.row) {
                     const inning = parseInt(router.query.column, 10);
                     const playerIndex = parseInt(router.query.row, 10);
-
                     if (playerIndex < attacklist.length) {
                         const playerName = attacklist[playerIndex];
                         setPlayerName(attacklist[playerIndex]);
                         setInning(inning)
                         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
+                        console.log("c",filteredOrderMain)
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
-                        console.log("d",filteredOrderoppo)
+                        console.log("d", filteredOrderoppo)
                         const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
 
                         console.log("Matching players:", matchingPlayers);
@@ -176,10 +177,9 @@ const Page = () => {
                             }
                             updateLocations(matchingPlayers); // 呼叫 updateLocations 函數來處理位置資訊
 
-                            
+
                         }
 
-                        updateOut(filteredOrderMain,filteredOrderoppo);
                     }
                 }
             }
@@ -242,49 +242,50 @@ const Page = () => {
             '三振', '飛球', '滾地', '失誤', '兩分',
             '野選', '雙殺', '違規', '不知', '三分',
             '四壞', '犧飛', '犧觸', '觸身', '四分'];
-    
+
         const baseStatuses = ['一壘', '二壘', '三壘'];
-    
+
         const selectedContent = Object.entries(selectedHits)
             .filter(([key, value]) => value && hitContents.includes(key))
             .map(([key, _]) => key)
             .join(', ');
-    
+
         // 從 selectedBases 中篩選出激活的基座狀態
         const bases = Object.entries(selectedBases)
             .filter(([_, value]) => value)
             .map(([key, _]) => key)
             .join(',');
-    
+
         const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
         const docSnapshot = await getDoc(gameRef);
-    
+        const ordermain = docSnapshot.data().ordermain;
+        const orderoppo = docSnapshot.data().orderoppo;
+
         if (!docSnapshot.exists()) {
             console.error("Document does not exist!");
             alert("Document does not exist!");
             return;
         }
-    
-        let ordermain = docSnapshot.data().ordermain;
+
         const indexToUpdate = ordermain.findIndex(item => item.p_name === playerName && item.inn === inning);
-    
+
         if (indexToUpdate === -1) {
             console.error("Matching player not found in ordermain");
             alert("Matching player not found in ordermain");
             return;
         }
-    
+
         const hquerySnapshot = await getDocs(
             query(collection(firestore, "team"), where("codeName", "==", values.hometeam))
         );
         let hteam = hquerySnapshot.docs[0]?.id; // 假設只有一個匹配的文檔
-    
+
         // 查詢客隊 ID
         const aquerySnapshot = await getDocs(
             query(collection(firestore, "team"), where("codeName", "==", values.awayteam))
         );
         let ateam = aquerySnapshot.docs[0]?.id; // 假設只有一個匹配的文檔
-    
+
         if (!hteam || !ateam) {
             console.error("未找到相應的主隊或客隊");
             alert("未找到相應的主隊或客隊");
@@ -292,21 +293,21 @@ const Page = () => {
         }
         const HgameRef = doc(firestore, 'team', hteam, 'games', timestamp);
         const AgameRef = doc(firestore, 'team', ateam, 'games', timestamp);
-    
+
         // 計算選中的打點
         let rbiCount = 0;
         if (selectedHits['一分']) rbiCount += 1;
         if (selectedHits['兩分']) rbiCount += 2;
         if (selectedHits['三分']) rbiCount += 3;
         if (selectedHits['四分']) rbiCount += 4;
-    
+
         const currentInnOuts = innOuts;
-    
+
         ordermain[indexToUpdate] = {
             ...ordermain[indexToUpdate],
             content: selectedContent,
             onbase: bases,
-            location: marker,
+            location: location,
             pitcher: {
                 ...ordermain[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
@@ -316,29 +317,22 @@ const Page = () => {
             rbi: rbiCount,
             innouts: currentInnOuts
         };
-    
+
         // 放置 `updateOut` 函數
-        const updateOut = (filteredOrderMain, filteredOrderoppo) => {
             // 累加所有的 'innouts'
-            const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-            const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
-            console.log("totalOutsMain", totalOutsMain)
-            console.log("totalOutsOppo", totalOutsOppo)
+            const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
+            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
             const totalOuts = totalOutsMain + totalOutsOppo;
             setOuts(totalOuts);  // 更新 outs 狀態
             console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-        };
-    
+
         // 使用 `updateOut` 函數進行出局數計算
-        updateOut(ordermain);
-    
+
         try {
             await updateDoc(HgameRef, {
                 ordermain: ordermain,
                 outs: outs
             });
-            console.log('Document successfully updated!');
-            alert('Document successfully updated!');
             router.push({
                 pathname: '/test',
                 query: {
@@ -353,7 +347,7 @@ const Page = () => {
             console.error('Error updating document:', error);
             alert('Error updating document: ' + error.message);
         }
-    
+
         try {
             await updateDoc(AgameRef, {
                 ordermain: ordermain,
@@ -376,7 +370,7 @@ const Page = () => {
             alert('Error updating document: ' + error.message);
         }
     };
-    
+
 
     const handleSaveToFirebase = () => {
         if (selectedBases['一壘'] || selectedBases['二壘'] || selectedBases['三壘']) {
@@ -494,7 +488,7 @@ const Page = () => {
             return { x, y }; // 返回一個新的對象包含 x 和 y
         })[0]; // 假設只處理第一個匹配的玩家
 
-        setMarker(newLocation); // 更新狀態
+        setLocation(newLocation); // 更新狀態
         setOriginalLocation(newLocation); // 保存原始位置
 
     };
@@ -529,15 +523,7 @@ const Page = () => {
     };
 
 
-    const updateOut = (filteredOrderMain, filteredOrderoppo) => {
-        // 累加所有的 'innouts'
-        const totalOutsMain = filteredOrderMain.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOutsOppo = filteredOrderoppo.reduce((sum, item) => sum + item.innouts, 0);
-        const totalOuts = totalOutsMain + totalOutsOppo;
-        setOuts(totalOuts);  // 更新 outs 狀態
-        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-    };
-    
+
 
     const handleOutChange = (hitType = null, baseOuts) => {
         console.log("hitytype", hitType)
@@ -570,7 +556,8 @@ const Page = () => {
     };
 
     const renderOutsCheckboxes = () => {
-        const remainder = outs; // 計算 outs 除以 3 的餘數
+        console.log(outs)
+        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
         return [...Array(3)].map((_, index) => (
             <FormControlLabel
                 key={index}
@@ -635,14 +622,12 @@ const Page = () => {
 
 
     //落點
-    const [location, setLocation] = useState({ x: '', y: '' });
-    const [markers, setMarkers] = useState({ x: '', y: '' });
+    
 
-    const [clickCoordinates, setClickCoordinates] = useState({ x: 0, y: 0 });
 
     const handleImageClick = (event) => {
         const { offsetX, offsetY } = event.nativeEvent;
-        setMarker({ x: offsetX, y: offsetY });  // 更新標記位置
+        setLocation({ x: offsetX, y: offsetY });  // 更新標記位置
 
 
     };
@@ -650,12 +635,12 @@ const Page = () => {
 
 
 
-    const handleClearMarker = () => {
-        setMarker({ x: '', y: '' });  // 清除標記
+    const handleClearLocation = () => {
+        setLocation({ x: '', y: '' });  // 清除標記
     };
 
-    const handleRestoreMarker = () => {
-        setMarker(originalLocation);  // 恢复到原始位置
+    const handleRestoreLocation = () => {
+        setLocation(originalLocation);  // 恢复到原始位置
     };
 
 
@@ -677,6 +662,16 @@ const Page = () => {
         }
     };
 
+    useEffect(() => {
+        setCurrentRow(parseInt(row));
+    }, [row]);
+
+
+    // 对 row 进行加一操作
+    useEffect(() => {
+        setCurrentRow(prevRow => prevRow + 1);
+    }, []);
+
 
 
 
@@ -694,7 +689,7 @@ const Page = () => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    py: 8
+                    overflowY: 'hidden'
                 }}
             >
                 <Container maxWidth="lg">
@@ -730,6 +725,10 @@ const Page = () => {
                                                 </div>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+                                                        <Typography variant='body1'>
+                                                            第{currentRow}棒
+                                                        </Typography>
+                                                        &nbsp;&nbsp;&nbsp;
                                                         <Paper
                                                             variant='outlined'
                                                             sx={{
@@ -759,34 +758,24 @@ const Page = () => {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px', marginLeft: '250px' }}>
-                                                        <Typography variant='h5'>S</Typography>
-                                                        {strikes.map((strike, index) => (
-                                                            <Checkbox
-                                                                key={index}
-                                                                checked={strike}
-                                                                onChange={() => handleBallTypeChange(index, 'strike')}
-                                                                color="primary"
-                                                                inputProps={{ 'aria-label': `好球${index + 1}` }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '250px' }}>
-                                                        <Typography variant='h5'>O</Typography>
-                                                        {renderOutsCheckboxes()}
-                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
 
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px', marginLeft: '20px' }}>
-                                                        <Typography variant='body1'>
-                                                            {currentInning}
-                                                        </Typography>
-                                                        <ArrowDropDownIcon />
-
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
-                                                        <Typography variant='body1'>
-                                                            第{currentBattingOrder}棒次
-                                                        </Typography>
+                                                        <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                                            <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
+                                                            <Select
+                                                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                                                                labelId="pitcher-label"
+                                                                id="pitcher-select"
+                                                                value={pitcher} // 使用 state 中的值
+                                                                label="投手"
+                                                                onChange={(e) => setPitcher(e.target.value)}
+                                                            >
+                                                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
+                                                                {players.map((playerKey, index) => (
+                                                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </FormControl>
                                                         <Box
                                                             noValidate
                                                             component="form"
@@ -797,25 +786,36 @@ const Page = () => {
                                                                 width: 'fit-content',
                                                             }}
                                                         >
-                                                            <FormControl sx={{ mt: 1, minWidth: 120 }}>
-                                                                <InputLabel id="pitcher-label">投手</InputLabel>
-                                                                <Select
-                                                                    labelId="pitcher-label"
-                                                                    id="pitcher-select"
-                                                                    value={pitcher} // 使用 state 中的值
-                                                                    label="投手"
-                                                                    onChange={(e) => setPitcher(e.target.value)}
-                                                                >
-                                                                    <MenuItem value={pitcher}>{pitcher}</MenuItem>
-                                                                    {players.map((playerKey, index) => (
-                                                                        <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                                                    ))}
-                                                                </Select>
-                                                            </FormControl>
+                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-20px' }}>
+                                                                <Typography variant='h5'>S</Typography>
+                                                                {strikes.map((strike, index) => (
+                                                                    <Checkbox
+                                                                        key={index}
+                                                                        checked={strike}
+                                                                        onChange={() => handleBallTypeChange(index, 'strike')}
+                                                                        color="primary"
+                                                                        inputProps={{ 'aria-label': `好球${index + 1}` }}
+                                                                    />
+                                                                ))}
+                                                            </div>
                                                         </Box>
                                                     </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center'}}>
+                                                            <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
+                                                                {column}
+                                                            </Typography>
+                                                            <ArrowDropDownIcon />
+                                                        </div>
+                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
+                                                        {renderOutsCheckboxes()}
                                                     </div>
+
+                                                    {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
+                                                    </div> */}
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -828,7 +828,7 @@ const Page = () => {
                                     item
                                 >
                                     <Card>
-                                    <CardContent>
+                                        <CardContent>
                                             <div style={{ position: 'relative' }}>
                                                 <img
                                                     src='https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU='
@@ -837,13 +837,13 @@ const Page = () => {
                                                     onClick={handleImageClick}
                                                     style={{ cursor: 'pointer' }}
                                                 />
-                                                {/* 檢查是否有設置 markers */}
-                                                {marker.x && marker.y && (
+                                                {/* 檢查是否有設置 location */}
+                                                {location.x && location.y && (
                                                     <div
                                                         style={{
                                                             position: 'absolute',
-                                                            top: `${marker.y}px`,
-                                                            left: `${marker.x}px`,
+                                                            top: `${location.y}px`,
+                                                            left: `${location.x}px`,
                                                             transform: 'translate(-50%, -50%)'
                                                         }}
                                                     >
@@ -855,12 +855,12 @@ const Page = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <Button onClick={handleClearMarker} color="secondary">
+                                            <Button onClick={handleClearLocation} color="secondary">
                                                 清除標記
                                             </Button>
-                                            <Button onClick={handleRestoreMarker} color="primary">
-                                            恢復先前狀態
-                                        </Button>   
+                                            <Button onClick={handleRestoreLocation} color="primary">
+                                                恢復先前狀態
+                                            </Button>
                                         </CardContent>
                                     </Card>
                                 </Grid>
@@ -869,6 +869,8 @@ const Page = () => {
                                     xs={12}
                                     sm={6}
                                     item
+                                    style={{ marginTop: '-130px' }}
+
                                 >
                                     <form onSubmit={handleSubmit}>
                                         <Card>
@@ -1210,11 +1212,7 @@ const Page = () => {
                                                     儲存
                                                 </Button>
                                             </div>
-                                            <Snackbar>
-                                                <Alert onClose={() => setAlertInfo({ ...alertInfo, open: false })} severity={alertInfo.severity} sx={{ width: '100%' }}>
-                                                    {alertInfo.message}
-                                                </Alert>
-                                            </Snackbar>
+                                           
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
@@ -1222,7 +1220,7 @@ const Page = () => {
                             </Grid>
                         </div>
                     </Stack>
-                    <CardActions sx={{ justifyContent: 'center' }}>
+                    <CardActions sx={{ justifyContent: 'flex-end', marginTop: "-110px" }}>
                         <Button
                             variant="contained"
                             onClick={handleSaveToFirebase}

@@ -208,6 +208,13 @@ const DefencePlacePage = () => {
   const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
 
+    const isEveryPositionFilled = Object.values(positions).every(player => player !== null);
+
+    if (!isEveryPositionFilled) {
+      setErrorMessage('所有守備位置必須填滿才能儲存');
+      return;
+
+    }
     try {
 
       console.log('timestamp:', timestamp);
@@ -377,7 +384,7 @@ const DefencePlacePage = () => {
           )}
         </Grid>
       </Grid>
-      <Grid container justifyContent="center" style={{ marginTop: '-250px' }}>
+      <Grid container justifyContent="center" style={{ marginTop: '-230px' }}>
         <Button
           onClick={handleSaveAndNavigate}
           variant="contained"
