@@ -213,10 +213,10 @@ const Page = () => {
               // 判断球员的位置是否为 'P'，且不在 awayAttackList 中，且不等于 awayposition.P，
               // 且没有出现在 ordermain 的任何一个 pitcher 的名字中
               return player.position === 'P' &&
-           !awayAttackList.includes(key) &&
-           key !== awayposition.P &&
-           pitcherNamesInOrderMain.includes(player.name);
-          });
+              !awayAttackList.includes(key) &&
+              key !== awayposition.P &&
+              !pitcherNamesInOrderMain.includes(player.name);
+              });
              
 
             if (pitcherNames && !playerKeys.includes(pitcherNames)) {

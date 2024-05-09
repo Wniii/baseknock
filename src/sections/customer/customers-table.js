@@ -89,7 +89,6 @@ export const CustomersTable = (props) => {
     acodeName,
   } = props;
 
-console.log("s",acodeName)
 
 
   const [attackListData, setAttackListData] = useState([]);
