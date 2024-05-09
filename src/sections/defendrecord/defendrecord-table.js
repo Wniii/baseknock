@@ -457,7 +457,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    background: "white", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
+                    background: "#DCDCDC", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
                   }}
                 >
                   <div>球員</div>
@@ -673,7 +673,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "white",
+                    background: "#DCDCDC",
                   }}
                 >
                   團隊成績
@@ -888,7 +888,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      background: "white",
+                      background: "#DCDCDC",
                       width: "100%",
                       paddingLeft: "16px",
                     }}

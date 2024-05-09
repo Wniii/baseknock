@@ -628,7 +628,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    background: "white", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
+                    background: "#DCDCDC", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
                   }}
                 >
                   <div>落點</div>
@@ -896,7 +896,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                     display: "flex", // 使用flex布局
                     alignItems: "center", // 垂直置中
                     justifyContent: "center", // 水平置中
-                    background: "white", // 設置背景顏色以覆蓋下層內容
+                    background: "#DCDCDC", // 設置背景顏色以覆蓋下層內容
                   }}
                 >
                   團隊成績
@@ -1109,7 +1109,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        background: "white",
+                        background: "#DCDCDC",
                         width: "100%",
                         paddingLeft: "16px",
                       }}
