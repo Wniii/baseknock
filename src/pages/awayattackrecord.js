@@ -24,7 +24,7 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const awayattackData = router.query.attack;
-    const { codeName, timestamp, teamId,acodeName } = router.query;
+    const { codeName, timestamp, teamId, acodeName } = router.query;
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [pitcher, setPitcher] = useState(''); // 儲存投手名稱
@@ -128,12 +128,12 @@ const Page = () => {
                                 const inningsCompleted = Math.floor(outs / 6) + 1;
                                 setCurrentInning(inningsCompleted);
                                 setAttackList(gameData.attacklist || [])
-                                    // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
+                                // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
                                 const pitcherName = gameData.position.P;
 
-                                  console.log("d",pitcherName)
-                                  // 使用 setordermain 更新 state
-                                  setpitcherNames(pitcherName);
+                                console.log("d", pitcherName)
+                                // 使用 setordermain 更新 state
+                                setpitcherNames(pitcherName);
 
                             }
                             if (gameSnap.exists()) {
@@ -174,16 +174,16 @@ const Page = () => {
                 console.log('Missing hometeam or firestore:', { hometeam: values.hometeam, firestore });
                 return;
             }
-    
+
             try {
                 const teamQuerySnapshot = await getDocs(
                     query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
-    
+
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-    
+
                     const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
                     const gameSnap = await getDoc(gameRef);
                     const gameData = gameSnap.data();
@@ -191,27 +191,27 @@ const Page = () => {
                     const pitcherNamesInOrderoppo = Array.isArray(orderoppo) && orderoppo.length > 0
                         ? [...new Set(orderoppo.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name))]
                         : [];
-    
+
                     console.log("對方已出現的投手名字：", pitcherNamesInOrderoppo);
-    
+
                     if (teamData && teamData.players) {
                         const playerKeys = Object.keys(teamData.players).filter(key => {
                             const player = teamData.players[key];
-    
+
                             return player.position === 'P' &&
                                 !AttackList.includes(key) &&
                                 !pitcherNames.includes(key) &&
                                 !pitcherNamesInOrderoppo.includes(player.name);
-                            });
-    
+                        });
+
                         if (pitcher && !playerKeys.includes(pitcher)) {
                             playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
                         }
-    
+
                         console.log("過濾後的投手鍵：", playerKeys);
-    
+
                         setPlayers(playerKeys); // 更新玩家鍵的狀態
-    
+
                     } else {
                         console.log('No players data found for home team with codeName:', values.hometeam);
                     }
@@ -222,11 +222,11 @@ const Page = () => {
                 console.error('Error fetching home team players:', error);
             }
         };
-    
+
         fetchHomeTeamPlayers();
     }, [values.hometeam, firestore, AttackList, teamId, timestamp, pitcher, setPlayers]);
-     // 依賴於 values.hometeam
-    
+    // 依賴於 values.hometeam
+
 
 
 
@@ -339,7 +339,7 @@ const Page = () => {
 
             });
             console.log('Document successfully updated!');
-            alert('Document successfully updated!');
+            // alert('Document successfully updated!');
             router.push({
                 pathname: '/test',
                 query: {
@@ -516,14 +516,14 @@ const Page = () => {
 
     const renderOutsCheckboxes = () => {
         let remainder = 0; // 默認餘數為 0
-    
+
         if (outs > 0) {
             remainder = outs % 3; // 計算 outs 除以 3 的餘數
             if (remainder === 0) {
                 remainder = 0; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
             }
         }
-    
+
         return [...Array(2)].map((_, index) => (
             <FormControlLabel
                 key={index}
@@ -538,7 +538,7 @@ const Page = () => {
             />
         ));
     };
-    
+
 
 
 
@@ -698,35 +698,37 @@ const Page = () => {
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
 
-                                                    <FormControl sx={{ mt: 1, minWidth: 120 }}>
-                                                        <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
-                                                        <Select
-                                                        sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
-                                                        labelId="pitcher-label"
-                                                        id="pitcher-select"
-                                                        value={pitcher} // 使用 state 中的值
-                                                        label="投手"
-                                                        onChange={(e) => setPitcher(e.target.value)}
-                                                        >
-                                                        {/* 確保當前選擇的投手始終存在於選單中 */}
-                                                        {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
-                                                        {players.map((playerKey, index) => (
-                                                            <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
-                                                        ))}
-                                                        </Select>
-                                                    </FormControl>
+                                                        <FormControl sx={{ mt: 1, minWidth: 120 }}>
+                                                            <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
+                                                            <Select
+                                                                sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
+                                                                labelId="pitcher-label"
+                                                                id="pitcher-select"
+                                                                value={pitcher} // 使用 state 中的值
+                                                                label="投手"
+                                                                onChange={(e) => setPitcher(e.target.value)}
+                                                            >
+                                                                {/* 確保當前選擇的投手始終存在於選單中 */}
+                                                                {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
+                                                                {players.map((playerKey, index) => (
+                                                                    <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </FormControl>
                                                         <Box
                                                             noValidate
                                                             component="form"
-                                                            sx={{
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                m: 'auto',
-                                                                width: 'fit-content',
-                                                            }}
+                                                            // sx={{
+                                                            //     display: 'flex',
+                                                            //     flexDirection: 'column',
+                                                            //     m: 'auto',
+                                                            //     width: 'fit-content',
+                                                            // }}
                                                         >
-                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-20px' }}>
-                                                                <Typography variant='h5'>S</Typography>
+                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
+                                                                <div style={{ marginRight: '10px' }}> {/* 添加固定距離以保持S位置不變 */}
+                                                                    <Typography variant='h5'>S</Typography>
+                                                                </div>
                                                                 {strikes.map((strike, index) => (
                                                                     <Checkbox
                                                                         key={index}
@@ -747,7 +749,7 @@ const Page = () => {
                                                             </Typography>
                                                             <ArrowDropUpIcon style={{ fontSize: '2rem' }} />
                                                         </div>
-                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
+                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O&nbsp;&nbsp;</Typography>
                                                         {renderOutsCheckboxes()}
                                                     </div>
 
@@ -1165,7 +1167,7 @@ const Page = () => {
                                                 儲存
                                             </Button>
 
-                                            
+
 
                                         </DialogActions>
                                     </Dialog>

@@ -779,14 +779,14 @@ const Page = () => {
                                                         <Box
                                                             noValidate
                                                             component="form"
-                                                            sx={{
-                                                                display: 'flex',
-                                                                flexDirection: 'column',
-                                                                m: 'auto',
-                                                                width: 'fit-content',
-                                                            }}
+                                                            // sx={{
+                                                            //     display: 'flex',
+                                                            //     flexDirection: 'column',
+                                                            //     m: 'auto',
+                                                            //     width: 'fit-content',
+                                                            // }}
                                                         >
-                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '-20px' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
                                                                 <Typography variant='h5'>S</Typography>
                                                                 {strikes.map((strike, index) => (
                                                                     <Checkbox
@@ -808,7 +808,7 @@ const Page = () => {
                                                             </Typography>
                                                             <ArrowDropDownIcon />
                                                         </div>
-                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O</Typography>
+                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O&nbsp;&nbsp;</Typography>
                                                         {renderOutsCheckboxes()}
                                                     </div>
 
