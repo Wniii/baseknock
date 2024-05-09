@@ -185,21 +185,22 @@ const Page = () => {
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-                    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp); // 使用具體的遊戲 ID
-                    const gameSnap = await getDoc(gameRef);
-                    if (gameSnap.exists()) {
-                        const gameData = gameSnap.data();
-                    });
-    
+                    const gameData = await fetchGameData(); // 獲取數據
+                    const oderoppo = gameData.orderoppo
                     if (teamData && teamData.players) {
                         // 過濾出符合條件的球員鍵
+                        const pitcherNamesInOrderoppo = orderoppo
+                        .filter(item => item.pitcher && item.pitcher.name) // 確保 pitcher 存在
+                        .map(item => item.pitcher.name);
                         const playerKeys = Object.keys(teamData.players)
                             .filter(key => {
                                 const player = teamData.players[key];
     
                                 return player.position === 'P' &&
                                     !AttackList.includes(key) &&
-                                    !pitcherNames.includes(key);
+                                    !pitcherNames.includes(key) &&
+                                    key == pitcherNamesInOrderoppo.includes(player.name);
+
                             });
     
     

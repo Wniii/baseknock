@@ -204,7 +204,6 @@ const Page = () => {
             const pitcherNamesInOrderMain = ordermain
             .filter(item => item.pitcher && item.pitcher.name) // 確保 pitcher 存在
             .map(item => item.pitcher.name); // 提取所有的 pitcher 名字
-                      console.log("ddssssssssss", pitcherNamesInOrderMain);
             const playerKeys = Object.keys(teamData.players)
             .filter(key => {
               const player = teamData.players[key];
