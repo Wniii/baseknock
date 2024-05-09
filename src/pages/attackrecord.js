@@ -28,7 +28,7 @@ const Page = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [teamDocId, setTeamDocId] = useState(null);
   const [gameDocIds, setGameDocIds] = useState([]);
-  const [pitcher, setPitcher] = useState('');// 儲存投手名稱
+  const [pitcherNames, setpitcherNames] = useState('');// 儲存投手名稱
   const [players, setPlayers] = useState([]);
   const [ordermain, setordermain] = useState([]);
   const [alertInfo, setAlertInfo] = useState({
@@ -132,9 +132,9 @@ const Page = () => {
         const inningsCompleted = Math.floor((gameData.outs || 0) / 6) + 1;
         setCurrentInning(inningsCompleted);
 
-        const pitcherName = gameData.awayposition.P;
+        const pitcherNames = gameData.awayposition.P;
 
-          setPitcher(pitcherName);
+        setpitcherNames(pitcherNames);
         
 
         // 使用 router.query 的數據處理 ordermain 和 attacklist
@@ -181,7 +181,7 @@ const Page = () => {
       if (!acodeName || !firestore) {
         return;
       }
-
+      
       try {
         const teamQuerySnapshot = await getDocs(
           query(collection(firestore, 'team'), where('codeName', '==', acodeName))
@@ -192,29 +192,37 @@ const Page = () => {
           const teamDocSnapshot = teamQuerySnapshot.docs[0];
           const teamId = teamDocSnapshot.id;
           const teamRef = doc(firestore, 'team', teamId);
+          const gameData = await fetchGameData(); // 獲取數據
           const teamSnap = await getDoc(teamRef);
           const teamData = teamDocSnapshot.data();
-          const awayAttackList = teamData.awayattacklist
-          console.log('acodename', teamData)
+          const awayAttackList = gameData.awayattacklist
+          const awayposition = gameData.awayposition
+          console.log("dddd",teamData.players)
+          console.log("ddd",ordermain)
           if (teamData && teamData.players) {
             // 過濾出符合條件的球員鍵
+            const pitcherNamesInOrderMain = ordermain
+            .filter(item => item.pitcher && item.pitcher.name) // 確保 pitcher 存在
+            .map(item => item.pitcher.name); // 提取所有的 pitcher 名字
+                      console.log("ddssssssssss", pitcherNamesInOrderMain);
             const playerKeys = Object.keys(teamData.players)
-              .filter(key => {
-                const player = teamData.players[key];
-                console.log(`Player: ${key}, Position: ${player.position}`);
+            .filter(key => {
+              const player = teamData.players[key];
+              // 判断球员的位置是否为 'P'，且不在 awayAttackList 中，且不等于 awayposition.P，
+              // 且没有出现在 ordermain 的任何一个 pitcher 的名字中
+              return player.position === 'P' &&
+           !awayAttackList.includes(key) &&
+           key !== awayposition.P &&
+           key == pitcherNamesInOrderMain.includes(player.name);
+  });
+             
 
-                return player.position === 'P' &&
-                  !awayAttackList.includes(key) &&
-                  !pitcherNames.includes(key);
-              });
-
-            console.log('playerKeys before adding pitcher:', playerKeys);
-
-            if (pitcher && !playerKeys.includes(pitcher)) {
-              playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
+            if (pitcherNames && !playerKeys.includes(pitcherNames)) {
+                playerKeys.unshift(pitcherNames); // 將當前投手添加到列表開頭
             }
 
             setPlayers(playerKeys); // 更新玩家鍵的狀態
+ // 更新玩家鍵的狀態
             console.log('Home team player keys after processing:', playerKeys);
           } else {
             console.log('No players data found for team:', teamId);
@@ -280,7 +288,6 @@ const Page = () => {
       y: location.y || ''
     };
 
-
     try {
       await updateDoc(HgameRef, {
         'ordermain': arrayUnion({
@@ -291,30 +298,26 @@ const Page = () => {
           'rbi': rbiCount,
           'location': locationData,
           'pitcher': {
-            name: pitcher,
+            name: pitcherNames,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
-            name: pitcher
           },
           'innouts': innOuts
         }),
-        'outs': outs
+        'outs': outs,
+        'awayposition':{
+          P:pitcherNames,
+        }
       });
 
-      router.push({
-        pathname: '/test',
-        query: {
-          timestamp: timestamp,
-          codeName: codeName,
-          teamId: teamId
-        },
-      });
+     
       setOpenDialog(false);
       setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
     } catch (error) {
       console.error('Error updating document:', error);
       alert('Error updating document: ' + error.message);
     }
+    console.log("ddd",pitcherNames)
 
     try {
       await updateDoc(AgameRef, {
@@ -328,17 +331,20 @@ const Page = () => {
           'pitcher': {
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
-            name: pitcher
+            name: pitcherNames
           },
           'innouts': innOuts
         }),
-
-        'outs': outs
+        'outs': outs,
+        'awayposition':{
+          P:pitcherNames,
+        }
       });
       console.log('Document successfully updated!');
       router.push({
         pathname: '/test',
         query: {
+          acodeName: acodeName,
           timestamp: timestamp,
           codeName: codeName,
           teamId: teamId
@@ -721,11 +727,11 @@ const Page = () => {
                                 sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
                                 labelId="pitcher-label"
                                 id="pitcher-select"
-                                value={pitcher} // 使用 state 中的值
+                                value={pitcherNames} // 使用 state 中的值
                                 label="投手"
-                                onChange={(e) => setPitcher(e.target.value)}
+                                onChange={(e) => setpitcherNames(e.target.value)}
                               >
-                                <MenuItem value={pitcher}>{pitcher}</MenuItem>
+                                <MenuItem value={pitcherNames}>{pitcherNames}</MenuItem>
                                 {players.map((playerKey, index) => (
                                   <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
                                 ))}

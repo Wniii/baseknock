@@ -185,8 +185,11 @@ const Page = () => {
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-    
-
+                    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp); // 使用具體的遊戲 ID
+                    const gameSnap = await getDoc(gameRef);
+                    if (gameSnap.exists()) {
+                        const gameData = gameSnap.data();
+                    });
     
                     if (teamData && teamData.players) {
                         // 過濾出符合條件的球員鍵
