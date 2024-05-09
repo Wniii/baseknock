@@ -202,9 +202,11 @@ const Page = () => {
           if (teamData && teamData.players) {
             // 過濾出符合條件的球員鍵
             const pitcherNamesInOrderMain = Array.isArray(ordermain) && ordermain.length > 0
-            ? ordermain.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name)
+            ? [...new Set(ordermain.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name))]
             : [];
-            console.log("對方已出現的投手名字：", pitcherNamesInOrderMain);
+
+          console.log("主隊已出現的投手名字：", pitcherNamesInOrderMain);
+
             const playerKeys = Object.keys(teamData.players)
             .filter(key => {
               const player = teamData.players[key];

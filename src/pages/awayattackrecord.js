@@ -189,7 +189,7 @@ const Page = () => {
                     const gameData = gameSnap.data();
                     const orderoppo = gameData.orderoppo || [];
                     const pitcherNamesInOrderoppo = Array.isArray(orderoppo) && orderoppo.length > 0
-                        ? orderoppo.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name)
+                        ? [...new Set(orderoppo.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name))]
                         : [];
     
                     console.log("對方已出現的投手名字：", pitcherNamesInOrderoppo);
