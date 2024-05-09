@@ -345,7 +345,8 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId
+                    teamId: teamId,
+                    acodeName: acodeName
                 },
             });
             setOpenDialog(false);
@@ -1143,7 +1144,6 @@ const Page = () => {
                                             >
                                                 <FormControl sx={{ mt: 2, minWidth: 120 }}>
                                                     <Select
-                                                        value="0"
                                                         autoFocus
                                                         onChange={(event) => {
                                                             const baseOuts = parseInt(event.target.value);

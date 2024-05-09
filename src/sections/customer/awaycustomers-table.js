@@ -307,7 +307,8 @@ const AwayCustomersTable = (props) => {
         timestamp: timestamp,
         codeName: codeName,
         teamId: teamId,
-        outs: outs
+        outs: outs, 
+        acodeName: acodeName,
       }
     });
   };
@@ -322,7 +323,8 @@ const AwayCustomersTable = (props) => {
         teamId: teamId,
         outs: outs,
         row: row,
-        column: column
+        column: column, 
+        acodeName: acodeName,
       }
     });
   };

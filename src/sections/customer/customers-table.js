@@ -207,7 +207,8 @@ const handleEditClick = (attack, row, column) => {
           teamId: teamId,
           outs: outs,
           row: row,
-          column: column
+          column: column, 
+          acodeName: acodeName,
       }
   });
 };

@@ -24,7 +24,7 @@ import { useCallback } from 'react';
 const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
-    const { codeName, timestamp, teamId, row, column } = router.query;
+    const { codeName, timestamp, teamId, row, column, acodeName } = router.query;
     const [currentRow, setCurrentRow] = useState(parseInt(row)); 
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
@@ -344,7 +344,8 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId
+                    teamId: teamId, 
+                    acodeName
                 }
             });
             setOpenDialog(false);
@@ -366,7 +367,8 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId
+                    teamId: teamId, 
+                    acodeName
                 }
             });
             setOpenDialog(false);
