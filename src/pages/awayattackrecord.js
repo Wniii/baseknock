@@ -201,8 +201,8 @@ const Page = () => {
                             return player.position === 'P' &&
                                 !AttackList.includes(key) &&
                                 !pitcherNames.includes(key) &&
-                                !pitcherNamesInOrderoppo.includes(player.name);
-                        });
+                                pitcherNamesInOrderoppo.includes(player.name);
+                            });
     
                         if (pitcher && !playerKeys.includes(pitcher)) {
                             playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭

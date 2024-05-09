@@ -213,7 +213,7 @@ const Page = () => {
               return player.position === 'P' &&
            !awayAttackList.includes(key) &&
            key !== awayposition.P &&
-           !pitcherNamesInOrderMain.includes(player.name);
+           pitcherNamesInOrderMain.includes(player.name);
           });
              
 
