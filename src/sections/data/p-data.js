@@ -62,9 +62,9 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                       const content = order.content || order.o_content;
                       
                       // Check if the content indicates a hit, walk, or strikeout
-                      const hasHit = ['一安', '二安', '三安', '全壘打'].some(hitType => content && content.includes(hitType));
+                      const hasHit = ['一安', '二安', '三安', '全打'].some(hitType => content && content.includes(hitType));
                       const hasWalk = content && content.includes('四壞');
-                      const hasStrikeout = content && content.includes('奪三振');
+                      const hasStrikeout = content && content.includes('三振');
                       
                       // Update the counts for hits, walks, and strikeouts
                       if (hasHit) {
