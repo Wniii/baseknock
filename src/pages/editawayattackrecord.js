@@ -319,7 +319,8 @@ const Page = () => {
         // 放置 `updateOut` 函數
             // 累加所有的 'innouts'
 
-            const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
+            const totalOutsMain = Array.isArray(ordermain) && ordermain.length > 0
+            ? ordermain.reduce((sum, item) => sum + (item.innouts || 0), 0): 0;
             const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
             console.log("totalOutsMain", totalOutsMain)
             console.log("totalOutsOppo", totalOutsOppo)
