@@ -1432,7 +1432,7 @@ const parseLocationToZone = (x, y) => {
 };
 
 const isHit = (content) =>
-  ["一安", "二安", "三安", "全壘打"].some((hit) => content && content.includes(hit));
+  ["一安", "二安", "三安", "全打"].some((hit) => content && content.includes(hit));
 const isOut = (content) =>
   ["飛球", "滾地", "失誤", "野選", "雙殺", "犧飛", "犧觸", "觸身"].some(
     (out) => content && content.includes(out)
