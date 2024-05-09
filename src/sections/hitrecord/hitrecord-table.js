@@ -1432,11 +1432,13 @@ const parseLocationToZone = (x, y) => {
 };
 
 const isHit = (content) =>
-  ["一安", "二安", "三安", "全打"].some((hit) => content && content.includes(hit));
+  ["一安", "二安", "三安"].some((hit) => content && content.includes(hit));
 const isOut = (content) =>
   ["飛球", "滾地", "失誤", "野選", "雙殺", "犧飛", "犧觸", "觸身"].some(
     (out) => content && content.includes(out)
   );
+  const isHR = (content) =>
+  ["全打"].some((hr) => content && content.includes(hr));
 
 const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
@@ -1501,7 +1503,7 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
           {locations.map((location, index) => {
             const position = convertLocationToPosition(location);
             const content = location.content || location.o_content || "";
-            const pointColor = isHit(content) ? "blue" : isOut(content) ? "red" : "black";
+            const pointColor = isHit(content) ? "blue" : isOut(content) ? "red" : isHR(content) ? "#6495ED" : "black";
 
             // 打印content或o_content
             console.log(`Location index ${index}: Content - ${content}`);
@@ -1523,6 +1525,15 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
             );
           })}
         </div>
+        {/* <Typography
+          style={{
+            textAlign: "center",
+            fontSize: "1rem",
+            margin: "20px 0",
+          }}
+        >
+          {locations.length > 0 ? locations[0].content || locations[0].o_content || "" : ""}
+        </Typography> */}
         <div
           ref={imageContainerRef}
           style={{ position: "relative", width: "450px", height: "auto" }}
