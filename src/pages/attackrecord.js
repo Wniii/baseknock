@@ -201,9 +201,10 @@ const Page = () => {
           console.log("ddd",ordermain)
           if (teamData && teamData.players) {
             // 過濾出符合條件的球員鍵
-            const pitcherNamesInOrderMain = ordermain
-            .filter(item => item.pitcher && item.pitcher.name) // 確保 pitcher 存在
-            .map(item => item.pitcher.name); // 提取所有的 pitcher 名字
+            const pitcherNamesInOrderMain = Array.isArray(ordermain) && ordermain.length > 0
+            ? ordermain.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name)
+            : [];
+            console.log("對方已出現的投手名字：", pitcherNamesInOrderMain);
             const playerKeys = Object.keys(teamData.players)
             .filter(key => {
               const player = teamData.players[key];
@@ -212,8 +213,8 @@ const Page = () => {
               return player.position === 'P' &&
            !awayAttackList.includes(key) &&
            key !== awayposition.P &&
-           key == pitcherNamesInOrderMain.includes(player.name);
-  });
+           !pitcherNamesInOrderMain.includes(player.name);
+          });
              
 
             if (pitcherNames && !playerKeys.includes(pitcherNames)) {

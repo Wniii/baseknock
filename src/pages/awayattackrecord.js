@@ -176,40 +176,42 @@ const Page = () => {
             }
     
             try {
-    
                 const teamQuerySnapshot = await getDocs(
                     query(collection(firestore, 'team'), where('codeName', '==', values.hometeam))
                 );
     
-    
                 if (!teamQuerySnapshot.empty) {
                     const teamDocSnapshot = teamQuerySnapshot.docs[0];
                     const teamData = teamDocSnapshot.data();
-                    const gameData = await fetchGameData(); // 獲取數據
-                    const oderoppo = gameData.orderoppo
+    
+                    const gameRef = doc(firestore, 'team', teamId, 'games', timestamp);
+                    const gameSnap = await getDoc(gameRef);
+                    const gameData = gameSnap.data();
+                    const orderoppo = gameData.orderoppo || [];
+                    const pitcherNamesInOrderoppo = Array.isArray(orderoppo) && orderoppo.length > 0
+                        ? orderoppo.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name)
+                        : [];
+    
+                    console.log("對方已出現的投手名字：", pitcherNamesInOrderoppo);
+    
                     if (teamData && teamData.players) {
-                        // 過濾出符合條件的球員鍵
-                        const pitcherNamesInOrderoppo = orderoppo
-                        .filter(item => item.pitcher && item.pitcher.name) // 確保 pitcher 存在
-                        .map(item => item.pitcher.name);
-                        const playerKeys = Object.keys(teamData.players)
-                            .filter(key => {
-                                const player = teamData.players[key];
+                        const playerKeys = Object.keys(teamData.players).filter(key => {
+                            const player = teamData.players[key];
     
-                                return player.position === 'P' &&
-                                    !AttackList.includes(key) &&
-                                    !pitcherNames.includes(key) &&
-                                    key == pitcherNamesInOrderoppo.includes(player.name);
-
-                            });
-    
+                            return player.position === 'P' &&
+                                !AttackList.includes(key) &&
+                                !pitcherNames.includes(key) &&
+                                !pitcherNamesInOrderoppo.includes(player.name);
+                        });
     
                         if (pitcher && !playerKeys.includes(pitcher)) {
                             playerKeys.unshift(pitcher); // 將當前投手添加到列表開頭
                         }
     
+                        console.log("過濾後的投手鍵：", playerKeys);
+    
                         setPlayers(playerKeys); // 更新玩家鍵的狀態
-            
+    
                     } else {
                         console.log('No players data found for home team with codeName:', values.hometeam);
                     }
@@ -222,7 +224,8 @@ const Page = () => {
         };
     
         fetchHomeTeamPlayers();
-    }, [values.hometeam, firestore, AttackList, pitcherNames]); // 依賴於 values.hometeam
+    }, [values.hometeam, firestore, AttackList, teamId, timestamp, pitcher, setPlayers]);
+     // 依賴於 values.hometeam
     
 
 

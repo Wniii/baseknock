@@ -321,10 +321,12 @@ const Page = () => {
 
             const totalOutsMain = Array.isArray(ordermain) && ordermain.length > 0
             ? ordermain.reduce((sum, item) => sum + (item.innouts || 0), 0): 0;
-            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
-            console.log("totalOutsMain", totalOutsMain)
+            
+            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.innouts, 0);
+            console.log("orderoppo", orderoppo)
             console.log("totalOutsOppo", totalOutsOppo)
             const totalOuts = totalOutsMain + totalOutsOppo;
+            console.log("dddd",totalOuts)
             setOuts(totalOuts);  // 更新 outs 狀態
             console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
         
