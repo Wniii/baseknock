@@ -7,7 +7,7 @@ import AwayCustomersTable from 'src/sections/customer/awaycustomers-table';
 import CustomersTable from 'src/sections/customer/customers-table';
 import { Score } from 'src/sections/gamerecord/Score';
 import { doc, getDoc, collection } from 'firebase/firestore';
-import { firestore } from './firebase'; // 你的 Firebase 配置和初始化
+import { firestore } from 'src/firebase'; // 你的 Firebase 配置和初始化
 
 
 const Page = () => {

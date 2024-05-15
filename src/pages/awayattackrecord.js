@@ -3,12 +3,12 @@ import { useState, useEffect, useMemo } from 'react'; // Import useState and use
 import {
     Box, Container, Stack, Typography, Button, CardActions, Snackbar,
     Alert, Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
-    MenuItem, InputLabel, Select
+    MenuItem, InputLabel, Select, TextField
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { useRouter } from 'next/router';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import {
     Card,
@@ -32,6 +32,7 @@ const Page = () => {
     const [AttackList, setAttackList] = useState([]);
     const [pitcherNames, setpitcherNames] = useState([]);
     const [gameDocIds, setGameDocIds] = useState([]);
+    const [selectedOuts, setSelectedOuts] = useState("0"); // 預設值設為 "0"
 
 
     const [alertInfo, setAlertInfo] = useState({
@@ -77,6 +78,7 @@ const Page = () => {
     const [Active, setActive] = useState(false);
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
+    const [totalPitches, setTotalPitches] = useState(0);
 
 
 
@@ -293,7 +295,8 @@ const Page = () => {
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
-                        name: pitcher
+                        name: pitcher,
+                        total: parseInt(totalPitches),
                     },
                     'innouts': innOuts
                 }),
@@ -330,7 +333,8 @@ const Page = () => {
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
-                        name: pitcher
+                        name: pitcher,
+                        total: parseInt(totalPitches),
                     },
                     'innouts': innOuts
                 }),
@@ -608,6 +612,11 @@ const Page = () => {
         setLocation({ x: '', y: '' });
     };
 
+    const handleTotalPitchesChange = (event) => {
+        setTotalPitches(event.target.value);
+      };
+    
+
     //出局數彈跳視窗
 
 
@@ -659,7 +668,6 @@ const Page = () => {
                                                         </Typography>
                                                         <Divider style={{ flex: '1', marginLeft: '10px' }} />
                                                     </div>
-
                                                 </div>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
@@ -681,7 +689,6 @@ const Page = () => {
                                                                 textAlign: 'center',
                                                             }}
                                                         >
-
                                                             {awayattackData}
                                                         </Paper>
                                                         <div style={{ display: 'flex', alignItems: 'center', marginLeft: '92px' }}>
@@ -698,19 +705,17 @@ const Page = () => {
                                                         </div>
                                                     </div>
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
-
                                                         <FormControl sx={{ mt: 1, minWidth: 120 }}>
                                                             <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
                                                             <Select
                                                                 sx={{ width: "200px", marginLeft: "12px", height: "50px" }}
                                                                 labelId="pitcher-label"
                                                                 id="pitcher-select"
-                                                                value={pitcher} // 使用 state 中的值
+                                                                value={pitcherNames} // 使用 state 中的值
                                                                 label="投手"
-                                                                onChange={(e) => setPitcher(e.target.value)}
+                                                                onChange={(e) => setpitcherNames(e.target.value)}
                                                             >
-                                                                {/* 確保當前選擇的投手始終存在於選單中 */}
-                                                                {(!players.includes(pitcher) && pitcher) && <MenuItem value={pitcher}>{pitcher}</MenuItem>}
+                                                                <MenuItem value={pitcherNames}>{pitcherNames}</MenuItem>
                                                                 {players.map((playerKey, index) => (
                                                                     <MenuItem key={index} value={playerKey}>{playerKey}</MenuItem>
                                                                 ))}
@@ -719,17 +724,9 @@ const Page = () => {
                                                         <Box
                                                             noValidate
                                                             component="form"
-                                                            // sx={{
-                                                            //     display: 'flex',
-                                                            //     flexDirection: 'column',
-                                                            //     m: 'auto',
-                                                            //     width: 'fit-content',
-                                                            // }}
                                                         >
                                                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
-                                                                <div style={{ marginRight: '10px' }}> {/* 添加固定距離以保持S位置不變 */}
-                                                                    <Typography variant='h5'>S</Typography>
-                                                                </div>
+                                                                <Typography variant='h5'>S</Typography>
                                                                 {strikes.map((strike, index) => (
                                                                     <Checkbox
                                                                         key={index}
@@ -742,7 +739,6 @@ const Page = () => {
                                                             </div>
                                                         </Box>
                                                     </div>
-
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }} >
@@ -750,14 +746,18 @@ const Page = () => {
                                                             </Typography>
                                                             <ArrowDropUpIcon style={{ fontSize: '2rem' }} />
                                                         </div>
-                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O&nbsp;&nbsp;</Typography>
+                                                        <TextField
+                                                            label="總投球數"
+                                                            name="totalPitches"
+                                                            type="text"
+                                                            onChange={handleTotalPitchesChange}
+                                                            required
+                                                            value={totalPitches}
+                                                            style={{ width: '100px', marginLeft: '45px', marginRight: '75px' }} // 設置具體寬度和間距
+                                                        />
+                                                        <Typography variant='h5' style={{ marginLeft: '10px' }}>O</Typography>
                                                         {renderOutsCheckboxes()}
                                                     </div>
-
-                                                    {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
-                                                    </div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
-                                                    </div> */}
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -996,7 +996,7 @@ const Page = () => {
                                                             }
                                                             }
                                                         >
-                                                            違規
+                                                            妨礙
                                                         </Button>
                                                     </div>
                                                     <div style={{ width: '100px', textAlign: 'center' }}>

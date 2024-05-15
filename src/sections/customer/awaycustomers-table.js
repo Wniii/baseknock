@@ -5,7 +5,7 @@ import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, L
 import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import { firestore } from '../../pages/firebase';
+import { firestore } from 'src/firebase';
 import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
 import { IconButton } from '@mui/material';

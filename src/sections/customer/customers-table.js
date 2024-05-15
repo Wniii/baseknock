@@ -4,7 +4,7 @@ import { collection, getDoc, doc, getDocs } from "firebase/firestore";
 import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
-import { firestore } from '../../pages/firebase';
+import { firestore } from 'src/firebase';
 import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
 

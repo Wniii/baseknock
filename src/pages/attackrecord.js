@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react'; // Import useState and useEffect
 import {
   Box, Container, Stack, Typography, Button, CardActions, Snackbar,
   Alert, Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
-  MenuItem, InputLabel, Select
+  MenuItem, InputLabel, Select, TextField
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { useRouter } from 'next/router';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
   Card,
@@ -75,6 +75,7 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState({ x: '', y: '' });
   const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
+  const [totalPitches, setTotalPitches] = useState(0);
 
 
   // 全局範圍內定義 fetchGameData 函數
@@ -135,7 +136,7 @@ const Page = () => {
         const pitcherNames = gameData.awayposition.P;
 
         setpitcherNames(pitcherNames);
-        
+
 
         // 使用 router.query 的數據處理 ordermain 和 attacklist
         if (router.query.column && router.query.row) {
@@ -181,11 +182,11 @@ const Page = () => {
       if (!acodeName || !firestore) {
         return;
       }
-      
+
       try {
         const teamQuerySnapshot = await getDocs(
           query(collection(firestore, 'team'), where('codeName', '==', acodeName))
-          
+
         );
 
         if (!teamQuerySnapshot.empty) {
@@ -197,34 +198,34 @@ const Page = () => {
           const teamData = teamDocSnapshot.data();
           const awayAttackList = gameData.awayattacklist
           const awayposition = gameData.awayposition
-          console.log("dddd",teamData.players)
-          console.log("ddd",ordermain)
+          console.log("dddd", teamData.players)
+          console.log("ddd", ordermain)
           if (teamData && teamData.players) {
             // 過濾出符合條件的球員鍵
             const pitcherNamesInOrderMain = Array.isArray(ordermain) && ordermain.length > 0
-            ? [...new Set(ordermain.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name))]
-            : [];
+              ? [...new Set(ordermain.filter(item => item.pitcher && item.pitcher.name).map(item => item.pitcher.name))]
+              : [];
 
-          console.log("主隊已出現的投手名字：", pitcherNamesInOrderMain);
+            console.log("主隊已出現的投手名字：", pitcherNamesInOrderMain);
 
             const playerKeys = Object.keys(teamData.players)
-            .filter(key => {
-              const player = teamData.players[key];
-              // 判断球员的位置是否为 'P'，且不在 awayAttackList 中，且不等于 awayposition.P，
-              // 且没有出现在 ordermain 的任何一个 pitcher 的名字中
-              return player.position === 'P' &&
-              !awayAttackList.includes(key) &&
-              key !== awayposition.P &&
-              !pitcherNamesInOrderMain.includes(player.name);
+              .filter(key => {
+                const player = teamData.players[key];
+                // 判断球员的位置是否为 'P'，且不在 awayAttackList 中，且不等于 awayposition.P，
+                // 且没有出现在 ordermain 的任何一个 pitcher 的名字中
+                return player.position === 'P' &&
+                  !awayAttackList.includes(key) &&
+                  key !== awayposition.P &&
+                  !pitcherNamesInOrderMain.includes(player.name);
               });
-             
+
 
             if (pitcherNames && !playerKeys.includes(pitcherNames)) {
-                playerKeys.unshift(pitcherNames); // 將當前投手添加到列表開頭
+              playerKeys.unshift(pitcherNames); // 將當前投手添加到列表開頭
             }
 
             setPlayers(playerKeys); // 更新玩家鍵的狀態
- // 更新玩家鍵的狀態
+            // 更新玩家鍵的狀態
             console.log('Home team player keys after processing:', playerKeys);
           } else {
             console.log('No players data found for team:', teamId);
@@ -244,9 +245,9 @@ const Page = () => {
 
   const saveData = async () => {
 
-    const hitContents = ['一安', '二安', '三安', '全打', 
-      '三振', '飛球', '滾地', '失誤', 
-      '野選', '雙殺', '違規', '不知', 
+    const hitContents = ['一安', '二安', '三安', '全打',
+      '三振', '飛球', '滾地', '失誤',
+      '野選', '雙殺', '違規', '不知',
       '四壞', '犧飛', '犧觸', '觸身', '一分', '兩分', '三分', '四分'];
 
     const baseStatuses = ['一壘', '二壘', '三壘'];
@@ -303,23 +304,24 @@ const Page = () => {
             name: pitcherNames,
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
+            total: parseInt(totalPitches),
           },
           'innouts': innOuts
         }),
         'outs': outs,
-        'awayposition':{
-          P:pitcherNames,
+        'awayposition': {
+          P: pitcherNames,
         }
       });
 
-     
+
       setOpenDialog(false);
       setAlertInfo({ open: true, severity: 'success', message: 'Document successfully updated!' });
     } catch (error) {
       console.error('Error updating document:', error);
       alert('Error updating document: ' + error.message);
     }
-    console.log("ddd",pitcherNames)
+    console.log("ddd", pitcherNames)
 
     try {
       await updateDoc(AgameRef, {
@@ -333,13 +335,14 @@ const Page = () => {
           'pitcher': {
             ball: balls.filter(Boolean).length,
             strike: strikes.filter(Boolean).length,
-            name: pitcherNames
+            name: pitcherNames,
+            total: parseInt(totalPitches),
           },
           'innouts': innOuts
         }),
         'outs': outs,
-        'awayposition':{
-          P:pitcherNames,
+        'awayposition': {
+          P: pitcherNames,
         }
       });
       console.log('Document successfully updated!');
@@ -545,13 +548,13 @@ const Page = () => {
   const renderOutsCheckboxes = () => {
     // 過濾出當前局的所有紀錄
     let remainder = 0; // 默認餘數為 0
-    
-        if (outs > 0) {
-            remainder = outs % 3; // 計算 outs 除以 3 的餘數
-            if (remainder === 0) {
-                remainder = 0; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
-            }
-        }
+
+    if (outs > 0) {
+      remainder = outs % 3; // 計算 outs 除以 3 的餘數
+      if (remainder === 0) {
+        remainder = 0; // 如果 outs 不是 0 但能被 3 整除，將 remainder 設為 3 以全選
+      }
+    }
     return [...Array(2)].map((_, index) => (
       <FormControlLabel
         key={index}
@@ -637,6 +640,10 @@ const Page = () => {
     setLocation({ x: '', y: '' });  // 清除標記
   };
 
+  const handleTotalPitchesChange = (event) => {
+    setTotalPitches(event.target.value);
+  };
+
 
 
 
@@ -684,7 +691,6 @@ const Page = () => {
                             </Typography>
                             <Divider style={{ flex: '1', marginLeft: '10px' }} />
                           </div>
-
                         </div>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
@@ -722,7 +728,6 @@ const Page = () => {
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '30px' }}>
-
                             <FormControl sx={{ mt: 1, minWidth: 120 }}>
                               <InputLabel id="pitcher-label" style={{ alignContent: 'flex-start', justifyContent: 'flex-start' }}>投手</InputLabel>
                               <Select
@@ -742,16 +747,8 @@ const Page = () => {
                             <Box
                               noValidate
                               component="form"
-                              // sx={{
-                              //   display: 'flex',
-                              //   flexDirection: 'column',
-                              //   m: 'auto',
-                              //   width: 'fit-content',
-                              // }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
-
-
                                 <Typography variant='h5'>S</Typography>
                                 {strikes.map((strike, index) => (
                                   <Checkbox
@@ -765,29 +762,32 @@ const Page = () => {
                               </div>
                             </Box>
                           </div>
-
-
                           <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center'}}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }} >
                                 {currentInning}
                               </Typography>
                               <ArrowDropDownIcon style={{ fontSize: '2rem' }} />
                             </div>
-                            <Typography variant='h5'  style={{ marginLeft: '235px' }}>O</Typography>
+                            <TextField
+                              label="總投球數"
+                              name="totalPitches"
+                              type="text"
+                              onChange={handleTotalPitchesChange}
+                              required
+                              value={totalPitches}
+                              style={{ width: '100px', marginLeft: '45px', marginRight: '75px' }} // 設置具體寬度和間距
+                            />
+                            <Typography variant='h5' style={{ marginLeft: '10px' }}>O</Typography>
                             {renderOutsCheckboxes()}
                           </div>
-
-
-                          {/* <div style={{ display: 'flex', alignItems: 'center', marginTop: '23px', marginLeft: '20px', marginDown: '50px' }}>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', marginTop: '38px', marginLeft: '20px' }}>
-                          </div> */}
                         </div>
                       </CardContent>
                     </Card>
                   </form>
                 </Grid>
+
+
 
                 <Grid
                   xs={12}
@@ -834,7 +834,7 @@ const Page = () => {
                   xs={12}
                   sm={6}
                   item
-                  style={{ marginTop: '-130px' }}
+                  style={{ marginTop: '-80px' }}
 
                 >
                   <form onSubmit={handleSubmit}>
@@ -1008,7 +1008,7 @@ const Page = () => {
                               color='error'
                               onClick={() => handleToggle('違規')}
                             >
-                              違規
+                              妨礙
                             </Button>
                           </div>
                           <div style={{ width: '100px', textAlign: 'center' }}>
@@ -1152,7 +1152,6 @@ const Page = () => {
                       >
                         <FormControl sx={{ mt: 2, minWidth: 120 }}>
                           <Select
-                            value="0"
                             autoFocus
                             onChange={(event) => {
                               const baseOuts = parseInt(event.target.value);
@@ -1177,7 +1176,7 @@ const Page = () => {
                           儲存
                         </Button>
                       </div>
-                      
+
                     </DialogActions>
                   </Dialog>
                 </CardContent>
