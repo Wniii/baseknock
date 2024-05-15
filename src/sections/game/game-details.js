@@ -13,7 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
-import { firestore } from "src/pages/firebase";
+import { firestore } from "src/firebase";
 import { setDoc, doc, collection } from "firebase/firestore";
 import { query, where, getDocs, orderBy } from "firebase/firestore";
 import { format } from "date-fns";
@@ -24,12 +24,15 @@ const gName = [
   { value: "friendly", label: "友誼賽" },
   { value: "ubl", label: "大專盃" },
   { value: "mei", label: "梅花旗" },
+  { value: "tao", label: "桃園盃" },
+  { value: "spring", label: "春季聯賽" },
+  { value: "beer", label: "台啤盃" },
 ];
 
 const labelOptions = [
-  { value: "top8", label: "八強賽" },
-  { value: "top4", label: "四強賽" },
-  { value: "champ", label: "冠亞賽" },
+  { value: "pre", label: "預賽" },
+  { value: "re", label: "複賽" },
+  { value: "final", label: "決賽" },
   { value: "others", label: "其他" },
 ];
 

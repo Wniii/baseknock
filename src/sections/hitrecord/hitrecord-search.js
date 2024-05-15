@@ -18,7 +18,7 @@ import {
   Unstable_Grid2 as Grid,
 } from "@mui/material";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { firestore } from "src/pages/firebase"; // 確保路徑與你的配置文件相匹配
+import { firestore } from "src/firebase"; // 確保路徑與你的配置文件相匹配
 
 export const HitrecordSearch = ({ onConfirm }) => {
   const [selectedTeam, setSelectedTeam] = useState("");
@@ -28,6 +28,9 @@ export const HitrecordSearch = ({ onConfirm }) => {
     { name: "友誼賽", checked: true, dbName: "friendly" },
     { name: "大專盃", checked: true, dbName: "ubl" },
     { name: "梅花旗", checked: true, dbName: "mei" },
+    { name: "桃園盃", checked: true, dbName: "tao" },
+    { name: "春季聯賽", checked: true, dbName: "spring" },
+    { name: "台啤盃", checked: true, dbName: "beer" },
   ]);
 
   const [checkboxStates, setCheckboxStates] = useState([

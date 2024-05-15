@@ -16,12 +16,12 @@ import {
   Unstable_Grid2 as Grid,
 } from "@mui/material";
 import { collection, getDocs, where, query } from "firebase/firestore";
-import { firestore } from "src/pages/firebase"; // 確保路徑與您的配置文件相匹配
+import { firestore } from "src/firebase"; // 確保路徑與您的配置文件相匹配
 
 export const DefendSelect = ({ onConfirm }) => {
   const [selectedTeam, setSelectedTeam] = useState("");
   const [teams, setTeams] = useState([]); // 新增狀態變量來存儲球隊列表
-  const [selectedGameType, setSelectedGameType] = useState(["friendly", "ubl", "mei"]);
+  const [selectedGameType, setSelectedGameType] = useState(["friendly", "ubl", "mei", "tao", "spring", "beer"]);
 
   const [checkboxStates, setCheckboxStates] = useState([
     { label: "好球數", checked: true },
@@ -57,6 +57,9 @@ export const DefendSelect = ({ onConfirm }) => {
     友誼賽: "friendly",
     大專盃: "ubl",
     梅花旗: "mei",
+    桃園盃: "tao",
+    春季聯賽: "spring",
+    台啤盃: "beer",
   };
 
   const handleGameTypeChange = (gameType) => (event) => {
@@ -158,7 +161,7 @@ export const DefendSelect = ({ onConfirm }) => {
           <Grid item xs={12}>
             <Typography variant="h6">比賽性質</Typography>
             <Grid container spacing={1}>
-              {["友誼賽", "大專盃", "梅花旗"].map((gameTypeName, index) => (
+              {["友誼賽", "大專盃", "梅花旗", "桃園盃", "春季聯賽", "台啤盃"].map((gameTypeName, index) => (
                 <Grid item xs={4} key={index}>
                   <FormControlLabel
                     control={

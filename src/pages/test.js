@@ -83,6 +83,12 @@ const Page = () => {
         return '友誼賽';
       case 'mei':
         return '梅花旗';
+      case 'tao':
+        return '桃園盃';
+      case 'spring':
+        return '春季聯賽';
+      case 'beer':
+        return '台啤盃';
       default:
         return '未知比賽'; // 如果 gName 不是已知值時顯示
     }
