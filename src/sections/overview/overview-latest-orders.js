@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 
 // import React from 'react';
 
@@ -30,7 +30,6 @@ import { Typography } from '@mui/material';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import ImageListItemBar from '@mui/material/ImageListItemBar';
-
 import Link from '@mui/material/Link';
 
 

@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
-import { storage, firestore } from "src/pages/firebase"; // Ensure these are correctly imported
+import { storage, firestore } from "src/firebase"; // Ensure these are correctly imported
 
 export const ManageProfile = ({ selectedTeam, onImageSelect }) => {
   // 直接使用 onImageSelect 而不是 props.onImageSelect

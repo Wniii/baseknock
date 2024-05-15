@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
-import { firestore } from "./firebase"; // 此處導入 Firestore 實例
+import { firestore } from "src/firebase"; // 此處導入 Firestore 實例
 import {
   Button,
   Card,
@@ -231,3 +231,4 @@ export const PitcherRecord = () => {
     </form>
   );
 };
+export default PitcherRecord;

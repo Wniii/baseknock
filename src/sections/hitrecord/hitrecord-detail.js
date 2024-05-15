@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, MenuItem } from '@mui/material';
 import { collection, getDocs } from 'firebase/firestore';
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 
 const HitrecordDetail = ({ onTeamSelect }) => {
   const [teamsData, setTeamsData] = useState([]);

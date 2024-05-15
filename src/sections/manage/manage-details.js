@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { firestore } from "src/pages/firebase";
+import { firestore } from "src/firebase";
 import {
   collection,
   getDocs,
@@ -112,7 +112,6 @@ export const Manage = ({ onTeamSelect }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUserId(user.uid);
-        localStorage.setItem("userId", auth.user.id);
       }
     });
     return () => unsubscribe();

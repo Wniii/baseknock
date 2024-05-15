@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { firestore, storage } from "src/pages/firebase"; // Ensure these are correctly imported
+import { firestore, storage } from "src/firebase"; // Ensure these are correctly imported
 import { doc, updateDoc } from "firebase/firestore";
 
 export const ManageProfileDetails = ({ teamInfo }) => {

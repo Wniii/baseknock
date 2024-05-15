@@ -7,7 +7,7 @@ import { DefendTable } from 'src/sections/defendrecord/defendrecord-table';
 import { DefendSelect } from 'src/sections/defendrecord/defendrecord-select';
 import { applyPagination } from 'src/utils/apply-pagination';
 import { collection, getDocs } from 'firebase/firestore';
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 
 const now = new Date();
 

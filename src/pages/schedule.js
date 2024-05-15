@@ -23,7 +23,7 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { firestore } from "./firebase";
+import { firestore } from "src/firebase";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -45,7 +45,6 @@ const SchedulePage = () => {
     awayteam: "",
   });
   const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
-
   // useEffect(() => {
   //   const userTeamString = localStorage.getItem("userTeam");
   //   if (userTeamString) {
@@ -64,10 +63,12 @@ const SchedulePage = () => {
       const teamsData = await getDocs(collection(firestore, "team"));
       const teamIdMap = new Map();
       const teamNameMap = new Map();
+      const teamphotoMap = new Map();
       teamsData.forEach(doc => {
         const data = doc.data();
         teamIdMap.set(data.codeName, doc.id);
         teamNameMap.set(data.codeName, data.Name);  // 保存 codeName 到 name 的映射
+        teamphotoMap.set(data.codeName, data.photo);  // 保存 codeName 到 name 的映射
       });
 
       const gamesData = [];
@@ -92,11 +93,29 @@ const SchedulePage = () => {
                 continue; // Skip this game if team data is incomplete
               }
 
+              
+                // 獲取主隊和客隊的照片 
               const hteam = teamIdMap.get(gameData.hometeam);
               const ateam = teamIdMap.get(gameData.awayteam);
+              const hphoto = teamphotoMap.get(gameData.hometeam);
+              const aphoto = teamphotoMap.get(gameData.awayteam);        
               const homeTeamName = teamNameMap.get(gameData.hometeam);
               const awayTeamName = teamNameMap.get(gameData.awayteam);
-              const title = `${awayTeamName} v.s. ${homeTeamName} `; //Name
+              const titleElement = (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ textAlign: 'center', margin: '0 10px' }}>
+                    <img src={aphoto} alt={`Logo of ${awayTeamName}`} style={{ width: '40px', height: '40px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{awayTeamName}</div>
+                  </div>
+                  <span style={{ fontWeight: 'bold', fontSize: '16px', color: 'black' }}>v.s.</span>
+                  <div style={{ textAlign: 'center', margin: '0 10px' }}>
+                    <img src={hphoto} alt={`Logo of ${homeTeamName}`} style={{ width: '40px', height: '40px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{homeTeamName}</div>
+                  </div>
+                </div>
+              );
+
+
               //const title = `${gameData.hometeam} v.s. ${gameData.awayteam}`; //codeName
 
               if (!userTeam.includes(gameData.hometeam) || !userTeam.includes(gameData.awayteam)) {
@@ -113,7 +132,7 @@ const SchedulePage = () => {
               if (!addedTimestamps.has(timestamp)) {
                 gamesData.push({
                   id: timestamp,
-                  title: title,
+                  title: titleElement,
                   codeName: gameData.hometeam,
                   start: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
                   end: moment(game.toDate()).format('YYYY-MM-DD HH:mm:ss'),
@@ -123,7 +142,7 @@ const SchedulePage = () => {
                   awayteamId: ateam,
                   hcodeName: gameData.hometeam,
                   acodeName: gameData.awayteam,
-                  selectedTeam: gameData.awayteam
+                  selectedTeam: gameData.awayteam,
                 });
                 addedTimestamps.add(timestamp);
               }
@@ -131,6 +150,7 @@ const SchedulePage = () => {
           }
         }
       }
+    
 
       setGames(gamesData);
     } catch (error) {
@@ -327,6 +347,33 @@ const SchedulePage = () => {
     });
   };
 
+  const eventStyleGetter = (event, start, end, isSelected) => {
+    const style = {
+      backgroundColor: 'lightblue', // 設定背景色
+      borderRadius: '5px',          // 圓角
+      opacity: 0.8,
+      color: 'black',
+      border: '0px',
+      display: 'block',
+      padding: '2px 10px',
+      height: 'auto',               // 設定高度為自動
+      overflow: 'hidden'            // 超出部分隱藏
+    };
+  
+    return {
+      style: style,
+      className: "game-event", // Add a custom class name to target
+      g_id: event.g_id,
+    };
+  };
+  const calculateCalendarHeight = (events) => {
+    const maxHeight = 1000; // 最大高度限制
+    const minHeight = 200;  // 最小高度
+    const heightPerEvent = 50; // 每增加一個事件增加的高度
+  
+    const dynamicHeight = minHeight + (events.length * heightPerEvent);
+    return Math.min(dynamicHeight, maxHeight);
+  };
   return (
     <>
       <Head>
@@ -342,25 +389,26 @@ const SchedulePage = () => {
         <Container maxWidth="lg">
           <Stack spacing={3}>
             <div>
-              <Typography variant="h4">賽程表</Typography>
+            <Typography variant="h4" sx={{ whiteSpace: 'normal' }}>賽程表</Typography>
             </div>
             <Divider />
             <div>
               <Grid container spacing={3}>
-                <Grid item xs={12} md={12} lg={12}>
-                  <Calendar
-                    localizer={localizer}
-                    events={games} // Pass the games data to the events property
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: 700 }}
-                    eventPropGetter={(event, start, end, isSelected) => {
-                      return {
-                        className: "game-event",
-                        g_id: event.g_id,
-                      };
-                    }}
-                    onSelectEvent={handleGameClick} // Handle click on a game event
+                <Grid item xs={20} md={20} lg={12}>
+                <Calendar
+                  localizer={localizer}
+                  events={games} // 確保這是包含所有事件的數組
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: calculateCalendarHeight(games), width: '100%' }}
+                  eventPropGetter={(event, start, end, isSelected) => {
+                    return {
+                      style: { backgroundColor: 'transparent', padding: '5px' },
+                      className: "game-event",
+                      g_id: event.g_id,
+                    };
+                  }}
+                  onSelectEvent={handleGameClick}// Handle click on a game event
                   />
                 </Grid>
               </Grid>
@@ -398,4 +446,3 @@ SchedulePage.getLayout = (page) => (
   </DashboardLayout>
 );
 export default SchedulePage;
-

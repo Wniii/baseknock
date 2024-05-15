@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
-import { firestore } from '../../pages/firebase';
+import { firestore } from 'src/firebase';
 import {
   Button,
   Card,

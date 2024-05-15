@@ -1,126 +1,85 @@
 import Head from "next/head";
 import NextLink from "next/link";
-import { useRouter } from "next/router"; // 注意这里的变更
+import { useRouter } from "next/router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Box, Button, Link, Stack, TextField, Typography } from "@mui/material";
-import { useAuth } from "src/hooks/use-auth";
 import { Layout as AuthLayout } from "src/layouts/auth/layout";
-import React, { useState, useEffect } from "react";
-import { firestore } from "../firebase"; // 正确的导入路径
+import React, { useCallback,useState, useEffect } from "react";
+import { firestore,firebaseApp } from "src/firebase";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getDocs, query, collection, where } from "firebase/firestore";
 
+
+
+function useAuth() {
+  const auth = getAuth(firebaseApp); // 獲取 Firebase Auth 實例
+
+  const signIn = (email, password) => {
+    return signInWithEmailAndPassword(auth, email, password);
+  };
+
+  return { signIn };
+}
+
 const LoginPage = () => {
-  const router = useRouter(); // 注意这里的变更
-  const auth = useAuth();
-  const [userId, setUserId] = useState("");
-  const [userteam, setUserTeam] = useState("");
+  const auth = getAuth(firebaseApp);
+  const router = useRouter();
+  const [userTeam, setUserTeam] = useState("");
+  const [userEamil, setUserEmail] = useState("");
 
-  useEffect(() => {
-    //   // 在组件加载时，从 sessionStorage 中获取用户ID
-    //   const userIdFromStorage = window.sessionStorage.getItem('userId');
-    //   if (userIdFromStorage) {
-    //     setUserId(userIdFromStorage);
-    //   }
-    // }, []);
-
-    const userIdFromStorage = window.localStorage.getItem("userId");
-    if (userIdFromStorage) {
-      setUserId(userIdFromStorage);
+  const signIn = useCallback(async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
     }
-  }, []);
-  const storeUserIdInLocalStorage = (userId) => {
-    window.localStorage.setItem("userId", userId);
-  };
+  }, [auth]);
 
-  const storeUserEmailInLocalStorage = (userEmail) => {
-    localStorage.setItem("userEmail", userEmail);
-  };
-
-  const fetchUserTeam = async (userId) => {
+  const fetchUserTeam = useCallback(async (uid) => {
     try {
       const userRef = collection(firestore, "users");
-      const q = query(userRef, where("u_id", "==", userId));
+      const q = query(userRef, where("u_id", "==", uid));
       const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        setUserTeam(doc.data().u_team);
-        // 存储团队信息到本地存储
-        window.localStorage.setItem("userTeam", doc.data().u_team);
-      });
+      const data = querySnapshot.docs[0]?.data();
+      console.log("xxscw",data)
+
+      setUserTeam(data?.u_team || "No team assigned");
+      setUserEmail(data?.u_mail || "No email assigned");
+      
+      window.localStorage.setItem("userTeam", data?.u_team || "");
+      window.localStorage.setItem("userEmail", data?.u_Email || "");
+      window.localStorage.setItem("userID", data?.u_id || "");
+      window.localStorage.setItem("username", data?.u_name || "");
+
+
+
     } catch (error) {
       console.error("Error fetching user team:", error);
     }
-  };
+  }, []);
 
   const formik = useFormik({
     initialValues: {
       u_email: "",
       u_password: "",
-      submit: "",
     },
-
     validationSchema: Yup.object({
-      u_email: Yup.string().email("Must be a valid email").max(255).required("Email is required"),
-      u_password: Yup.string().max(255).required("Password is required"),
+      u_email: Yup.string().email("Must be a valid email").required("Email is required"),
+      u_password: Yup.string().required("Password is required"),
     }),
     onSubmit: async (values, helpers) => {
       try {
-        // 连接数据库，检查用户是否存在
-        const q = query(collection(firestore, "users"), where("u_email", "==", values.u_email));
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-          // 用户不存在
-          throw new Error("Invalid email or password");
-        }
-        const userDoc = querySnapshot.docs[0];
-        const user = {
-          id: userDoc.id,
-          email: userDoc.data().u_email,
-          team: userDoc.data().u_team,
-        };
-
-        const sendUserIdToServer = async (userId) => {
-          try {
-            console.log("Sending user ID to server:", auth.user.id);
-            const response = await fetch("/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/localstorage",
-              },
-              body: JSON.stringify({ userId }),
-            });
-
-            if (!response.ok) {
-              throw new Error("Failed to send user ID to server");
-            }
-            console.log("User ID sent successfully to server");
-          } catch (error) {
-            console.error("Error sending user ID to server:", error);
-          }
-        };
-
-        // 用户存在，尝试进行登录
-        await auth.signIn(values.u_email, values.u_password);
-        if (auth.user && auth.user.id) {
-          // Check if the user object and id are defined
-          setUserId(auth.user.id);
-          await fetchUserTeam(auth.user.id);
-          sendUserIdToServer(auth.user.id);
-          storeUserIdInLocalStorage(auth.user.id);
-          storeUserEmailInLocalStorage(values.u_email);
-          router.push(`/?userId=${auth.user.id}`);
-        } else {
-          // Handle case where auth.user is undefined
-          //throw new Error("Authentication state was not set correctly.");
-        }
+        const user = await signIn(values.u_email, values.u_password);
+        fetchUserTeam(user.uid);
+        router.push(`/`);
       } catch (error) {
-        helpers.setStatus({ success: false });
         helpers.setErrors({ submit: error.message });
-        console.log(error.message);
-        helpers.setSubmitting(false);
       }
     },
-  });
+  });// Depend on auth.user and userId changes
 
   return (
     <>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { Box, Button, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Grid, Typography, Container } from '@mui/material';
 import { useRouter } from 'next/router';

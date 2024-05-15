@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDocs, collection, doc } from 'firebase/firestore';
 import { Typography } from '@mui/material';
-import { firestore } from '../../pages/firebase'; // Import your Firebase configuration
+import { firestore } from 'src/firebase'; // Import your Firebase configuration
 
 const PlayerInfo = ({ playerId }) => {
   const [player, setPlayers] = useState(null);

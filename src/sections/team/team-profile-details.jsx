@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
-import { firestore, storage } from "src/pages/firebase";
+import { firestore, storage } from "src/firebase";
 import { doc, updateDoc, setDoc, getDocs, query, where } from "firebase/firestore"; // 添加这行导入语句
 import { getDoc } from "firebase/firestore";
 import IconButton from "@mui/material/IconButton";

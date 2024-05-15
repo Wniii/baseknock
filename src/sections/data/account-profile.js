@@ -13,7 +13,7 @@ import {
   Divider,
 } from '@mui/material';
 import { collection, getDocs } from "firebase/firestore";
-import { firestore } from 'src/pages/firebase'; // 确保路径与您的配置文件相匹配
+import { firestore } from 'src/firebase'; // 确保路径与您的配置文件相匹配
 import PropTypes from 'prop-types';
 
 export const AccountProfile = ({ onPlayerSelect, onTeamSelect }) => {

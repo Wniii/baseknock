@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { firestore } from 'src/pages/firebase'; // 确保路径正确
+import { firestore } from 'src/firebase'; // 确保路径正确
 import { doc, deleteDoc, updateDoc, deleteField, setDoc } from 'firebase/firestore';
 import {
     Box,

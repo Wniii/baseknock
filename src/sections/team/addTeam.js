@@ -8,7 +8,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { firestore } from "../../pages/firebase";
+import { firestore } from "src/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
 const position = [

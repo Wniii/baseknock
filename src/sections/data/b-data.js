@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
 import React, { useState, useEffect } from 'react';
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo, selectedTeam }) => {

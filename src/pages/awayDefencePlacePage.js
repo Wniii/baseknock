@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { collection, doc, getDoc, getDocs, query, where, updateDoc, setDoc } from 'firebase/firestore';
 import { Box, Grid, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Typography, Container, Button, Paper } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import CloseIcon from '@mui/icons-material/Close';
 
 const DefencePlacePage = () => {

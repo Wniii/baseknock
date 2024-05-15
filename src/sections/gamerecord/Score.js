@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDoc, doc } from "firebase/firestore";
-import { firestore } from '../../pages/firebase';
+import { firestore } from 'src/firebase';
 import PropTypes from 'prop-types';
 import { useRouter } from 'next/router';
 

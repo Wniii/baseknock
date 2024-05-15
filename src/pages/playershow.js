@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { Box, Button, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Grid, Typography, Container } from '@mui/material';
 import { useRouter } from 'next/router';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
+
 
 const ALLPlayerPage = () => {
   const router = useRouter();
@@ -205,6 +209,43 @@ const navigatetodefence = (gameId, codeName) => {
 
   
   // 在需要的地方调用函数并传递团队文档的名称
+  const ItemTypes = {
+    PLAYER: 'player'
+  };
+  
+  // 定義一個可拖拽的球員組件
+  const DraggablePlayer = ({ playerKey, index, removePlayer }) => {
+    const [{ isDragging }, drag] = useDrag(() => ({
+      type: ItemTypes.PLAYER,
+      item: { playerKey, index },
+      collect: monitor => ({
+        isDragging: !!monitor.isDragging(),
+      })
+    }), [playerKey, index]);
+  
+    return (
+      <ListItem
+        ref={drag}
+        key={playerKey}
+        divider
+        button
+        onClick={event => {
+          event.stopPropagation(); // 防止事件冒泡
+          removePlayer(playerKey);
+        }}
+        style={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }} // 添加拖拽光標
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ marginRight: '16px' }}>{index + 1}</div>
+          <ListItemText
+            primary={`${playerKey}`}
+            primaryTypographyProps={{ variant: 'body2' }}
+          />
+        </div>
+      </ListItem>
+    );
+  };
+  
   
   
   
@@ -302,45 +343,18 @@ const navigatetodefence = (gameId, codeName) => {
                 </Button>
               </div>
             </Grid>
-  
-            {/* 右侧先发球员列表 */}
-            <Grid item xs={4}>
-              <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardHeader title="先發球員" />
-                <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
-                  <List>
-  {selectedPlayers.map((playerKey, index) => (
-    <ListItem key={playerKey} divider button onClick={() => handleRemoveFromSelectedPlayers(playerKey)} style={{ whiteSpace: 'nowrap' }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{ marginRight: '16px' }}>{index + 1}</div>
-        {/* <ListItemAvatar>
-          <Box
-            component="img"
-            src=''
-            sx={{
-              borderRadius: 1,
-              height: 48,
-              width: 48
-            }}
-          />
-        </ListItemAvatar> */}
-        <ListItemText
-          primary={`${playerKey}`}
-          primaryTypographyProps={{ variant: 'body2' }}
-        />
-      </div>
-    </ListItem>
-  ))}
-</List>
 
-                </div>
-              </Card>
-            </Grid>
+            {/* 右侧先发球员列表 */}
+            
           </Grid>
         </Container>
       </Box>
     </>
+
+
+
   );  
+  
 };
 
 ALLPlayerPage.getLayout = (page) => (

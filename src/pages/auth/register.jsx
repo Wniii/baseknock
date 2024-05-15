@@ -7,15 +7,15 @@ import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import React, { useState } from "react";
-import { firestore } from "../firebase"; // 正确的导入路径
+import { firestore,auth } from "src/firebase"; // 正确的导入路径
 import { setDoc, query, where, getDocs, getDoc, collection, doc } from "firebase/firestore";
 import { v4 as uuidv4 } from 'uuid';
 import { collection as teamCollection, doc as teamDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword ,updateProfile } from "firebase/auth"; // 引入Firebase Authentication功能
 
 
 const Page = () => {
   const router = useRouter();
-  const auth = useAuth();
 
   const [emailExistsError, setEmailExistsError] = useState("");
 
@@ -41,64 +41,50 @@ const Page = () => {
         const emailAlreadyExists = await checkEmailExists(values.u_email);
         if (emailAlreadyExists) {
           setEmailExistsError("This email is already registered. Please use another email.");
-          helpers.setSubmitting(false);  // 停止提交過程
-          return;  // 結束函式執行
-        } else {
-          setEmailExistsError("");  // 清除之前的錯誤訊息
+          helpers.setSubmitting(false);
+          return;
         }
 
-        // 檢查並處理提供的隊伍 ID，如果沒有提供則略過
+        // Firebase Authentication 進行用戶註冊
+        const userCredential = await createUserWithEmailAndPassword(auth, values.u_email, values.u_password);
+        const userId = userCredential.user.uid; // 獲取 Firebase Auth 生成的 UID
+
+        // 處理用戶隊伍信息
+        let userTeams = [];
         if (values.u_team) {
           const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
-          const teamCodeName = [];
-
           for (const teamId of teamIds) {
-            const teamSnapshot = await getDoc(teamDoc(teamCollection(firestore, 'team'), teamId));
+            const teamSnapshot = await getDoc(doc(firestore, 'teams', teamId));
             if (teamSnapshot.exists()) {
-              teamCodeName.push(teamSnapshot.data().codeName);
+              userTeams.push(teamSnapshot.data().codeName);
             } else {
               alert("The team with the provided ID does not exist.");
               return;
             }
           }
-
-          // 更新用戶信息，將獲取的codeName添加到用戶的隊伍數組中
-          const userId = uuidv4();
-          await auth.signUp(userId, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
-          await setDoc(doc(firestore, "users", userId), {
-            u_id: userId,
-            u_email: values.u_email,
-            u_password: values.u_password,
-            u_checkpsw: values.u_checkpsw,
-            u_name: values.u_name,
-            u_team: teamCodeName,
-          });
-        } else {
-          // 如果沒有提供隊伍 ID，僅創建用戶文檔並設置空的隊伍數組
-          const userId = uuidv4();
-          await auth.signUp(userId, values.u_password, values.u_checkpsw, values.u_name, values.u_email);
-          await setDoc(doc(firestore, "users", userId), {
-            u_id: userId,
-            u_email: values.u_email,
-            u_password: values.u_password,
-            u_checkpsw: values.u_checkpsw,
-            u_name: values.u_name,
-            u_team: [],
-          });
         }
 
-        // 其他代碼...
+        // 將用戶數據添加到 Firestore
+        await setDoc(doc(firestore, "users", userId), {
+          u_id: userId,
+          u_email: values.u_email,
+          u_name: values.u_name,
+          u_team: userTeams,
+        });
+
+
+        await updateProfile(userCredential.user, {
+          displayName: values.u_name
+        });
+        
+        router.push('/auth/login');
       } catch (error) {
-        console.error("Error creating user document:", error);
+        console.error("Error during registration:", error);
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: error.message });
         helpers.setSubmitting(false);
       }
-      router.push('/auth/login');
-
     }
-
-
   });
 
   const checkEmailExists = async (email) => {
@@ -111,6 +97,8 @@ const Page = () => {
       return false;
     }
   };
+
+
 
   return (
     <>

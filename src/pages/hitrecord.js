@@ -8,7 +8,7 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { HitrecordTable } from 'src/sections/hitrecord/hitrecord-table';
 import { HitrecordSearch } from 'src/sections/hitrecord/hitrecord-search';
 import { collection, getDocs } from 'firebase/firestore';
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 import { applyPagination } from 'src/utils/apply-pagination';
 
 import { doc, getDoc } from "firebase/firestore"; // 导入doc和getDoc函数

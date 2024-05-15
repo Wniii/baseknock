@@ -10,7 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import { ref, uploadBytes } from 'firebase/storage';
-import { storage } from 'src/pages/firebase'; // 导入您的Firebase配置
+import { storage } from 'src/firebase'; // 导入您的Firebase配置
 
 export const TeamProfile = () => {
   const [file, setFile] = useState(null);
