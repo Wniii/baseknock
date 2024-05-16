@@ -328,6 +328,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       teamK9: 0,
       teamBB9: 0,
       teamH9: 0,
+      teamTotalPitches: 0,
     };
 
     playersData.forEach((player) => {
@@ -342,6 +343,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totals.totalOuts += Math.floor(player.inningsPitched) * 3 + (player.inningsPitched % 1) * 10;
       totals.totalEarnedRuns += (player.era * player.inningsPitched) / 9;
       totals.totalHitByPitches += player.hitByPitches;
+      totals.teamTotalPitches += player.totalPitches;
       
 
     });
@@ -730,7 +732,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     }}
                     onClick={() => onSortChange("耗球數")}
                   >
-                    {teamTotals.total}
+                    {teamTotals.teamTotalPitches}
                   </TableCell>
                 )}
                 {selectedColumns.includes("ERA") && (
