@@ -397,6 +397,8 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
         return player.totalStrikes || 0;
       case "壞球數":
         return player.totalBalls || 0;
+      case "耗球數":
+        return player.totalPitches || 0;
       case "ERA":
         return player.era || 0; // Assuming ERA can be a numeric value; use "N/A" if it should be a string
       case "先發":
