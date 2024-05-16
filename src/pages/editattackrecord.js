@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react'; // Import useState and useEffect
 import {
     Box, Container, Stack, Typography, Button, CardActions, Snackbar,
     Alert, Dialog, DialogTitle, DialogContent, DialogActions, FormControl,
-    MenuItem, InputLabel, Select
+    MenuItem, InputLabel, Select, TextField
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { useRouter } from 'next/router';
 import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore } from 'src/firebase';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {
     Card,
@@ -77,6 +77,8 @@ const Page = () => {
     const [inning, setInning] = useState(0);
     const [location, setLocation] = useState({ x: '', y: '' });
     const [originalLocation, setOriginalLocation] = useState(null); // 存储通过 updateLocations 设置的位置
+    const [totalPitches, setTotalPitches] = useState(0);
+
 
 
 
@@ -161,6 +163,7 @@ const Page = () => {
                         if (matchingPlayers.length > 0) {
 
                             const pitcherData = matchingPlayers[0].pitcher;
+                            console.log('pitcher', pitcherData)
                             updatePitchCounts(pitcherData);
 
                             const content = matchingPlayers[0].content;
@@ -312,7 +315,8 @@ const Page = () => {
                 ...ordermain[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
                 strike: strikes.filter(Boolean).length,
-                name: pitcher
+                name: pitcher, 
+                total: totalPitches,
             },
             rbi: rbiCount,
             innouts: currentInnOuts
@@ -471,7 +475,7 @@ const Page = () => {
 
     const updatePitchCounts = (pitcherData) => {
         // 從資料庫數據中讀取好球與壞球數量
-        const { ball, strike, name } = pitcherData;
+        const { ball, strike, name, total } = pitcherData;
 
         // 創建更新後的好球與壞球陣列
         const updatedBalls = Array.from({ length: 4 }, (_, index) => index < ball);
@@ -481,6 +485,7 @@ const Page = () => {
         setBalls(updatedBalls);
         setStrikes(updatedStrikes);
         setPitcher(name);
+        setTotalPitches(total)
     };
 
     const updateLocations = (matchingPlayers) => {
@@ -673,6 +678,12 @@ const Page = () => {
         setCurrentRow(prevRow => prevRow + 1);
     }, []);
 
+    const handleTotalPitchesChange = (event) => {
+        setTotalPitches(event.target.value);
+      };
+
+    
+
 
 
 
@@ -746,7 +757,7 @@ const Page = () => {
                                                         >
                                                             {attackData}
                                                         </Paper>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '100px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '95px' }}>
                                                             <Typography variant='h5'>B</Typography>
                                                             {balls.map((ball, index) => (
                                                                 <Checkbox
@@ -809,7 +820,16 @@ const Page = () => {
                                                             </Typography>
                                                             <ArrowDropDownIcon />
                                                         </div>
-                                                        <Typography variant='h5' style={{ marginLeft: '235px' }}>O&nbsp;&nbsp;</Typography>
+                                                        <TextField
+                                                            label="總投球數"
+                                                            name="totalPitches"
+                                                            type="text"
+                                                            onChange={handleTotalPitchesChange}
+                                                            required
+                                                            value={totalPitches}
+                                                            style={{ width: '100px', marginLeft: '50px', marginRight: '80px' }} // 設置具體寬度和間距
+                                                        />
+                                                        <Typography variant='h5' style={{ marginLeft: '10px' }}>O&nbsp;&nbsp;</Typography>
                                                         {renderOutsCheckboxes()}
                                                     </div>
 
