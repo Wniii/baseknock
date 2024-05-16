@@ -12,7 +12,7 @@ import {
   TablePagination,
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
-import { firestore } from 'src/pages/firebase';
+import { firestore } from 'src/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedTeam, selectedPlayer }) => {
@@ -52,6 +52,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               let strikeouts = 0;
               let rbi = 0;  // 初始化计数器统计打点
               let outs = 0;
+              let totalPitches = 0;
 
               ['ordermain', 'orderoppo'].forEach((orderKey) => {
                 const orders = game[orderKey];
@@ -81,7 +82,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                       totalBalls += Number(order.pitcher?.ball) || 0;
                       totalStrikes += Number(order.pitcher?.strike) || 0;
                       outs += Number(order.innouts) || 0; // 計算局數
-
+                      totalPitches += Number(order.pitcher?.total) || 0;
                       // 累加打点
                       rbi += Number(order.rbi) || 0;  // 假设 RBI 数据位于 order 对象上
                     }
@@ -103,6 +104,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                 GDate: game.GDate ? format(game.GDate.toDate(), "dd/MM/yyyy") : '未知',
                 totalStrikes,
                 totalBalls,
+                totalPitches,
                 hits,
                 walks,
                 strikeouts,
@@ -137,6 +139,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                 <TableCell>比賽日期</TableCell>
                 <TableCell>好球數</TableCell>
                 <TableCell>壞球數</TableCell>
+                <TableCell>耗球數</TableCell>
                 <TableCell>ERA</TableCell>
                 <TableCell>局數</TableCell>
                 <TableCell>安打</TableCell>
@@ -156,6 +159,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                   <TableCell>{game.GDate}</TableCell>
                   <TableCell>{game.totalStrikes}</TableCell>
                   <TableCell>{game.totalBalls}</TableCell>
+                  <TableCell>{game.totalPitches}</TableCell>
                   <TableCell>{game.era}</TableCell>
                   <TableCell>{Number(game.inningsPitched).toFixed(1)}</TableCell>
                   <TableCell>{game.hits}</TableCell>

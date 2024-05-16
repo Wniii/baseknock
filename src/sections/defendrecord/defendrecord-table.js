@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
-import { firestore } from "src/pages/firebase";
+import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 
 // 定義 DefendTable 組件
@@ -215,6 +215,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
           runsBattedIn: 0, // 确保这里初始化为 0
           gamesPlayed: 0,
           gamesStarted: 0,
+          totalPitches: 0,  // 新增總耗球數
         };
         return acc;
       }, {});
@@ -257,10 +258,11 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               const balls = Number(order.pitcher?.ball) || 0;
               const strikes = Number(order.pitcher?.strike) || 0;
               const  hitByPitches = Number(order.pitcher?. hitByPitches) || 0;
+              const total = Number(order.pitcher?.total) || 0;
               hitsByPitcher[pitcherName].totalBalls += balls;
               hitsByPitcher[pitcherName].totalStrikes += strikes;
               hitsByPitcher[pitcherName].hitByPitches += hitByPitches;
-
+              hitsByPitcher[pitcherName].totalPitches += total;
               const orderRBI = Number(order.rbi) || 0;
               const orderORBI = Number(order.o_rbi) || 0;
               hitsByPitcher[pitcherName].runsBattedIn += orderRBI + orderORBI;
@@ -285,6 +287,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
             totalStrikeouts: playerStats.strikeouts,
             totalBalls: playerStats.totalBalls,
             totalStrikes: playerStats.totalStrikes,
+            totalPitches: playerStats.totalPitches,
             gamesPlayed: playerStats.gamesPlayed,
             gamesStarted: playerStats.gamesStarted,
             hitByPitches:  playerStats.hitByPitches,
@@ -487,6 +490,19 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     onClick={() => onSortChange("壞球數")}
                   >
                     壞球數
+                  </TableCell>
+                )}
+                 {selectedColumns.includes("耗球數") && (
+                  <TableCell
+                    key="耗球數"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "耗球數" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("耗球數")}
+                  >
+                    耗球數
                   </TableCell>
                 )}
                 {selectedColumns.includes("ERA") && (
@@ -704,6 +720,19 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                     {teamTotals.totalBalls}
                   </TableCell>
                 )}
+                {selectedColumns.includes("耗球數") && (
+                  <TableCell
+                    key="耗球數"
+                    style={{
+                      fontSize: "1.0em",
+                      cursor: "pointer",
+                      color: sortedColumn === "耗球數" ? "red" : "black",
+                    }}
+                    onClick={() => onSortChange("耗球數")}
+                  >
+                    {teamTotals.total}
+                  </TableCell>
+                )}
                 {selectedColumns.includes("ERA") && (
                   <TableCell
                     key="ERA"
@@ -914,6 +943,16 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
                       }}
                     >
                       {player.totalBalls}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("耗球數") && (
+                    <TableCell
+                      style={{
+                        fontSize: "1.0em",
+                        color: sortedColumn === "耗球數" ? "red" : "black",
+                      }}
+                    >
+                      {player.totalPitches}
                     </TableCell>
                   )}
                   {selectedColumns.includes("ERA") && (

@@ -26,6 +26,7 @@ export const DefendSelect = ({ onConfirm }) => {
   const [checkboxStates, setCheckboxStates] = useState([
     { label: "好球數", checked: true },
     { label: "壞球數", checked: true },
+    { label: "耗球數", checked: true},
     { label: "ERA", checked: true },
     { label: "先發", checked: true },
     { label: "出賽", checked: true },
@@ -67,6 +68,7 @@ export const DefendSelect = ({ onConfirm }) => {
     const gName = gameTypeToGNameMapping[gameType]; // 從對應關係中獲取gName
     setSelectedGameType((prevSelectedGameType) => {
       if (checked) {
+
         return [...prevSelectedGameType, gName];
       } else {
         return prevSelectedGameType.filter((type) => type !== gName);
