@@ -19,7 +19,7 @@ import {
 import { Scrollbar } from "src/components/scrollbar";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconButton } from "@mui/material";
-import { firestore } from "src/pages/firebase";
+import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 
 // 定義 HitrecordTable 組件
@@ -1367,67 +1367,52 @@ const parseLocationToZone = (x, y) => {
   if (
     inCircle(x, y, 200, 223.24, 83) &&
     onOrBelowLine(x, y, 1, 65.8) &&
-    onOrBelowLine(x, y, -17 / 8, 620) &&
-    onOrAboveLine(x, y, 20 / 27, 70)
+    onOrAboveLine(x, y, 2.18, -172.18)
   ) {
     return "zone2";
   }
   // Zone 3: c, d, j, k, l
   if (
-    onOrBelowLine(x, y, 1, 65.8) &&
-    onOrBelowLine(x, y, -1, 465.7) &&
-    onOrAboveLine(x, y, -17 / 8, 620) &&
-    y >= 212 &&
-    onOrAboveLine(x, y, 17 / 7, -298)
+    inCircle(x, y, 200, 223.24, 83) &&
+    onOrAboveLine(x, y, -2.18, 704.18)&&
+    onOrBelowLine(x, y, -1, 465.7)
   ) {
     return "zone3";
   }
   // Zone 4: i, b, l, d
-  if (
-    onOrAboveLine(x, y, -20 / 27, 9178 / 25) &&
-    inCircle(x, y, 200, 223.24, 83) &&
-    onOrBelowLine(x, y, 17 / 7, -298) &&
-    onOrBelowLine(x, y, -1, 465.7)
-  ) {
-    return "zone4";
-  }
-  // Zone 5: f, b, a, d
   if (
     onOrAboveLine(x, y, -209 / 60, 19323 / 20) &&
     outCircle(x, y, 200, 223.24, 83) &&
     inCircle(x, y, 201, 219.64, 175.64) &&
     onOrBelowLine(x, y, -1, 465.7)
   ) {
-    return "zone5";
+    return "zone4";
   }
-  // Zone 6: a, e, b, f
+  // Zone 5: f, b, a, d
   if (
     inCircle(x, y, 201, 219.64, 175.64) &&
     onOrBelowLine(x, y, 209 / 65, -24719 / 65) &&
     outCircle(x, y, 200, 223.24, 83) &&
     onOrBelowLine(x, y, -209 / 60, 19323 / 20)
   ) {
+    return "zone5";
+  }
+  // Zone 6: a, e, b, f
+  if (
+    inCircle(x, y, 200, 223.24, 83) &&
+    onOrLeftOfVertical(x, y, 201) &&
+    onOrBelowLine(x, y, 2.18, -172.18)
+  ) {
     return "zone6";
   }
   // Zone 7: b, g, h, k
   if (
     inCircle(x, y, 200, 223.24, 83) &&
-    onOrBelowLine(x, y, 20 / 27, 70) &&
-    onOrLeftOfVertical(x, y, 201) &&
-    y <= 212
+    onOrBelowLine(x, y, -2.18, 704.18) &&
+    onOrRightOfVertical(x, y, 201) 
   ) {
     return "zone7";
   }
-  // Zone 8: b, h, i, k
-  if (
-    inCircle(x, y, 200, 223.24, 83) &&
-    onOrRightOfVertical(x, y, 201) &&
-    y <= 212 &&
-    onOrBelowLine(x, y, -20 / 27, 9178 / 25)
-  ) {
-    return "zone8";
-  }
-
   return "unknown";
 };
 
@@ -1444,7 +1429,7 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
   const baseballFieldImage =
     "https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU="; // 用实际图片URL替换此处文本
-  const picImage = "pic.png";
+  const picImage = "hi.png";
 
   // 确保此函数正确计算位置百分比
   const convertLocationToPosition = (location) => {
@@ -1470,12 +1455,11 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
   const zonePositions = {
     zone1: { left: "27%", top: "35%" },
     zone2: { left: "40%", top: "60%" },
-    zone3: { left: "50%", top: "67%" },
-    zone4: { left: "60%", top: "60%" },
-    zone5: { left: "73%", top: "35%" },
-    zone6: { left: "50%", top: "25%" },
-    zone7: { left: "43%", top: "48%" },
-    zone8: { left: "57%", top: "48%" },
+    zone3: { left: "60%", top: "60%" },
+    zone4: { left: "73%", top: "35%" },
+    zone5: { left: "50%", top: "25%" },
+    zone6: { left: "45%", top: "50%" },
+    zone7: { left: "55%", top: "50%" },
   };
 
   const countZones = locations.reduce((acc, loc) => {

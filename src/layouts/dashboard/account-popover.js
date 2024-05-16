@@ -50,7 +50,7 @@ export const AccountPopover = ({ anchorEl, onClose, open }) => {
       window.localStorage.removeItem('userEmail');
       window.localStorage.removeItem('userTeam');
       window.localStorage.removeItem('authenticated');
-      window.localStorage.removeItem('userID');   // 假設你也有儲存 userEmail
+      window.localStorage.removeItem('userId');   // 假設你也有儲存 userEmail
     } catch (err) {
       console.error('Error clearing local storage:', err);
     }

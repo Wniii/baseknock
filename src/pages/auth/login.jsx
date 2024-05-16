@@ -51,7 +51,7 @@ const LoginPage = () => {
       
       window.localStorage.setItem("userTeam", data?.u_team || "");
       window.localStorage.setItem("userEmail", data?.u_Email || "");
-      window.localStorage.setItem("userID", data?.u_id || "");
+      window.localStorage.setItem("userId", data?.u_id || "");
       window.localStorage.setItem("username", data?.u_name || "");
 
 

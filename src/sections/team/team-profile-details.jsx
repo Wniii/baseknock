@@ -118,14 +118,13 @@ export const TeamManagement = () => {
       return { ...prevState, players: newPlayers };
     });
   };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log("提交开始");
 
     // 从LocalStorage中获取u_id
-    const u_id = localStorage.getItem("userId");
-
+    const u_id = localStorage.getItem("userID");
+    console.log(u_id)
     const querySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", values.codeName)));
     if (!querySnapshot.empty) {
       alert("球隊代號已被使用！請重新輸入");
@@ -173,17 +172,20 @@ export const TeamManagement = () => {
       // 使用团队信息更新用户文档
       try {
         // 獲取用戶文檔的引用
+
         const userRef = doc(firestore, "users", u_id);
         const userDoc = await getDoc(userRef);
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
           // 確保u_team存在且為一個陣列
           const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
           // 將新隊伍名稱推送到陣列中
           userTeamArray.push(values.codeName);
-
+          console.log("dcsc",userTeamArray)
           try {
             // 使用Array的方式更新用戶文檔的u_team字段
+
             await updateDoc(userRef, { u_team: userTeamArray });
             console.log("用户文档更新成功");
             // Update localStorage with the new team list

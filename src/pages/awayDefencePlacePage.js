@@ -26,14 +26,10 @@ const DefencePlacePage = () => {
   const { timestamp } = router.query;
 
   const [positions, setPositions] = useState({
-    1: null, 2: null, 3: null,
-    4: null, 5: null, 6: null,
-    7: null, 8: null, 9: null
+    1: null
   });
   const positionNames = {
-    1: "P", 2: "C", 3: "1B",
-    4: "2B", 5: "3B", 6: "SS",
-    7: "LF", 8: "CF", 9: "RF"
+    1: "P"
   };
 
   useEffect(() => {
@@ -210,11 +206,7 @@ const DefencePlacePage = () => {
 
     const isEveryPositionFilled = Object.values(positions).every(player => player !== null);
 
-    if (!isEveryPositionFilled) {
-      setErrorMessage('所有守備位置必須填滿才能儲存');
-      return;
-
-    }
+   
     try {
 
       console.log('timestamp:', timestamp);
@@ -416,24 +408,7 @@ const getPositionLeft = (pos) => {
   switch (pos) {
     case '1':
       return 50;
-    case '2':
-      return 50;
-    case '3':
-      return 70;
-    case '4':
-      return 63;
-    case '5':
-      return 30;
-    case '6':
-      return 37;
-    case '7':
-      return 15;
-    case '8':
-      return 50;
-    case '9':
-      return 85;
-    default:
-      return 0;
+    
   }
 };
 
@@ -442,24 +417,7 @@ const getPositionTop = (pos) => {
   switch (pos) {
     case '1':
       return 70;
-    case '2':
-      return 93;
-    case '3':
-      return 67;
-    case '4':
-      return 48;
-    case '5':
-      return 66;
-    case '6':
-      return 48;
-    case '7':
-      return 28;
-    case '8':
-      return 15;
-    case '9':
-      return 28;
-    default:
-      return 0;
+    
   }
 };
 
