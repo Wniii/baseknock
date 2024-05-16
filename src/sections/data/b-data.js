@@ -29,9 +29,9 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           const game = doc.data();
           const isPlayerInMain = game.ordermain?.some(order => order.p_name === selectedPlayer.id);
           const isPlayerInOppo = game.orderoppo?.some(order => order.o_p_name === selectedPlayer.id);
-  
+
           if (!isPlayerInMain && !isPlayerInOppo) return null; // 球員沒有參與該場比賽
-  
+
           // 初始化統計數據
           const stats = {
             plate_appearances: 0,
@@ -50,7 +50,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
             sac_bunt: 0,
             hit_by_pitch: 0
           };
-  
+
           // 計算打席次數
           game.ordermain.forEach(order => {
             if (order.p_name === selectedPlayer.id) {
@@ -58,36 +58,36 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
             }
           });
-  
+
           game.orderoppo.forEach(order => {
             if (order.o_p_name === selectedPlayer.id) {
               stats.plate_appearances += 1;
               countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
             }
           });
-  
+
           // 計算打數
           stats.at_bats = stats.plate_appearances - (stats.walks + stats.sac_fly + stats.sac_bunt + stats.hit_by_pitch);
-  
+
           return {
             ...stats,
             formattedDate: format(game.GDate.toDate(), "dd/MM/yyyy")
           };
         }).filter(game => game != null);
-  
+
         setPlayerGames(gamesData);
       }
     };
-  
+
     fetchPlayerGames();
   }, [selectedPlayer, selectedTeam]);
-  
+
   const countPlayerStats = (content, stats, additionalStats = {}) => {
     // 將事件拆分成列表，以逗號或其他分隔符號分隔
     const events = content.split(',');
-  
+
     events.forEach(event => {
-      switch(event.trim()) {
+      switch (event.trim()) {
         case '一安':
           stats.hits += 1;
           stats.single_hits += 1;
@@ -130,24 +130,24 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
       stats.rbi += additionalStats.rbi;
     }
   };
-  
+
   const calculateBattingAverage = (hits, at_bats) => {
     return at_bats > 0 ? (hits / at_bats).toFixed(3) : '.000';
   };
-  
+
   const calculateOnBasePercentage = (hits, walks, hitByPitch, at_bats) => {
     const totalChances = at_bats + walks + hitByPitch;
     return totalChances > 0 ? ((hits + walks + hitByPitch) / totalChances).toFixed(3) : '.000';
   };
-  
+
   const calculateSluggingPercentage = (totalBases, at_bats) => {
     return at_bats > 0 ? (totalBases / at_bats).toFixed(3) : '.000';
   };
-  
+
   const calculateOPS = (onBasePct, sluggingPct) => {
     return (parseFloat(onBasePct) + parseFloat(sluggingPct)).toFixed(3);
   };
-  
+
   useEffect(() => {
     console.log('更新後的遊戲數據:', playerGames);
   }, [playerGames]);
@@ -162,6 +162,38 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
     console.log('orderoppo:', orderoppo);
   }, [ordermain, orderoppo]);
 
+  const totals = playerGames.reduce((acc, game) => ({
+    plate_appearances: acc.plate_appearances + game.plate_appearances,
+    at_bats: acc.at_bats + game.at_bats,
+    hits: acc.hits + game.hits,
+    total_bases: acc.total_bases + game.total_bases,
+    rbi: acc.rbi + game.rbi,
+    single_hits: acc.single_hits + game.single_hits,
+    double_hits: acc.double_hits + game.double_hits,
+    triple_hits: acc.triple_hits + game.triple_hits,
+    home_runs: acc.home_runs + game.home_runs,
+    double_plays: acc.double_plays + game.double_plays,
+    walks: acc.walks + game.walks,
+    sac_fly: acc.sac_fly + game.sac_fly,
+    sac_bunt: acc.sac_bunt + game.sac_bunt,
+    hit_by_pitch: acc.hit_by_pitch + game.hit_by_pitch
+  }), {
+    plate_appearances: 0,
+    at_bats: 0,
+    hits: 0,
+    total_bases: 0,
+    rbi: 0,
+    single_hits: 0,
+    double_hits: 0,
+    triple_hits: 0,
+    home_runs: 0,
+    double_plays: 0,
+    walks: 0,
+    sac_fly: 0,
+    sac_bunt: 0,
+    hit_by_pitch: 0
+  });
+
   return (
     <Card>
       <Scrollbar>
@@ -169,7 +201,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={{ position: 'sticky'}}>比賽日期</TableCell>
+                <TableCell style={{ position: 'sticky' }}>比賽日期</TableCell>
                 <TableCell>打席</TableCell>
                 <TableCell>打數</TableCell>
                 <TableCell>安打</TableCell>
@@ -216,6 +248,30 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               )) : (
                 <TableRow>
                   <TableCell colSpan={19}>該球員還沒有比賽數據</TableCell>
+                </TableRow>
+              )}
+
+               {playerGames.length > 0 && (
+                <TableRow>
+                  <TableCell>成績總和</TableCell>
+                  <TableCell>{totals.plate_appearances}</TableCell>
+                  <TableCell>{totals.at_bats}</TableCell>
+                  <TableCell>{totals.hits}</TableCell>
+                  <TableCell>{totals.total_bases}</TableCell>
+                  <TableCell>{totals.rbi}</TableCell>
+                  <TableCell>{totals.single_hits}</TableCell>
+                  <TableCell>{totals.double_hits}</TableCell>
+                  <TableCell>{totals.triple_hits}</TableCell>
+                  <TableCell>{totals.home_runs}</TableCell>
+                  <TableCell>{totals.double_plays}</TableCell>
+                  <TableCell>{totals.walks}</TableCell>
+                  <TableCell>{totals.sac_fly}</TableCell>
+                  <TableCell>{totals.sac_bunt}</TableCell>
+                  <TableCell>{totals.hit_by_pitch}</TableCell>
+                  <TableCell>{calculateBattingAverage(totals.hits, totals.at_bats)}</TableCell>
+                  <TableCell>{calculateOnBasePercentage(totals.hits, totals.walks, totals.hit_by_pitch, totals.at_bats)}</TableCell>
+                  <TableCell>{calculateSluggingPercentage(totals.total_bases, totals.at_bats)}</TableCell>
+                  <TableCell>{calculateOPS(calculateOnBasePercentage(totals.hits, totals.walks, totals.hit_by_pitch, totals.at_bats), calculateSluggingPercentage(totals.total_bases, totals.at_bats))}</TableCell>
                 </TableRow>
               )}
             </TableBody>
