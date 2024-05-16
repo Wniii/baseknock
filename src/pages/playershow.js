@@ -115,30 +115,34 @@ const ALLPlayerPage = () => {
         const teamData = teamDoc.data();
         console.log("Team data:", teamData);
 
-        // 检查团队文档中的 codeName 字段是否与传入的 codeName 值匹配
         if (teamData.codeName === codeName) {
             console.log("CodeName matches:", codeName);
 
-            // 创建游戏文档的引用
             const gameDocRef = doc(teamDoc.ref, "games", timestamp);
             console.log("Game document reference:", gameDocRef);
 
-            // 获取游戏文档
             const gameDocSnapshot = await getDoc(gameDocRef);
 
-            // 设置游戏文档的数据
+            // 创建攻击列表数据结构
             const gameData = {
-                // 这里根据需要设置游戏文档的字段
-                attacklist: selectedPlayers,
-                // 其他字段...
-            };
+              attacklist: [
+                  {  "第一棒": [selectedPlayers[0]] },
+                  {  "第二棒": [selectedPlayers[1]] },
+                  {  "第三棒": [selectedPlayers[2]] },
+                  {  "第四棒": [selectedPlayers[3]] },
+                  {  "第五棒": [selectedPlayers[4]] },
+                  {  "第六棒": [selectedPlayers[5]] },
+                  {  "第七棒": [selectedPlayers[6]] },
+                  {  "第八棒": [selectedPlayers[7]] },
+                  {  "第九棒": [selectedPlayers[8]] },
+                 
+              ]
+          };
 
-            // 添加游戏文档到团队文档的游戏子集合
             if (gameDocSnapshot.exists()) {
                 console.log("Game document found with ID:", timestamp);
                 console.log("Game data:", gameDocSnapshot.data());
 
-                // 更新游戏文档，保留其他字段的值
                 await updateDoc(gameDocRef, gameData);
             } else {
                 console.log("No matching game document found with ID:", timestamp);
@@ -150,10 +154,12 @@ const ALLPlayerPage = () => {
     }
 };
 
+
 const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
 
     try {
+      
         if (selectedPlayers.length < 9) {
             alert("請選擇九位球員！");
             return;
@@ -345,16 +351,30 @@ const navigatetodefence = (gameId, codeName) => {
             </Grid>
 
             {/* 右侧先发球员列表 */}
-            
+            <Grid item xs={4}>
+              <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardHeader title="先發球員" />
+                <DndProvider backend={HTML5Backend}>
+                  <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
+                    <List>
+                      {selectedPlayers.map((playerKey, index) => (
+                        <DraggablePlayer
+                          key={playerKey}
+                          playerKey={playerKey}
+                          index={index}
+                          removePlayer={handleRemoveFromSelectedPlayers}
+                        />
+                      ))}
+                    </List>
+                  </div>
+                </DndProvider>
+              </Card>
+            </Grid>   
           </Grid>
         </Container>
       </Box>
     </>
-
-
-
   );  
-  
 };
 
 ALLPlayerPage.getLayout = (page) => (
