@@ -46,7 +46,7 @@ export const AccountPopover = ({ anchorEl, onClose, open }) => {
       console.error('Error signing out:', error);
     });
     try {
-      window.localStorage.removeItem('userName');
+      window.localStorage.removeItem('username');
       window.localStorage.removeItem('userEmail');
       window.localStorage.removeItem('userTeam');
       window.localStorage.removeItem('authenticated');

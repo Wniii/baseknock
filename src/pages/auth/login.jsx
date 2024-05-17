@@ -5,12 +5,11 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Box, Button, Link, Stack, TextField, Typography } from "@mui/material";
 import { Layout as AuthLayout } from "src/layouts/auth/layout";
-import React, { useCallback,useState, useEffect } from "react";
-import { firestore,firebaseApp } from "src/firebase";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getDocs, query, collection, where } from "firebase/firestore";
-
-
+import React, { useCallback, useState, useEffect } from "react";
+import { firestore, firebaseApp } from "src/firebase";
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import { getDocs, query, collection, where, doc, setDoc } from "firebase/firestore";
+import { Google as GoogleIcon } from "@mui/icons-material";
 
 function useAuth() {
   const auth = getAuth(firebaseApp); // 獲取 Firebase Auth 實例
@@ -26,7 +25,7 @@ const LoginPage = () => {
   const auth = getAuth(firebaseApp);
   const router = useRouter();
   const [userTeam, setUserTeam] = useState("");
-  const [userEamil, setUserEmail] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   const signIn = useCallback(async (email, password) => {
     try {
@@ -38,24 +37,53 @@ const LoginPage = () => {
     }
   }, [auth]);
 
-  const fetchUserTeam = useCallback(async (uid) => {
+  const fetchUserTeam = useCallback(async (uid, email, name) => {
     try {
+      console.log("Fetching user team for UID:", uid);
       const userRef = collection(firestore, "users");
       const q = query(userRef, where("u_id", "==", uid));
       const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs[0]?.data();
-      console.log("xxscw",data)
 
-      setUserTeam(data?.u_team || "No team assigned");
-      setUserEmail(data?.u_mail || "No email assigned");
-      
-      window.localStorage.setItem("userTeam", data?.u_team || "");
-      window.localStorage.setItem("userEmail", data?.u_Email || "");
-      window.localStorage.setItem("userId", data?.u_id || "");
-      window.localStorage.setItem("username", data?.u_name || "");
+      if (querySnapshot.empty) {
+        // 如果没有找到文档，创建新的文档
+        const newUser = {
+          u_email: email,
+          u_id: uid,
+          u_name: name,
+          u_team:[] // 默认团队
+        };
+        const userDocRef = doc(firestore, "users", uid);
+        await setDoc(userDocRef, newUser);
+        console.log("Added new user to Firestore:", newUser);
 
+        setUserTeam(newUser.u_team);
+        setUserEmail(newUser.u_email);
 
+        window.localStorage.setItem("userTeam", newUser.u_team);
+        window.localStorage.setItem("userEmail", newUser.u_email);
+        window.localStorage.setItem("userId", newUser.u_id);
+        window.localStorage.setItem("username", newUser.u_name);
 
+        console.log("Stored in localStorage:", newUser);
+      } else {
+        const data = querySnapshot.docs[0]?.data();
+        console.log("Fetched user data:", data);
+
+        setUserTeam(data?.u_team || "No team assigned");
+        setUserEmail(data?.u_email || "No email assigned");
+
+        window.localStorage.setItem("userTeam", data?.u_team || "");
+        window.localStorage.setItem("userEmail", data?.u_email || "");
+        window.localStorage.setItem("userId", data?.u_id || "");
+        window.localStorage.setItem("username", data?.u_name || "");
+
+        console.log("Stored in localStorage:", {
+          userTeam: data?.u_team || "",
+          userEmail: data?.u_email || "",
+          userId: data?.u_id || "",
+          username: data?.u_name || "",
+        });
+      }
     } catch (error) {
       console.error("Error fetching user team:", error);
     }
@@ -73,13 +101,36 @@ const LoginPage = () => {
     onSubmit: async (values, helpers) => {
       try {
         const user = await signIn(values.u_email, values.u_password);
-        fetchUserTeam(user.uid);
+        fetchUserTeam(user.uid, user.email, user.displayName);
         router.push(`/`);
       } catch (error) {
         helpers.setErrors({ submit: error.message });
       }
     },
-  });// Depend on auth.user and userId changes
+  });
+
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithRedirect(auth, provider);
+    } catch (error) {
+      console.error("Google sign in failed:", error);
+    }
+  };
+
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          const user = result.user;
+          fetchUserTeam(user.uid, user.email, user.displayName);
+          router.push(`/`);
+        }
+      })
+      .catch((error) => {
+        console.error("Error during redirect result processing:", error);
+      });
+  }, [auth, fetchUserTeam, router]);
 
   return (
     <>
@@ -123,7 +174,6 @@ const LoginPage = () => {
                 <TextField
                   fullWidth
                   id="u_email"
-                  //name="email"
                   type="email"
                   label="Email Address"
                   value={formik.values.u_email}
@@ -135,7 +185,6 @@ const LoginPage = () => {
                 <TextField
                   fullWidth
                   id="u_password"
-                  //name="password"
                   type="password"
                   label="Password"
                   value={formik.values.u_password}
@@ -151,6 +200,15 @@ const LoginPage = () => {
                 )}
                 <Button type="submit" fullWidth variant="contained" disabled={formik.isSubmitting}>
                   登入
+                </Button>
+                <Button
+                  onClick={signInWithGoogle}
+                  fullWidth
+                  variant="contained"
+                  startIcon={<GoogleIcon />}
+                  sx={{ backgroundColor: "#4285F4", color: "white", '&:hover': { backgroundColor: "#357ae8" } }}
+                >
+                  使用 Google 登录
                 </Button>
               </Stack>
             </form>
