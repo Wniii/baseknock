@@ -32,13 +32,9 @@ const position = [
   { value: "", label: "" },
   { value: "P", label: "P" },
   { value: "C", label: "C" },
-  { value: "1B", label: "1B" },
-  { value: "2B", label: "2B" },
-  { value: "3B", label: "3B" },
-  { value: "SS", label: "SS" },
-  { value: "LF", label: "LF" },
-  { value: "CF", label: "CF" },
-  { value: "RF", label: "RF" },
+  { value: "IF", label: "IF" },
+  { value: "OF", label: "OF" },
+
 ];
 
 const habit = [
@@ -123,7 +119,7 @@ export const TeamManagement = () => {
     console.log("提交开始");
 
     // 从LocalStorage中获取u_id
-    const u_id = localStorage.getItem("userID");
+    const u_id = localStorage.getItem("userId");
     console.log(u_id)
     const querySnapshot = await getDocs(query(collection(firestore, "team"), where("codeName", "==", values.codeName)));
     if (!querySnapshot.empty) {
@@ -169,6 +165,8 @@ export const TeamManagement = () => {
       const newTeamId = newTeamDocRef.id;
       console.log("团队添加成功，ID:", newTeamId);
 
+      localStorage.setItem('userTeam', values.codeName);
+
       // 使用团队信息更新用户文档
       try {
         // 獲取用戶文檔的引用
@@ -182,12 +180,13 @@ export const TeamManagement = () => {
           const userTeamArray = Array.isArray(userData.u_team) ? userData.u_team : [];
           // 將新隊伍名稱推送到陣列中
           userTeamArray.push(values.codeName);
-          console.log("dcsc",userTeamArray)
+          console.log("dcsc", userTeamArray)
           try {
             // 使用Array的方式更新用戶文檔的u_team字段
 
             await updateDoc(userRef, { u_team: userTeamArray });
             console.log("用户文档更新成功");
+
             // Update localStorage with the new team list
             localStorage.setItem('userTeam', userTeamArray.join(','));
             setDialogMessage("球隊新增成功！");
@@ -206,7 +205,7 @@ export const TeamManagement = () => {
       }
     } catch (error) {
       console.error("添加团队文档错误:", error);
-      setDialogMessage("球對新增失敗！");
+      setDialogMessage("球隊新增失敗！");
       setOpenDialog(true);
     }
   };
@@ -259,7 +258,7 @@ export const TeamManagement = () => {
             <Grid item xs={12} sm={6} md={4}>
               <Card style={{ height: '100%' }}> {/* or you can use a specific value like '500px' */}
                 <CardContent>
-                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column", height:"150px"}}>
+                  <Box sx={{ alignItems: "center", display: "flex", flexDirection: "column", height: "150px" }}>
                     {previewUrl && (
                       <img
                         src={previewUrl}

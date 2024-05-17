@@ -48,13 +48,8 @@ const positionOptions = [
     { value: '', label: '' },
     { value: 'P', label: 'P' },
     { value: 'C', label: 'C' },
-    { value: '1B', label: '1B' },
-    { value: '2B', label: '2B' },
-    { value: '3B', label: '3B' },
-    { value: 'SS', label: 'SS' },
-    { value: 'LF', label: 'LF' },
-    { value: 'CF', label: 'CF' },
-    { value: 'RF', label: 'RF' }
+    { value: 'IF', label: 'IF' },
+    { value: 'OF', label: 'OF' }
 ];
 
 const habitOptions = [
