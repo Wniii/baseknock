@@ -23,15 +23,15 @@ const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) =
           </List>
           {/* 右列，过滤后的团队玩家列表 */}
           <List>
-            
-  {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
-    <ListItem key={index}>
-      <Box component="span" sx={{ display: 'block' }}>
-        {player.name}: {player.position}
-      </Box>
-    </ListItem>
-  ))}
-</List>
+
+            {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
+              <ListItem key={index}>
+                <Box component="span" sx={{ display: 'block' }}>
+                  {player.name}: {player.position}
+                </Box>
+              </ListItem>
+            ))}
+          </List>
         </Box>
       </DialogContent>
       <DialogActions>
@@ -68,11 +68,11 @@ const determineButtonProps = (content, index) => {
     case '觸身':
       buttonColor = 'lightblue'; // 淡蓝色
       break;
-      case '不知':
-        buttonColor = 'black'; // 黑色
-      default:
-        buttonColor = 'gray'; // 黑色
-    }
+    case '不知':
+      buttonColor = 'black'; // 黑色
+    default:
+      buttonColor = 'gray'; // 黑色
+  }
   return {
     color: buttonColor,
     text: content
@@ -115,23 +115,46 @@ export const CustomersTable = (props) => {
       console.log('Required IDs are missing.');
       return; // 直接返回如果缺少 ID
     }
-    
+
     try {
       const teamDocRef = doc(firestore, "team", teamId);
       const teamDocSnapshot = await getDoc(teamDocRef);
-  
+
       if (teamDocSnapshot.exists()) {
-        const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
+        const gamesCollectionRef = collection(teamDocRef, "games");
         const gameDocRef = doc(gamesCollectionRef, timestamp);
         const gameDocSnapshot = await getDoc(gameDocRef);
 
         if (gameDocSnapshot.exists()) {
           const gameData = gameDocSnapshot.data();
+          console.log('gameData', gameData);
           const orderMainLength = gameData.ordermain ? gameData.ordermain.length : 0;
-          const lastValidIndex = orderMainLength +1 ;
+          const lastValidIndex = orderMainLength + 1;
 
           setLastValidIndex(lastValidIndex);
-          setAttackListData(gameData.attacklist || []);
+
+          // 處理新的 attacklist 結構
+          const attackListData = [];
+
+          if (gameData.attacklist) {
+            Object.entries(gameData.attacklist).forEach(([key, playerData], index) => {
+              // console.log(`key: ${key}, playerData: ${playerData}, index: ${index}`);
+              if (index >= 0 && index <= 8) { // 確保只處理索引 0-8
+                console.log(`playerData for ${key}:`, playerData);
+                if (Array.isArray(playerData) && playerData.length > 0) {
+                  // 取得最新的索引內容
+                  const latestIndex = playerData[playerData.length - 1];
+                  attackListData.push(latestIndex);
+                } else if (typeof playerData === 'string') {
+                  // 如果 playerData 是字符串，直接推入 attackListData
+                  attackListData.push(playerData);
+                }
+              }
+            });
+          }
+
+          console.log('attackListData:', attackListData); // 確認最終的 attackListData
+          setAttackListData(attackListData);
           setordermain(gameData.ordermain || []);
           setGameDocSnapshot(gameDocSnapshot);
         } else {
@@ -145,97 +168,102 @@ export const CustomersTable = (props) => {
     }
   };
 
+
+
+
+
+
   const fetchTeamPlayers = async () => {
     try {
-        console.log("Fetching team document...");
-        const teamDocRef = doc(firestore, "team", teamId);
-        const teamDocSnapshot = await getDoc(teamDocRef);
+      console.log("Fetching team document...");
+      const teamDocRef = doc(firestore, "team", teamId);
+      const teamDocSnapshot = await getDoc(teamDocRef);
 
-        if (teamDocSnapshot.exists()) {
-            const teamData = teamDocSnapshot.data();
+      if (teamDocSnapshot.exists()) {
+        const teamData = teamDocSnapshot.data();
 
-            if (teamData.players) {
+        if (teamData.players) {
 
-                // 构建一个新的 players 对象，只包含过滤后的玩家
-                const filteredPlayers = {};
-                  Object.keys(teamData.players).forEach(playerName => {
-                      if (!attackListData.includes(playerName)) {
-                          filteredPlayers[playerName] = teamData.players[playerName];
-                      }
-                  });
-
-                // 更新状态
-                Object.entries(filteredPlayers).forEach(([key, value]) => {
-                  console.log(key); // 键名
-                  console.log(value); // 对应的属性值
-                });
-                setTeamPlayers(Object.entries(filteredPlayers) || []);
-              } else {
-                console.log("No players data available.");
+          // 构建一个新的 players 对象，只包含过滤后的玩家
+          const filteredPlayers = {};
+          Object.keys(teamData.players).forEach(playerName => {
+            if (!attackListData.includes(playerName)) {
+              filteredPlayers[playerName] = teamData.players[playerName];
             }
+          });
+
+          // 更新状态
+          // Object.entries(filteredPlayers).forEach(([key, value]) => {
+          //   console.log(key); // 键名
+          //   console.log(value); // 对应的属性值
+          // });
+          setTeamPlayers(Object.entries(filteredPlayers) || []);
         } else {
-            console.log("No such team document!");
+          console.log("No players data available.");
         }
+      } else {
+        console.log("No such team document!");
+      }
     } catch (error) {
-        console.error("Error fetching team players:", error);
+      console.error("Error fetching team players:", error);
     }
-};
+  };
 
 
 
   const handleClick = (attack) => {
     router.push({
-        pathname: '/attackrecord',
-        query: {
-            acodeName: acodeName,
-            attack: attack,
-            timestamp: timestamp,
-            codeName: codeName,
-            teamId: teamId,
-            outs: outs
-        }
+      pathname: '/attackrecord',
+      query: {
+        acodeName: acodeName,
+        attack: attack,
+        timestamp: timestamp,
+        codeName: codeName,
+        teamId: teamId,
+        outs: outs
+      }
     });
-};
+  };
 
-const handleEditClick = (attack, row, column) => {
-  router.push({
+  const handleEditClick = (attack, row, column) => {
+    router.push({
       pathname: '/editattackrecord',
       query: {
-          attack: attack,
-          timestamp: timestamp,
-          codeName: codeName,
-          teamId: teamId,
-          outs: outs,
-          row: row,
-          column: column, 
-          acodeName: acodeName,
+        attack: attack,
+        timestamp: timestamp,
+        codeName: codeName,
+        teamId: teamId,
+        outs: outs,
+        row: row,
+        column: column,
+        acodeName: acodeName,
       }
-  });
-};
+    });
+  };
 
 
   let buttonRow = -1;
 
-// 在迴圈外計算按鈕的行數和按鈕的列數
-let buttonColumn = -1;
-if (gameDocSnapshot && gameDocSnapshot.data()) {
-  const outs = gameDocSnapshot.data().outs || 0;
-  buttonColumn = Math.floor(outs / 6) + 1;
+  // 在迴圈外計算按鈕的行數和按鈕的列數
+  let buttonColumn = -1;
+  if (gameDocSnapshot && gameDocSnapshot.data()) {
+    const outs = gameDocSnapshot.data().outs || 0;
+    buttonColumn = Math.floor(outs / 6) + 1;
 
-     // 計算按鈕應該放置的行數
-     if (lastValidIndex == 0){
-      buttonRow = lastValidIndex +1
+    // 計算按鈕應該放置的行數
+    if (lastValidIndex == 0) {
+      buttonRow = lastValidIndex + 1
     }
     else {
       let remainder = (lastValidIndex % 9);
-      if (remainder == 0 ){
+      if (remainder == 0) {
         remainder += 9
       }
-   
-    buttonRow = remainder;
+
+      buttonRow = remainder;
     }
   }
-  
+
   return (
     <Card>
       {/* <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
@@ -274,8 +302,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                     contentArray[innContent - 1] = orderMainItem.content.split(',')[0];
                   }
                 });
-  
-  
+
                 return (
                   <TableRow hover key={index}>
                     <TableCell>{attack}</TableCell>
@@ -291,14 +318,13 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
                                 backgroundColor: buttonProps.color,
                                 color: 'white',
                               }}
-                              onClick={() => handleEditClick(attack, index, i + 1)} 
+                              onClick={() => handleEditClick(attack, index, i + 1)}
                             >
                               {buttonProps.text}
                             </Button>
                           </TableCell>
                         );
                       } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
-                        console.log("Button key:", i);
                         return (
                           <TableCell key={i}>
                             <Button
@@ -322,7 +348,7 @@ if (gameDocSnapshot && gameDocSnapshot.data()) {
           </Table>
         </Box>
       </Scrollbar>
-      
+
     </Card>
   )
 };
