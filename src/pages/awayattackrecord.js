@@ -33,6 +33,7 @@ const Page = () => {
     const [pitcherNames, setpitcherNames] = useState([]);
     const [gameDocIds, setGameDocIds] = useState([]);
     const [selectedOuts, setSelectedOuts] = useState("0"); // 預設值設為 "0"
+    const [totalPitches, setTotalPitches] = useState(0);
 
 
     const [alertInfo, setAlertInfo] = useState({
@@ -78,7 +79,6 @@ const Page = () => {
     const [Active, setActive] = useState(false);
     const [selectedHitType, setSelectedHitType] = useState("");
     const [lastBaseOuts, setLastBaseOuts] = useState(0); // 初始化 lastBaseOuts 狀態
-    const [totalPitches, setTotalPitches] = useState(0);
 
 
 
@@ -132,6 +132,7 @@ const Page = () => {
                                 setAttackList(gameData.attacklist || [])
                                 // 檢查每個元素中的 'pitcher' 對象以及 'pitcher.name' 是否存在
                                 const pitcherName = gameData.position.P;
+                                
 
                                 console.log("d", pitcherName)
                                 // 使用 setordermain 更新 state

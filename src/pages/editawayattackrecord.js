@@ -149,12 +149,25 @@ const Page = () => {
                     const playerIndex = parseInt(router.query.row, 10);
 
                     if (playerIndex < awayattacklist.length) {
-                        const playerName = awayattacklist[playerIndex];
-                        setPlayerName(awayattacklist[playerIndex]);
+                        const playerList = awayattacklist[playerIndex]; // 獲取索引中的物件
+                        console.log('playerList', playerList);
+
+                        // 找到 playerList 中的最大索引值的字串
+                        let maxPlayerName = '';
+                        Object.values(playerList).forEach(playerArray => {
+                            if (Array.isArray(playerArray) && playerArray.length > 0) {
+                                const lastIndex = playerArray.length - 1;
+                                const playerName = playerArray[lastIndex];
+                                if (playerName) {
+                                    maxPlayerName = playerName; // 更新 maxPlayerName
+                                }
+                            }
+                        });
+                        setPlayerName(maxPlayerName);
                         setInning(inning)
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
                         // console.log("d", filteredOrderoppo)
-                        const matchingPlayers = filteredOrderoppo.filter(item => item.o_p_name === playerName);
+                        const matchingPlayers = filteredOrderoppo.filter(item => item.o_p_name === maxPlayerName);
 
 
                         if (matchingPlayers.length > 0) {

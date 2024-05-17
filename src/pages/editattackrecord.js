@@ -25,7 +25,7 @@ const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
     const { codeName, timestamp, teamId, row, column, acodeName } = router.query;
-    const [currentRow, setCurrentRow] = useState(parseInt(row)); 
+    const [currentRow, setCurrentRow] = useState(parseInt(row));
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [gameDocIds, setGameDocIds] = useState([]);
@@ -149,21 +149,35 @@ const Page = () => {
                     const inning = parseInt(router.query.column, 10);
                     const playerIndex = parseInt(router.query.row, 10);
                     if (playerIndex < attacklist.length) {
-                        const playerName = attacklist[playerIndex];
-                        setPlayerName(attacklist[playerIndex]);
-                        setInning(inning)
+                        const playerList = attacklist[playerIndex]; // 獲取索引中的物件
+                        console.log('playerList', playerList);
+
+                        // 找到 playerList 中的最大索引值的字串
+                        let maxPlayerName = '';
+                        Object.values(playerList).forEach(playerArray => {
+                            if (Array.isArray(playerArray) && playerArray.length > 0) {
+                                const lastIndex = playerArray.length - 1;
+                                const playerName = playerArray[lastIndex];
+                                if (playerName) {
+                                    maxPlayerName = playerName; // 更新 maxPlayerName
+                                }
+                            }
+                        });
+
+                        console.log('name', maxPlayerName);
+                        setPlayerName(maxPlayerName); // 設定 playerName 為最大索引的字串
+                        setInning(inning);
                         const filteredOrderMain = ordermain.filter(item => item.inn === inning);
-                        console.log("c",filteredOrderMain)
+                        console.log("c", filteredOrderMain);
                         const filteredOrderoppo = orderoppo.filter(item => item.o_inn === inning);
-                        console.log("d", filteredOrderoppo)
-                        const matchingPlayers = filteredOrderMain.filter(item => item.p_name === playerName);
+                        console.log("d", filteredOrderoppo);
+                        const matchingPlayers = filteredOrderMain.filter(item => item.p_name === maxPlayerName);
 
                         console.log("Matching players:", matchingPlayers);
 
                         if (matchingPlayers.length > 0) {
-
                             const pitcherData = matchingPlayers[0].pitcher;
-                            console.log('pitcher', pitcherData)
+                            console.log('pitcher', pitcherData);
                             updatePitchCounts(pitcherData);
 
                             const content = matchingPlayers[0].content;
@@ -179,10 +193,7 @@ const Page = () => {
                                 updateBaseStatus(onbase);
                             }
                             updateLocations(matchingPlayers); // 呼叫 updateLocations 函數來處理位置資訊
-
-
                         }
-
                     }
                 }
             }
@@ -315,7 +326,7 @@ const Page = () => {
                 ...ordermain[indexToUpdate].pitcher,
                 ball: balls.filter(Boolean).length,
                 strike: strikes.filter(Boolean).length,
-                name: pitcher, 
+                name: pitcher,
                 total: totalPitches,
             },
             rbi: rbiCount,
@@ -323,12 +334,12 @@ const Page = () => {
         };
 
         // 放置 `updateOut` 函數
-            // 累加所有的 'innouts'
-            const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
-            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
-            const totalOuts = totalOutsMain + totalOutsOppo;
-            setOuts(totalOuts);  // 更新 outs 狀態
-            console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
+        // 累加所有的 'innouts'
+        const totalOutsMain = ordermain.reduce((sum, item) => sum + item.innouts, 0);
+        const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.o_innouts, 0);
+        const totalOuts = totalOutsMain + totalOutsOppo;
+        setOuts(totalOuts);  // 更新 outs 狀態
+        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
 
         // 使用 `updateOut` 函數進行出局數計算
 
@@ -364,7 +375,7 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId, 
+                    teamId: teamId,
                     acodeName: acodeName
                 }
             });
@@ -628,7 +639,7 @@ const Page = () => {
 
 
     //落點
-    
+
 
 
     const handleImageClick = (event) => {
@@ -680,9 +691,9 @@ const Page = () => {
 
     const handleTotalPitchesChange = (event) => {
         setTotalPitches(event.target.value);
-      };
+    };
 
-    
+
 
 
 
@@ -791,12 +802,12 @@ const Page = () => {
                                                         <Box
                                                             noValidate
                                                             component="form"
-                                                            // sx={{
-                                                            //     display: 'flex',
-                                                            //     flexDirection: 'column',
-                                                            //     m: 'auto',
-                                                            //     width: 'fit-content',
-                                                            // }}
+                                                        // sx={{
+                                                        //     display: 'flex',
+                                                        //     flexDirection: 'column',
+                                                        //     m: 'auto',
+                                                        //     width: 'fit-content',
+                                                        // }}
                                                         >
                                                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
                                                                 <Typography variant='h5'>S</Typography>
@@ -814,7 +825,7 @@ const Page = () => {
                                                     </div>
 
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center'}}>
+                                                        <div style={{ display: 'flex', alignItems: 'center' }}>
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
                                                                 {column}
                                                             </Typography>
@@ -1233,7 +1244,7 @@ const Page = () => {
                                                     儲存
                                                 </Button>
                                             </div>
-                                           
+
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
