@@ -208,7 +208,7 @@ const LoginPage = () => {
                   startIcon={<GoogleIcon />}
                   sx={{ backgroundColor: "#4285F4", color: "white", '&:hover': { backgroundColor: "#357ae8" } }}
                 >
-                  使用 Google 登录
+                  使用 Google 登錄
                 </Button>
               </Stack>
             </form>
