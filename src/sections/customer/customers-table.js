@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { collection, getDoc, doc, getDocs } from "firebase/firestore";
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import AddIcon from '@mui/icons-material/Add';
 import { firestore } from 'src/firebase';
 import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
-
+import GoogleIcon from '@mui/icons-material/Google';
 
 const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) => {
   return (
@@ -15,19 +15,16 @@ const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) =
       <DialogTitle>選擇替補球員</DialogTitle>
       <DialogContent>
         <Box display="flex" justifyContent="space-between">
-          {/* 左列，攻击列表 */}
           <List>
             {attackListData.map((player, index) => (
               <ListItem key={index}>{player}</ListItem>
             ))}
           </List>
-          {/* 右列，过滤后的团队玩家列表 */}
           <List>
-
-            {Array.isArray(filteredPlayers) && filteredPlayers.map((player, index) => (
+            {Array.isArray(filteredPlayers) && filteredPlayers.map(([playerName, playerData], index) => (
               <ListItem key={index}>
                 <Box component="span" sx={{ display: 'block' }}>
-                  {player.name}: {player.position}
+                  {playerName}: {playerData.position}
                 </Box>
               </ListItem>
             ))}
@@ -41,9 +38,6 @@ const ReplacementDialog = ({ open, onClose, attackListData, filteredPlayers }) =
   );
 };
 
-
-
-// 定義 determineButtonProps 函數
 const determineButtonProps = (content, index) => {
   let buttonColor;
   switch (content) {
@@ -51,7 +45,7 @@ const determineButtonProps = (content, index) => {
     case '二安':
     case '三安':
     case '全打':
-      buttonColor = green[300]; // 绿色
+      buttonColor = green[300];
       break;
     case '三振':
     case '飛球':
@@ -60,25 +54,24 @@ const determineButtonProps = (content, index) => {
     case '野選':
     case '雙殺':
     case '違規':
-      buttonColor = red[300]; // 红色
+      buttonColor = red[300];
       break;
     case '四壞':
     case '犧飛':
     case '犧觸':
     case '觸身':
-      buttonColor = 'lightblue'; // 淡蓝色
+      buttonColor = 'lightblue';
       break;
     case '不知':
-      buttonColor = 'black'; // 黑色
+      buttonColor = 'black';
     default:
-      buttonColor = 'gray'; // 黑色
+      buttonColor = 'gray';
   }
   return {
     color: buttonColor,
     text: content
   };
 };
-
 
 export const CustomersTable = (props) => {
   const {
@@ -89,19 +82,15 @@ export const CustomersTable = (props) => {
     acodeName,
   } = props;
 
-
-
   const [attackListData, setAttackListData] = useState([]);
   const [ordermain, setordermain] = useState([]);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [displayedButton, setDisplayedButton] = useState(false);
-  const [lastValidIndex, setLastValidIndex] = useState(0);  // 修正初始值為 0
+  const [lastValidIndex, setLastValidIndex] = useState(0);
   const [filteredPlayers, setTeamPlayers] = useState([]);
-  const [open, setOpen] = useState(false); // 定義 open 狀態
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
-
-  console.log()
   useEffect(() => {
     const fetchGameData = async () => {
       await fetchGames();
@@ -113,7 +102,7 @@ export const CustomersTable = (props) => {
   const fetchGames = async () => {
     if (!teamId || !timestamp) {
       console.log('Required IDs are missing.');
-      return; // 直接返回如果缺少 ID
+      return;
     }
 
     try {
@@ -133,27 +122,23 @@ export const CustomersTable = (props) => {
 
           setLastValidIndex(lastValidIndex);
 
-          // 處理新的 attacklist 結構
           const attackListData = [];
 
           if (gameData.attacklist) {
-            Object.entries(gameData.attacklist).forEach(([key, playerData], index) => {
-              // console.log(`key: ${key}, playerData: ${playerData}, index: ${index}`);
-              if (index >= 0 && index <= 8) { // 確保只處理索引 0-8
-                console.log(`playerData for ${key}:`, playerData);
-                if (Array.isArray(playerData) && playerData.length > 0) {
-                  // 取得最新的索引內容
-                  const latestIndex = playerData[playerData.length - 1];
-                  attackListData.push(latestIndex);
-                } else if (typeof playerData === 'string') {
-                  // 如果 playerData 是字符串，直接推入 attackListData
-                  attackListData.push(playerData);
-                }
+            gameData.attacklist.forEach((item) => {
+              const key = Object.keys(item)[0];
+              const playerData = item[key];
+
+              console.log(`playerData for ${key}:`, playerData);
+
+              if (Array.isArray(playerData) && playerData.length > 0) {
+                attackListData.push(playerData[0]);
               }
             });
           }
 
-          console.log('attackListData:', attackListData); // 確認最終的 attackListData
+
+          console.log('attackListData:', attackListData);
           setAttackListData(attackListData);
           setordermain(gameData.ordermain || []);
           setGameDocSnapshot(gameDocSnapshot);
@@ -168,11 +153,6 @@ export const CustomersTable = (props) => {
     }
   };
 
-
-
-
-
-
   const fetchTeamPlayers = async () => {
     try {
       console.log("Fetching team document...");
@@ -183,8 +163,6 @@ export const CustomersTable = (props) => {
         const teamData = teamDocSnapshot.data();
 
         if (teamData.players) {
-
-          // 构建一个新的 players 对象，只包含过滤后的玩家
           const filteredPlayers = {};
           Object.keys(teamData.players).forEach(playerName => {
             if (!attackListData.includes(playerName)) {
@@ -192,11 +170,6 @@ export const CustomersTable = (props) => {
             }
           });
 
-          // 更新状态
-          // Object.entries(filteredPlayers).forEach(([key, value]) => {
-          //   console.log(key); // 键名
-          //   console.log(value); // 对应的属性值
-          // });
           setTeamPlayers(Object.entries(filteredPlayers) || []);
         } else {
           console.log("No players data available.");
@@ -208,8 +181,6 @@ export const CustomersTable = (props) => {
       console.error("Error fetching team players:", error);
     }
   };
-
-
 
   const handleClick = (attack) => {
     router.push({
@@ -241,23 +212,19 @@ export const CustomersTable = (props) => {
     });
   };
 
-
   let buttonRow = -1;
 
-  // 在迴圈外計算按鈕的行數和按鈕的列數
   let buttonColumn = -1;
   if (gameDocSnapshot && gameDocSnapshot.data()) {
     const outs = gameDocSnapshot.data().outs || 0;
     buttonColumn = Math.floor(outs / 6) + 1;
 
-    // 計算按鈕應該放置的行數
-    if (lastValidIndex == 0) {
-      buttonRow = lastValidIndex + 1
-    }
-    else {
+    if (lastValidIndex === 0) {
+      buttonRow = lastValidIndex + 1;
+    } else {
       let remainder = (lastValidIndex % 9);
-      if (remainder == 0) {
-        remainder += 9
+      if (remainder === 0) {
+        remainder += 9;
       }
 
       buttonRow = remainder;
@@ -266,9 +233,9 @@ export const CustomersTable = (props) => {
 
   return (
     <Card>
-      {/* <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+      <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
         替補球員
-      </Button> */}
+      </Button>
       <ReplacementDialog
         open={open}
         onClose={() => setOpen(false)}
@@ -348,9 +315,8 @@ export const CustomersTable = (props) => {
           </Table>
         </Box>
       </Scrollbar>
-
     </Card>
-  )
+  );
 };
 
 CustomersTable.propTypes = {

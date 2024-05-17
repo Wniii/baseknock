@@ -129,18 +129,18 @@ useEffect(() => {
             // 设置游戏文档的数据
             const gameData = {
               awayattacklist: [
-                  {  "第一棒": [selectedPlayers[0]] },
-                  {  "第二棒": [selectedPlayers[1]] },
-                  {  "第三棒": [selectedPlayers[2]] },
-                  {  "第四棒": [selectedPlayers[3]] },
-                  {  "第五棒": [selectedPlayers[4]] },
-                  {  "第六棒": [selectedPlayers[5]] },
-                  {  "第七棒": [selectedPlayers[6]] },
-                  {  "第八棒": [selectedPlayers[7]] },
-                  {  "第九棒": [selectedPlayers[8]] },
-                 
-              ]
-          };
+                {  "第一棒": [selectedPlayers[0]] },
+                {  "第二棒": [selectedPlayers[1]] },
+                {  "第三棒": [selectedPlayers[2]] },
+                {  "第四棒": [selectedPlayers[3]] },
+                {  "第五棒": [selectedPlayers[4]] },
+                {  "第六棒": [selectedPlayers[5]] },
+                {  "第七棒": [selectedPlayers[6]] },
+                {  "第八棒": [selectedPlayers[7]] },
+                {  "第九棒": [selectedPlayers[8]] },
+               
+            ]
+            };
 
             // 添加游戏文档到团队文档的游戏子集合
             if (gameDocSnapshot.exists()) {

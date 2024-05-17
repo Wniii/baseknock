@@ -246,9 +246,22 @@ const AwayCustomersTable = (props) => {
     const gameData = gameDocSnapshot.data();
     const orderOppoLength = gameData.orderoppo ? gameData.orderoppo.length : 0;
     const lastValidIndex = orderOppoLength + 1;
+    const awayattackListData = [];
 
+    if (gameData.awayattacklist) {
+      gameData.awayattacklist.forEach((item) => {
+        const key = Object.keys(item)[0];
+        const playerData = item[key];
+
+        console.log(`playerData for ${key}:`, playerData);
+
+        if (Array.isArray(playerData) && playerData.length > 0) {
+          awayattackListData.push(playerData[0]);
+        }
+      });
+    }
     setLastValidIndex(lastValidIndex);
-    setAwayAttackListData(gameData.awayattacklist || []);
+    setAwayAttackListData(awayattackListData);
     setorderoppo(gameData.orderoppo || []);
     setGameDocSnapshot(gameDocSnapshot);
 
