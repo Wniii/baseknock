@@ -3,328 +3,174 @@ import Head from 'next/head';
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from 'src/firebase';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { Box, Button, Card, CardHeader, List, ListItem, ListItemAvatar, ListItemText, Grid, Typography, Container } from '@mui/material';
+import { Box, Button, Card, CardHeader, List, ListItem, ListItemText, Grid, Typography, Container } from '@mui/material';
 import { useRouter } from 'next/router';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-
-
+import DraggablePlayer from 'src/components/DraggablePlayer';
 
 const ALLPlayerPage = () => {
   const router = useRouter();
-
   const [players, setPlayers] = useState({});
   const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const { timestamp } = router.query;
-  const { codeName } = router.query;
-  const { teamId } = router.query;
-  const { hcodeName } = router.query;
-  const [teamname, setteamname] = useState('');
+  const { timestamp, codeName, teamId, hcodeName } = router.query;
+  const [teamname, setTeamName] = useState('');
 
   useEffect(() => {
-    // 恢复本地存储中的选定的球员列表
-
-
     const fetchTeamGames = async () => {
       try {
-          // 获取团队集合的引用
-          const teamCollectionRef = collection(firestore, 'team');
-          console.log("Team collection reference:", teamCollectionRef);
-  
-          // 获取团队文档的快照
-          const teamSnapshot = await getDocs(teamCollectionRef);
-          console.log("Team snapshot:", teamSnapshot);
-  
-          // 遍历团队文档
-          for (const doc of teamSnapshot.docs) {
-              const teamData = doc.data();
-              console.log("Team data:", teamData);
-  
-              // 检查团队文档的 codeName 字段是否与给定的 codeName 变量匹配，
-              // 并且检查团队文档是否包含 games 子集合以及该子集合中是否存在与给定时间戳相匹配的文档
-              const gamesCollectionRef = collection(doc.ref, 'games');
-              const gamesSnapshot = await getDocs(gamesCollectionRef);
-  
-              const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
-              console.log('dsd',gameDoc)
-              if (teamData.codeName === hcodeName && gameDoc) {
-                  // 找到了符合条件的团队文档和游戏文档
-                  console.log("Game document found:", gameDoc.data());
-                  setteamname(teamData.Name || {});
-                  // 更新玩家状态
-                  setPlayers(teamData.players || '');
-                  console.log("Players set to:", teamData.players);
-                  
-                  // 更新选定的球员列表并保存到本地存储
-                  
-                  return;
-              }
+        const teamCollectionRef = collection(firestore, 'team');
+        const teamSnapshot = await getDocs(teamCollectionRef);
+
+        for (const doc of teamSnapshot.docs) {
+          const teamData = doc.data();
+          const gamesCollectionRef = collection(doc.ref, 'games');
+          const gamesSnapshot = await getDocs(gamesCollectionRef);
+
+          const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
+
+          if (teamData.codeName === hcodeName && gameDoc) {
+            setTeamName(teamData.Name || '');
+            setPlayers(teamData.players || {});
+            return;
           }
+        }
       } catch (error) {
-          console.error('Error fetching team games:', error);
+        console.error('Error fetching team games:', error);
       }
-  };
-  
+    };
 
     fetchTeamGames();
-}, [codeName, timestamp]);
-
-
-  
+  }, [codeName, timestamp, hcodeName]);
 
   const handleAddToSelectedPlayers = (playerKey) => {
     const updatedPlayers = { ...players };
     delete updatedPlayers[playerKey];
     setPlayers(updatedPlayers);
-  
     setSelectedPlayers([...selectedPlayers, playerKey]);
-  
-    // 将选定的球员列表保存到本地存储
   };
+
   const handleRemoveFromSelectedPlayers = (playerKey) => {
     const updatedSelectedPlayers = selectedPlayers.filter((selectedPlayer) => selectedPlayer !== playerKey);
     setSelectedPlayers(updatedSelectedPlayers);
-  
     const updatedPlayers = { ...players, [playerKey]: true };
     setPlayers(updatedPlayers);
-  
-    // 更新本地存储中的选定的球员列表
   };
 
   const handleClearPlayers = () => {
     setSelectedPlayers([]);
-    setPlayers({ ...players, ...Object.fromEntries(selectedPlayers.map(key => [key, true])) });  // 重置players狀態為初始狀態
+    setPlayers({ ...players, ...Object.fromEntries(selectedPlayers.map(key => [key, true])) });
   };
-
 
   const handleReturnClick = () => {
     router.push('/schedule');
   };
-  console.log(codeName)
-
 
   const addAttackListToGame = async (teamCollectionRef, codeName, timestamp, selectedPlayers) => {
-    console.log('Adding attack list to game for codeName:', codeName);
-
-    // 获取团队文档数据
     const teamsQuerySnapshot = await getDocs(teamCollectionRef);
-
-    // 遍历团队文档
     for (const teamDoc of teamsQuerySnapshot.docs) {
-        const teamData = teamDoc.data();
-        console.log("Team data:", teamData);
-
-        if (teamData.codeName === codeName) {
-            console.log("CodeName matches:", codeName);
-
-            const gameDocRef = doc(teamDoc.ref, "games", timestamp);
-            console.log("Game document reference:", gameDocRef);
-
-            const gameDocSnapshot = await getDoc(gameDocRef);
-
-            // 创建攻击列表数据结构
-            const gameData = {
-              attacklist: [
-                  {  "第一棒": [selectedPlayers[0]] },
-                  {  "第二棒": [selectedPlayers[1]] },
-                  {  "第三棒": [selectedPlayers[2]] },
-                  {  "第四棒": [selectedPlayers[3]] },
-                  {  "第五棒": [selectedPlayers[4]] },
-                  {  "第六棒": [selectedPlayers[5]] },
-                  {  "第七棒": [selectedPlayers[6]] },
-                  {  "第八棒": [selectedPlayers[7]] },
-                  {  "第九棒": [selectedPlayers[8]] },
-                 
-              ]
-          };
-
-            if (gameDocSnapshot.exists()) {
-                console.log("Game document found with ID:", timestamp);
-                console.log("Game data:", gameDocSnapshot.data());
-
-                await updateDoc(gameDocRef, gameData);
-            } else {
-                console.log("No matching game document found with ID:", timestamp);
-                await setDoc(gameDocRef, gameData);
-            }
+      const teamData = teamDoc.data();
+      if (teamData.codeName === codeName) {
+        const gameDocRef = doc(teamDoc.ref, "games", timestamp);
+        const gameDocSnapshot = await getDoc(gameDocRef);
+        const gameData = {
+          attacklist: [
+            { "第一棒": [selectedPlayers[0]] },
+            { "第二棒": [selectedPlayers[1]] },
+            { "第三棒": [selectedPlayers[2]] },
+            { "第四棒": [selectedPlayers[3]] },
+            { "第五棒": [selectedPlayers[4]] },
+            { "第六棒": [selectedPlayers[5]] },
+            { "第七棒": [selectedPlayers[6]] },
+            { "第八棒": [selectedPlayers[7]] },
+            { "第九棒": [selectedPlayers[8]] },
+          ]
+        };
+        if (gameDocSnapshot.exists()) {
+          await updateDoc(gameDocRef, gameData);
         } else {
-            console.log("CodeName does not match:", teamData.codeName);
+          await setDoc(gameDocRef, gameData);
         }
+      }
     }
-};
+  };
 
-
-const handleSaveAndNavigate = async () => {
-    console.log('handleSaveAndNavigate function called');
+  const handleSaveAndNavigate = async () => {
+    if (selectedPlayers.length !== 9) {
+      alert("請選擇九位球員！");
+      return;
+    }
 
     try {
-      
-        if (selectedPlayers.length < 9) {
-            alert("請選擇九位球員！");
-            return;
-        }
-        if (selectedPlayers.length > 9) {
-          alert("只能選擇九位球員！");
-          return;
-      }
-        
-        console.log('timestamp:', timestamp);
-        console.log('codeName:', codeName);
-
-        // 获取所有团队文档的引用
-        const teamsCollectionRef = collection(firestore, "team");
-        console.log("Teams collection reference:", teamsCollectionRef);
-
-        // 在 codeName 相匹配的团队集合中添加攻击列表到游戏子集合
-        await addAttackListToGame(teamsCollectionRef, codeName, timestamp, selectedPlayers);
-
-        // 在 hcodeName 相匹配的团队集合中添加攻击列表到游戏子集合
-        await addAttackListToGame(teamsCollectionRef, hcodeName, timestamp, selectedPlayers);
-
-        // 导航到防守页面
-        navigatetodefence(timestamp, codeName);
-        console.log('Navigated to defence');
-
-        // 清空选定的球员列表
-        setSelectedPlayers([]);
-        console.log('Selected players cleared');
+      const teamsCollectionRef = collection(firestore, "team");
+      await addAttackListToGame(teamsCollectionRef, codeName, timestamp, selectedPlayers);
+      await addAttackListToGame(teamsCollectionRef, hcodeName, timestamp, selectedPlayers);
+      navigatetodefence(timestamp, codeName);
+      setSelectedPlayers([]);
     } catch (error) {
-        console.error('Error updating game document or navigating to defence:', error);
+      console.error('Error updating game document or navigating to defence:', error);
     }
-};
-
-
-
-  
-const navigatetodefence = (gameId, codeName) => {
-  console.log("adadad", codeName);
-  router.push({
-    pathname: "/DefencePlacePage",
-    query: { 
-      gameId: gameId,
-      hcodeName: hcodeName, // 将codeName作为查询参数传递
-      teamId: teamId, // 将teamId作为查询参数传递
-      codeName: codeName,
-      timestamp: timestamp
-    }
-  });
-};
-
-
-
-  
-  // 在需要的地方调用函数并传递团队文档的名称
-  const ItemTypes = {
-    PLAYER: 'player'
   };
-  
-  // 定義一個可拖拽的球員組件
-  const DraggablePlayer = ({ playerKey, index, removePlayer }) => {
-    const [{ isDragging }, drag] = useDrag(() => ({
-      type: ItemTypes.PLAYER,
-      item: { playerKey, index },
-      collect: monitor => ({
-        isDragging: !!monitor.isDragging(),
-      })
-    }), [playerKey, index]);
-  
-    return (
-      <ListItem
-        ref={drag}
-        key={playerKey}
-        divider
-        button
-        onClick={event => {
-          event.stopPropagation(); // 防止事件冒泡
-          removePlayer(playerKey);
-        }}
-        style={{ opacity: isDragging ? 0.5 : 1, cursor: 'move' }} // 添加拖拽光標
-      >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ marginRight: '16px' }}>{index + 1}</div>
-          <ListItemText
-            primary={`${playerKey}`}
-            primaryTypographyProps={{ variant: 'body2' }}
-          />
-        </div>
-      </ListItem>
-    );
+
+  const navigatetodefence = (gameId, codeName) => {
+    router.push({
+      pathname: "/DefencePlacePage",
+      query: { gameId, hcodeName, teamId, codeName, timestamp }
+    });
   };
-  
-  
-  
-  
+
+  const movePlayer = (fromIndex, toIndex) => {
+    setSelectedPlayers(prevSelectedPlayers => {
+      const updatedPlayers = [...prevSelectedPlayers];
+      const [movedPlayer] = updatedPlayers.splice(fromIndex, 1);
+      updatedPlayers.splice(toIndex, 0, movedPlayer);
+      return updatedPlayers;
+    });
+  };
 
   return (
     <>
       <Head>
         <title>大專棒球隊 | Devias Kit | Attack Place</title>
       </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-        }}
-      >
+      <Box component="main" sx={{ flexGrow: 1 }}>
         <Container maxWidth="xl">
           <div style={{ textAlign: 'center' }}>
-          <Typography variant="h4" mb={4}>
-            {teamname}&nbsp;
-            先發打序
-          </Typography>
+            <Typography variant="h4" mb={4}>
+              {teamname}&nbsp;先發打序
+            </Typography>
           </div>
           <Grid container spacing={1} justifyContent="center">
-            {/* 左侧所有球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardHeader title="所有球員" />
                 <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
                   <List>
                     {Object.keys(players).map((playerKey) => (
-                    // 检查当前球员是否已经在选定的球员列表中，如果是则不渲染
-                    !selectedPlayers.includes(playerKey) && (
-                      <ListItem
-                        key={playerKey}
-                        divider
-                        button
-                        onClick={() => handleAddToSelectedPlayers(playerKey)}
-                      >
-                        {/* <ListItemAvatar>
-                          <Box
-                            component="img"
-                            src=''
-                            sx={{
-                              borderRadius: 1,
-                              height: 48,
-                              width: 48
-                            }}
+                      !selectedPlayers.includes(playerKey) && (
+                        <ListItem
+                          key={playerKey}
+                          divider
+                          button
+                          onClick={() => handleAddToSelectedPlayers(playerKey)}
+                        >
+                          <ListItemText
+                            primary={` ${playerKey}`}
+                            primaryTypographyProps={{ variant: 'body2' }}
                           />
-                        </ListItemAvatar> */}
-                        <ListItemText
-                          primary={` ${playerKey}`}
-                          primaryTypographyProps={{ variant: 'body2' }}
-                        />
-                      </ListItem>
-                    )
-                  ))}
-
+                        </ListItem>
+                      )
+                    ))}
                   </List>
                 </div>
               </Card>
             </Grid>
-  
-            {/* 中间的按钮 */}
             <Grid item xs={10} md={3} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ marginBottom: '10px' }}>
-                
-              </div>
               <div style={{ marginBottom: '10px' }}>
                 <Button
                   variant="contained"
                   color="primary"
                   style={{ width: '200px', height: '50px' }}
-                  // onClick={() => setSelectedPlayers([])} // Clear selected players
                   onClick={handleClearPlayers}
                 >
                   清除先發
@@ -342,15 +188,13 @@ const navigatetodefence = (gameId, codeName) => {
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => handleSaveAndNavigate(codeName)}
+                  onClick={handleSaveAndNavigate}
                   style={{ width: '100px', height: '50px' }}
                 >
                   儲存
                 </Button>
               </div>
             </Grid>
-
-            {/* 右侧先发球员列表 */}
             <Grid item xs={4}>
               <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardHeader title="先發球員" />
@@ -362,7 +206,8 @@ const navigatetodefence = (gameId, codeName) => {
                           key={playerKey}
                           playerKey={playerKey}
                           index={index}
-                          removePlayer={handleRemoveFromSelectedPlayers}
+                          movePlayer={movePlayer}
+                          removePlayer={handleRemoveFromSelectedPlayers} // 传递 removePlayer 函数
                         />
                       ))}
                     </List>
