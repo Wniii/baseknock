@@ -31,6 +31,7 @@ const Page = () => {
     const [gameDocIds, setGameDocIds] = useState([]);
     const [pitcher, setPitcher] = useState('');// 儲存投手名稱
     const [players, setPlayers] = useState([]);
+    const [orderMain, setOrderMain] = useState([]);
     const [alertInfo, setAlertInfo] = useState({
         open: false,
         severity: 'info',
@@ -127,6 +128,7 @@ const Page = () => {
             const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
                 const { ordermain, attacklist, orderoppo } = gameData;
+                setOrderMain(ordermain)
 
                 setValues(prevValues => ({
                     ...prevValues,
@@ -573,8 +575,12 @@ const Page = () => {
     };
 
     const renderOutsCheckboxes = () => {
-        console.log(outs)
-        const remainder = outs % 3; // 計算 outs 除以 3 的餘數
+        const inning = parseInt(router.query.column, 10);
+        const outsInCurrentInning = orderMain
+            .filter(item => item.inn === inning)
+            .reduce((acc, item) => acc + (item.innouts || 0), 0);
+
+        const remainder = outsInCurrentInning
         return [...Array(3)].map((_, index) => (
             <FormControlLabel
                 key={index}

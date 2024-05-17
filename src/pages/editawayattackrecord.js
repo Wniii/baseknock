@@ -25,12 +25,13 @@ const Page = () => {
     const router = useRouter();
     const attackData = router.query.attack;
     const { codeName, timestamp, teamId, row, column, acodeName } = router.query;
-    const [currentRow, setCurrentRow] = useState(parseInt(row)); 
+    const [currentRow, setCurrentRow] = useState(parseInt(row));
     const [openDialog, setOpenDialog] = useState(false);
     const [teamDocId, setTeamDocId] = useState(null);
     const [gameDocIds, setGameDocIds] = useState([]);
     const [pitcher, setPitcher] = useState('');// 儲存投手名稱
     const [players, setPlayers] = useState([]);
+    const [orderOppo, setOrderOppo] = useState([]);
     const [alertInfo, setAlertInfo] = useState({
         open: false,
         severity: 'info',
@@ -126,7 +127,8 @@ const Page = () => {
             const gameData = await fetchGameData(); // 获取数据
             if (gameData) {
                 const { ordermain, awayattacklist, orderoppo } = gameData;
-                console.log("orderoppo",orderoppo)
+                console.log("orderoppo", orderoppo)
+                setOrderOppo(orderoppo);
                 setValues(prevValues => ({
                     ...prevValues,
                     hometeam: gameData.hometeam || "",
@@ -333,19 +335,19 @@ const Page = () => {
         };
 
         // 放置 `updateOut` 函數
-            // 累加所有的 'innouts'
+        // 累加所有的 'innouts'
 
-            const totalOutsMain = Array.isArray(ordermain) && ordermain.length > 0
-            ? ordermain.reduce((sum, item) => sum + (item.innouts || 0), 0): 0;
-            
-            const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.innouts, 0);
-            console.log("orderoppo", orderoppo)
-            console.log("totalOutsOppo", totalOutsOppo)
-            const totalOuts = totalOutsMain + totalOutsOppo;
-            console.log("dddd",totalOuts)
-            setOuts(totalOuts);  // 更新 outs 狀態
-            console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
-        
+        const totalOutsMain = Array.isArray(ordermain) && ordermain.length > 0
+            ? ordermain.reduce((sum, item) => sum + (item.innouts || 0), 0) : 0;
+
+        const totalOutsOppo = orderoppo.reduce((sum, item) => sum + item.innouts, 0);
+        console.log("orderoppo", orderoppo)
+        console.log("totalOutsOppo", totalOutsOppo)
+        const totalOuts = totalOutsMain + totalOutsOppo;
+        console.log("dddd", totalOuts)
+        setOuts(totalOuts);  // 更新 outs 狀態
+        console.log('Total outs:', totalOuts);  // 輸出總出局數到控制台
+
 
         // 使用 `updateOut` 函數進行出局數計算
 
@@ -360,7 +362,7 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId, 
+                    teamId: teamId,
                     acodeName
                 }
             });
@@ -383,7 +385,7 @@ const Page = () => {
                 query: {
                     timestamp: timestamp,
                     codeName: codeName,
-                    teamId: teamId, 
+                    teamId: teamId,
                     acodeName
                 }
             });
@@ -581,7 +583,13 @@ const Page = () => {
     };
 
     const renderOutsCheckboxes = () => {
-        const remainder = outs %3; // 計算 outs 除以 3 的餘數
+        
+        const inning = parseInt(router.query.column, 10);
+        const outsInCurrentInning = orderOppo
+            .filter(item => item.o_inn === inning)
+            .reduce((acc, item) => acc + (item.innouts || 0), 0);
+
+        const remainder = outsInCurrentInning
         return [...Array(3)].map((_, index) => (
             <FormControlLabel
                 key={index}
@@ -700,7 +708,7 @@ const Page = () => {
 
     const handleTotalPitchesChange = (event) => {
         setTotalPitches(event.target.value);
-      };
+    };
 
 
 
@@ -808,12 +816,12 @@ const Page = () => {
                                                         <Box
                                                             noValidate
                                                             component="form"
-                                                            // sx={{
-                                                            //     display: 'flex',
-                                                            //     flexDirection: 'column',
-                                                            //     m: 'auto',
-                                                            //     width: 'fit-content',
-                                                            // }}
+                                                        // sx={{
+                                                        //     display: 'flex',
+                                                        //     flexDirection: 'column',
+                                                        //     m: 'auto',
+                                                        //     width: 'fit-content',
+                                                        // }}
                                                         >
                                                             <div style={{ display: 'flex', alignItems: 'center', marginLeft: '85px' }}>
                                                                 <Typography variant='h5'>S</Typography>
@@ -831,7 +839,7 @@ const Page = () => {
                                                     </div>
 
                                                     <div style={{ display: 'flex', alignItems: 'center', marginTop: '40px' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center'}}>
+                                                        <div style={{ display: 'flex', alignItems: 'center' }}>
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
                                                                 {column}
                                                             </Typography>
@@ -1250,7 +1258,7 @@ const Page = () => {
                                                     儲存
                                                 </Button>
                                             </div>
-                                        
+
                                         </DialogActions>
                                     </Dialog>
                                 </CardContent>
