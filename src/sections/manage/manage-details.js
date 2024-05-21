@@ -218,7 +218,7 @@ export const Manage = ({ onTeamSelect }) => {
   
       // 檢查球隊是否已存在於用戶的 u_team 陣列中
       if (userDocData.u_team.includes(teamcodeName)) {
-        alert("球隊已加入");
+        alert("此球隊已加入過！請輸入其他球隊ID");
         return;
       }
   
