@@ -292,14 +292,20 @@ export const EditGame = () => {
         await deleteGamesField(phteam, g_id);
         await deleteDoc(doc(firestore, "team",pateam, "games", g_id));
         await deleteGamesField(pateam, g_id);
+        await setDoc(doc(firestore, "team", hteam, "games", g_id), values);
+        await updateGamesField(hteam, g_id, values.GDate);
+        // 更新或新增新客队的比赛数据和比赛日期
+        await setDoc(doc(firestore, "team", ateam, "games", g_id), values);
+        await updateGamesField(ateam, g_id, values.GDate);
       }
 
-      // 更新或新增新主队的比赛数据和比赛日期
+      if (hteam == phteam || ateam == pateam) {// 更新或新增新主队的比赛数据和比赛日期
       await updateDoc(doc(firestore, "team", hteam, "games", g_id), values);
       await updateGamesField(hteam, g_id, values.GDate);
       // 更新或新增新客队的比赛数据和比赛日期
       await updateDoc(doc(firestore, "team", ateam, "games", g_id), values);
       await updateGamesField(ateam, g_id, values.GDate);
+      }
 
       alert("比賽資料更新成功！");
       router.push("/schedule");
