@@ -319,61 +319,62 @@ const DefencePlacePage = () => {
               ))}
             </div>
           </div>
-          {selectedPosition && (
-            <div className="popup"
-              onClick={handleBackgroundClick}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 9998,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-              <Paper elevation={3} sx={{ p: 2, position: 'relative' }}>
-                <Typography variant="h6">{positionNames[selectedPosition]}</Typography>
-                <Typography variant="body1">{positions[selectedPosition] || 'Empty'}</Typography>
-                <Button onClick={handleClosePopup} style={{marginRight:'-5px'}} sx={{ position: 'absolute', top: 0, right: 0 }}><CloseIcon /></Button>
-                <List>
-                  {(selectedPosition === '1' ? pitcherKeys : playerKeys).map(key => (
-                    <ListItem
-                      key={key}
-                      divider
-                      onClick={() => assignPlayerToPosition(key)}
-                      style={{
-                        backgroundColor: Object.values(positions).includes(key) ? '#3f51b5' : 'transparent',
-                        borderRadius: '16px', // 圓角化
-                        color: Object.values(positions).includes(key) ? '#ffffff' : 'inherit' // 已選球員文字顏色設置為白色
-                      }}
-                    >
-                      <ListItemText primary={`${players[key]?.name || key}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            </div>
-          )}
-
-          {showPitchers && (
-            <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-              <Typography variant="h6">投手列表</Typography>
-              <List>
-                {pitcherKeys.map(pitcherKey => (
-                  <ListItem
-                    key={pitcherKey}
-                    divider
-                    onClick={() => assignPlayerToPosition(pitcherKey)}
-                  >
-                    <ListItemText primary={`${players[pitcherKey]?.name || pitcherKey}`} />
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          )}
+            {selectedPosition && (
+              <div
+                className="popup"
+                onClick={handleClosePopup}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  zIndex: 9998,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+              >
+                <Paper elevation={3} sx={{ p: 2, position: 'relative' }}>
+                  <Typography variant="h6">{positionNames[selectedPosition]}</Typography>
+                  <Typography variant="body1">{positions[selectedPosition] || 'Empty'}</Typography>
+                  <Button onClick={handleClosePopup} sx={{ position: 'absolute', top: 0, right: 0 }}><CloseIcon /></Button>
+                  <List>
+                    {(selectedPosition === '1' ? pitcherKeys : playerKeys).map(key => (
+                      <ListItem
+                        key={key}
+                        divider
+                        onClick={() => assignPlayerToPosition(key)}
+                        style={{
+                          backgroundColor: Object.values(positions).includes(key) ? '#3f51b5' : 'transparent',
+                          borderRadius: '16px', // 圓角化
+                          color: Object.values(positions).includes(key) ? '#ffffff' : 'inherit' // 已選球員文字顏色設置為白色
+                        }}
+                      >
+                        <ListItemText primary={`${players[key]?.name || key}`} />
+                      </ListItem>
+                    ))}
+                  </List>
+                  {showPitchers && (
+                    <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+                      <Typography variant="h6">投手列表</Typography>
+                      <List>
+                        {pitcherKeys.map(pitcherKey => (
+                          <ListItem
+                            key={pitcherKey}
+                            divider
+                            onClick={() => assignPlayerToPosition(pitcherKey)}
+                          >
+                            <ListItemText primary={`${players[pitcherKey]?.name || pitcherKey}`} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Paper>
+                  )}
+                </Paper>
+              </div>
+            )}
         </Grid>
       </Grid>
       <Grid container justifyContent="center" style={{ marginTop: '-230px' }}>

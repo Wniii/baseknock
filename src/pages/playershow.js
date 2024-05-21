@@ -114,7 +114,7 @@ const ALLPlayerPage = () => {
 
   const navigatetodefence = (gameId, codeName) => {
     router.push({
-      pathname: "/DefencePlacePage",
+      pathname: "/defencePlacePage",
       query: { gameId, hcodeName, teamId, codeName, timestamp }
     });
   };

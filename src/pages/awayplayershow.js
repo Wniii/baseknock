@@ -74,7 +74,7 @@ const ALLPlayerPage = () => {
         const gameDocRef = doc(teamDoc.ref, "games", timestamp);
         const gameDocSnapshot = await getDoc(gameDocRef);
         const gameData = {
-          attacklist: [
+          awayattacklist: [
             { "第一棒": [selectedPlayers[0]] },
             { "第二棒": [selectedPlayers[1]] },
             { "第三棒": [selectedPlayers[2]] },
@@ -114,7 +114,7 @@ const ALLPlayerPage = () => {
 
   const navigatetodefence = (gameId, codeName) => {
     router.push({
-      pathname: "/DefencePlacePage",
+      pathname: "/defencePlacePage",
       query: { gameId, hcodeName, teamId, codeName, timestamp }
     });
   };

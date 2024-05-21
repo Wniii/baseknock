@@ -6,7 +6,6 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { firestore } from 'src/firebase';
 import CloseIcon from '@mui/icons-material/Close';
 
-
 const DefencePlacePage = () => {
   const router = useRouter();
   const [gameId, setGameID] = useState(null);
@@ -123,18 +122,12 @@ const DefencePlacePage = () => {
     fetchGameDataAndPlayers();
   }, [gameId, codeName]);
 
-
-
-
   const handlePositionClick = (position) => {
     setSelectedPosition(position);
     setShowPitchers(positionNames[position] === 'P'); // 當選擇的位置是投手時，showPitchers為true
   };
 
   const handleClosePopup = () => {
-    setSelectedPosition(null);
-  };
-  const handleBackgroundClick = () => {
     setSelectedPosition(null);
   };
 
@@ -153,8 +146,6 @@ const DefencePlacePage = () => {
     }));
     setSelectedPosition(null);
   };
-
-
 
   const addPositionToGame = async (teamCollectionRef, codeName, timestamp, positionData) => {
     console.log('Adding position data to game for codeName:', codeName);
@@ -207,16 +198,12 @@ const DefencePlacePage = () => {
     }
   };
 
-
   const handleSaveAndNavigate = async () => {
     console.log('handleSaveAndNavigate function called');
     
     const isEveryPositionFilled = Object.values(positions).every(player => player !== null);
 
-   
-
     try {
-
       console.log('timestamp:', timestamp);
       console.log('codeName:', codeName);
 
@@ -241,15 +228,12 @@ const DefencePlacePage = () => {
     }
   };
 
-
   const navigateschedule = (gameId, codeName) => {
     console.log("adadad", codeName);
     router.push({
       pathname: "/schedule",
     });
   };
-  
-
 
   return (
     <Container maxWidth="xl" style={{ overflow: 'hidden'}}>
@@ -268,11 +252,10 @@ const DefencePlacePage = () => {
               alignItems: 'center',
             }}>
             <div style={{ position: 'absolute', left: 'calc(45% - 32%)', top: 0 }}>
-
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Baseball_positions.svg/600px-Baseball_positions.svg.png"
                 alt="baseball_positions"
-                style={{ width: '100%' }} // 设置图像的宽度为50%
+                style={{ width: '100%' }}
               />
               {Object.keys(positions).map(pos => (
                 <div
@@ -282,7 +265,7 @@ const DefencePlacePage = () => {
                     top: `${getPositionTop(pos)}%`,
                     left: `${getPositionLeft(pos)}%`,
                     transform: 'translate(-50%, -50%)',
-                    margin: 'auto', // 让图片水平和垂直居中
+                    margin: 'auto',
                     width: '10%',
                     height: '10%',
                     display: 'flex',
@@ -324,13 +307,13 @@ const DefencePlacePage = () => {
                     </div>
                   </div>
                 </div>
-
               ))}
             </div>
           </div>
           {selectedPosition && (
-            <div className="popup"
-              onClick={handleBackgroundClick}
+            <div
+              className="popup"
+              onClick={handleClosePopup}
               style={{
                 position: 'fixed',
                 top: 0,
@@ -342,7 +325,8 @@ const DefencePlacePage = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center'
-              }}>
+              }}
+            >
               <Paper elevation={3} sx={{ p: 2, position: 'relative' }}>
                 <Typography variant="h6">{positionNames[selectedPosition]}</Typography>
                 <Typography variant="body1">{positions[selectedPosition] || 'Empty'}</Typography>
@@ -363,25 +347,9 @@ const DefencePlacePage = () => {
                     </ListItem>
                   ))}
                 </List>
+                
               </Paper>
             </div>
-          )}
-
-          {showPitchers && (
-            <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-              <Typography variant="h6">投手列表</Typography>
-              <List>
-                {pitcherKeys.map(pitcherKey => (
-                  <ListItem
-                    key={pitcherKey}
-                    divider
-                    onClick={() => assignPlayerToPosition(pitcherKey)}
-                  >
-                    <ListItemText primary={`${players[pitcherKey]?.name || pitcherKey}`} />
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
           )}
         </Grid>
       </Grid>
@@ -391,10 +359,9 @@ const DefencePlacePage = () => {
           variant="contained"
           color="primary"
           sx={{
-            display: 'block', // Ensure the button is a block element to center it
-            margin: '0 auto' // Center the button horizontally
+            display: 'block',
+            margin: '0 auto'
           }}
-
         >
           儲存守備位置
         </Button>
@@ -402,7 +369,6 @@ const DefencePlacePage = () => {
     </Container>
   );
 }
-
 
 DefencePlacePage.getLayout = (page) => (
   <DashboardLayout>
@@ -417,7 +383,6 @@ const getPositionLeft = (pos) => {
   switch (pos) {
     case '1':
       return 50;
-    
   }
 };
 
@@ -426,7 +391,5 @@ const getPositionTop = (pos) => {
   switch (pos) {
     case '1':
       return 70;
-    
   }
 };
-
