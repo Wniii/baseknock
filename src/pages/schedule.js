@@ -27,7 +27,6 @@ import { firestore } from "src/firebase";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { title } from "process";
 
 const localizer = momentLocalizer(moment);
 
@@ -45,21 +44,12 @@ const SchedulePage = () => {
     awayteam: "",
   });
   const userTeam = localStorage.getItem('userTeam') ? localStorage.getItem('userTeam').split(',') : [];
-  // useEffect(() => {
-  //   const userTeamString = localStorage.getItem("userTeam");
-  //   if (userTeamString) {
-  //     setUserTeam(userTeamString.split(",")); // 将字符串解析为数组
-  //   }
-  // }, []);
   
-
-
   const fetchGames = async () => {
     try {
       const teamCollection = collection(firestore, "team");
       const teamSnapshot = await getDocs(teamCollection);
 
-      // 獲取所有隊伍資料，以便進行 ID 和 名稱查找
       const teamsData = await getDocs(collection(firestore, "team"));
       const teamIdMap = new Map();
       const teamNameMap = new Map();
@@ -67,8 +57,8 @@ const SchedulePage = () => {
       teamsData.forEach(doc => {
         const data = doc.data();
         teamIdMap.set(data.codeName, doc.id);
-        teamNameMap.set(data.codeName, data.Name);  // 保存 codeName 到 name 的映射
-        teamphotoMap.set(data.codeName, data.photo);  // 保存 codeName 到 name 的映射
+        teamNameMap.set(data.codeName, data.Name);
+        teamphotoMap.set(data.codeName, data.photo);
       });
 
       const gamesData = [];
@@ -90,15 +80,13 @@ const SchedulePage = () => {
               if (!gameData.hometeam || !gameData.awayteam) {
                 console.log(gameData.hometeam, gameData.awayteam);
                 console.error("Game data is missing team information");
-                continue; // Skip this game if team data is incomplete
+                continue;
               }
 
-              
-                // 獲取主隊和客隊的照片 
               const hteam = teamIdMap.get(gameData.hometeam);
               const ateam = teamIdMap.get(gameData.awayteam);
               const hphoto = teamphotoMap.get(gameData.hometeam);
-              const aphoto = teamphotoMap.get(gameData.awayteam);        
+              const aphoto = teamphotoMap.get(gameData.awayteam);
               const homeTeamName = teamNameMap.get(gameData.hometeam);
               const awayTeamName = teamNameMap.get(gameData.awayteam);
               const titleElement = (
@@ -115,20 +103,15 @@ const SchedulePage = () => {
                 </div>
               );
 
-
-              //const title = `${gameData.hometeam} v.s. ${gameData.awayteam}`; //codeName
-
               if (!userTeam.includes(gameData.hometeam) || !userTeam.includes(gameData.awayteam)) {
-                continue; // Skip to the next game if neither team matches
+                continue;
               }
-
 
               if (!hteam || !ateam) {
                 console.error("未找到相应的主队或客队");
-                continue;  // 如果没有找到队伍，就跳过这场比赛
+                continue;
               }
 
-             
               if (!addedTimestamps.has(timestamp)) {
                 gamesData.push({
                   id: timestamp,
@@ -150,13 +133,12 @@ const SchedulePage = () => {
           }
         }
       }
-    
 
       setGames(gamesData);
     } catch (error) {
       console.error("Error fetching games:", error);
     }
-    setLoading(false); // 数据加载完成，设置 loading 为 false
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -171,209 +153,183 @@ const SchedulePage = () => {
     );
   }
 
-
-
-
-
-  // 其餘函數保持不變...
-
-
-
-  console.log(games)
-  // Handle click on a game event
   const handleGameClick = (game) => {
     setSelectedGame(game);
     setDialogOpen(true);
   };
 
-  // Close the dialog
   const handleDialogClose = () => {
     setDialogOpen(false);
   };
 
-  // Handle actions
   const playerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
         
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-    
-    // 从团队数据中提取codeName 和 hometeam
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
     const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
-    const codeName = selectedGameData ? selectedGameData.acodeName: null;
-    // 获取选定游戏的团队I    
-    // 导航到新页面，同时将codeName、hometeam和teamId添加到查询参数中
+    const codeName = selectedGameData ? selectedGameData.acodeName : null;
+    
     router.push({
       pathname: "/playershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        hcodeName: hcodeName, // Add codeName to the query
-        teamId: hometeamId, // Add teamId to the query
-        codeName: codeName, // Add codeName to the query
+        hcodeName: hcodeName,
+        teamId: hometeamId,
+        codeName: codeName,
       }
     });
   };
 
   const playerdefence = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
         
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
     const hometeamId = selectedGameData ? selectedGameData.hometeamId : null;
-    const codeName = selectedGameData ? selectedGameData.acodeName: null;
-
-
+    const codeName = selectedGameData ? selectedGameData.acodeName : null;
     
-    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/playershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        hcodeName: hcodeName, // Add codeName to the query
-        teamId: hometeamId, // Add teamId to the query
-        codeName: codeName, // Add codeName to the query
-
+        hcodeName: hcodeName,
+        teamId: hometeamId,
+        codeName: codeName,
       }
     });
   };
   const awayplayerattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
         
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-    
-    // 从团队数据中提取codeName
-    const codeName = selectedGameData ? selectedGameData.acodeName: null;
+    const codeName = selectedGameData ? selectedGameData.acodeName : null;
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
-
-    // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
     
-    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/awayplayershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        teamId: teamId, // Add teamId to the query
-        hcodeName: hcodeName, // Add codeName to the query
+        codeName: codeName,
+        teamId: teamId,
+        hcodeName: hcodeName,
       }
     });
   };
   const awayplayerdefence = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
         
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-    
-    // 从团队数据中提取codeName
     const codeName = selectedGameData ? selectedGameData.acodeName : null;
     const hcodeName = selectedGameData ? selectedGameData.hcodeName : null;
-
-    // 获取选定游戏的团队ID
     const teamId = selectedGameData ? selectedGameData.teamId : null;
     
-    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/awayplayershow",
       query: { 
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // 客隊
-        teamId: teamId, // Add teamId to the query
-        hcodeName: hcodeName, // 主隊
-
+        codeName: codeName,
+        teamId: teamId,
+        hcodeName: hcodeName,
       }
     });
   };
-  
-
 
   const recordattack = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
 
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-
-    // 从团队数据中提取codeName
     const codeName = selectedGameData ? selectedGameData.codeName : null;
     const acodeName = selectedGameData ? selectedGameData.acodeName : null;
     const teamId = selectedGameData ? selectedGameData.teamId : null;
 
-
-    // 导航到新页面，同时将codeName和teamId添加到查询参数中
     router.push({
       pathname: "/test",
       query: {
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        teamId: teamId, // Add teamId to the query
+        codeName: codeName,
+        teamId: teamId,
         acodeName: acodeName,
       }
     });
   };
 
-
-
-
-
   const handleEditGame = (action) => {
     console.log(`Action "${action}" selected for game:`, selectedGame);
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
 
-    // 获取选定游戏的团队数据
     const selectedGameData = games.find(game => game.timestamp === selectedGame.timestamp);
-
-    // 从团队数据中提取codeName
     const codeName = selectedGameData ? selectedGameData.codeName : null;
-  
-
     const teamId = selectedGameData ? selectedGameData.teamId : null;
 
-    setDialogOpen(false); // Close the dialog after action
+    setDialogOpen(false);
     router.push({
       pathname: "/edit-game",
       query: {
         timestamp: selectedGame.timestamp,
-        codeName: codeName, // Add codeName to the query
-        
+        codeName: codeName,
       }
     });
   };
 
   const eventStyleGetter = (event, start, end, isSelected) => {
+    const overlappingEvents = games.filter(
+      (e) => 
+        (moment(start).isSame(e.start, 'day') && moment(end).isSame(e.end, 'day')) &&
+        (moment(e.start).isSameOrBefore(end) && moment(e.end).isSameOrAfter(start))
+    );
+  
+    const baseHeight = 600; // 基礎高度
+    const additionalHeight = (overlappingEvents.length - 1) * 300; // 每多一場比賽增加的高度
+    const totalHeight = baseHeight + additionalHeight;
+  
     const style = {
-      backgroundColor: 'lightblue', // 設定背景色
-      borderRadius: '5px',          // 圓角
+      backgroundColor: 'lightblue',
+      borderRadius: '5px',
       opacity: 0.8,
       color: 'black',
       border: '0px',
       display: 'block',
       padding: '2px 10px',
-      height: 'auto',               // 設定高度為自動
-      overflow: 'hidden'            // 超出部分隱藏
+      height: `20px`,
+      overflow: 'hidden'
     };
   
     return {
       style: style,
-      className: "game-event", // Add a custom class name to target
+      className: "game-event",
       g_id: event.g_id,
     };
   };
   const calculateCalendarHeight = (events) => {
-    const maxHeight = 1000; // 最大高度限制
-    const minHeight = 200;  // 最小高度
-    const heightPerEvent = 50; // 每增加一個事件增加的高度
+    const eventsByDate = {};
   
-    const dynamicHeight = minHeight + (events.length * heightPerEvent);
-    return Math.min(dynamicHeight, maxHeight);
+    events.forEach(event => {
+      const date = moment(event.start).format('YYYY-MM-DD');
+      if (!eventsByDate[date]) {
+        eventsByDate[date] = [];
+      }
+      eventsByDate[date].push(event);
+    });
+  
+    let maxHeight = 600; // 初始高度為600px
+  
+    Object.values(eventsByDate).forEach(eventsOnDate => {
+      if (eventsOnDate.length > 1) {
+        maxHeight = Math.max(maxHeight, 600 + (eventsOnDate.length - 1) * 300);
+      }
+    });
+  
+    return maxHeight;
   };
+  
+
   return (
     <>
       <Head>
@@ -389,27 +345,27 @@ const SchedulePage = () => {
         <Container maxWidth="lg">
           <Stack spacing={3}>
             <div>
-            <Typography variant="h4" sx={{ whiteSpace: 'normal' }}>賽程表</Typography>
+              <Typography variant="h4" sx={{ whiteSpace: 'normal' }}>賽程表</Typography>
             </div>
             <Divider />
             <div>
               <Grid container spacing={3}>
                 <Grid item xs={20} md={20} lg={12}>
                 <Calendar
-                  localizer={localizer}
-                  events={games} // 確保這是包含所有事件的數組
-                  startAccessor="start"
-                  endAccessor="end"
-                  style={{ height: calculateCalendarHeight(games), width: '100%' }}
-                  eventPropGetter={(event, start, end, isSelected) => {
-                    return {
-                      style: { backgroundColor: 'transparent', padding: '5px' },
-                      className: "game-event",
-                      g_id: event.g_id,
-                    };
-                  }}
-                  onSelectEvent={handleGameClick}// Handle click on a game event
-                  />
+  localizer={localizer}
+  events={games}
+  startAccessor="start"
+  endAccessor="end"
+  style={{ height: calculateCalendarHeight(games), width: '100%' }} // 動態計算高度
+  eventPropGetter={(event, start, end, isSelected) => {
+    return {
+      style: { backgroundColor: 'transparent', padding: '5px' },
+      className: "game-event",
+      g_id: event.g_id,
+    };
+  }}
+  onSelectEvent={handleGameClick}
+/>
                 </Grid>
               </Grid>
             </div>
@@ -418,20 +374,15 @@ const SchedulePage = () => {
       </Box>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogActions>
-          {/* <Button onClick={() => recorddefence("記錄防守")} color="primary" autoFocus>
-            記錄防守
-          </Button> */}
           <Button onClick={() => recordattack("記錄打擊")} color="primary">
             記錄打擊
           </Button>
           <Button onClick={() => playerattack("排主隊打擊棒次")} color="primary">
             主隊打擊與守備位置
           </Button>
-         
           <Button onClick={() => awayplayerattack("排客隊打擊棒次")} color="primary">
             客隊打擊與守備位置
           </Button>
-          
           <Button onClick={() => handleEditGame("編輯比賽資訊")} color="primary">
             編輯比賽資訊
           </Button>
@@ -440,9 +391,11 @@ const SchedulePage = () => {
     </>
   );
 }
+
 SchedulePage.getLayout = (page) => (
   <DashboardLayout>
     {page}
   </DashboardLayout>
 );
+
 export default SchedulePage;
