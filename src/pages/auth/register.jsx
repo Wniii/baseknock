@@ -54,7 +54,7 @@ const Page = () => {
         if (values.u_team) {
           const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
           for (const teamId of teamIds) {
-            const teamSnapshot = await getDoc(doc(firestore, 'teams', teamId));
+            const teamSnapshot = await getDoc(doc(firestore, 'team', teamId));
             if (teamSnapshot.exists()) {
               userTeams.push(teamSnapshot.data().codeName);
             } else {
