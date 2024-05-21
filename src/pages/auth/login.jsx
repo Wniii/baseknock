@@ -32,7 +32,7 @@ const LoginPage = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login failed:", '帳號或密碼錯誤');
       throw error;
     }
   }, [auth]);
@@ -201,15 +201,7 @@ const LoginPage = () => {
                 <Button type="submit" fullWidth variant="contained" disabled={formik.isSubmitting}>
                   登入
                 </Button>
-                <Button
-                  onClick={signInWithGoogle}
-                  fullWidth
-                  variant="contained"
-                  startIcon={<GoogleIcon />}
-                  sx={{ backgroundColor: "#4285F4", color: "white", '&:hover': { backgroundColor: "#357ae8" } }}
-                >
-                  使用 Google 登錄
-                </Button>
+                
               </Stack>
             </form>
           </div>
