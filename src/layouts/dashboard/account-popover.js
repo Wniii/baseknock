@@ -131,6 +131,7 @@ export const AccountPopover = ({ anchorEl, onClose, open }) => {
               label="舊密碼"
               type="password"
               value={oldPassword}
+              required
               onChange={(e) => setOldPassword(e.target.value)}
             />
             <TextField
@@ -138,6 +139,7 @@ export const AccountPopover = ({ anchorEl, onClose, open }) => {
               label="新密碼"
               type="password"
               value={newPassword}
+              required
               onChange={(e) => setNewPassword(e.target.value)}
             />
             <TextField
@@ -145,6 +147,7 @@ export const AccountPopover = ({ anchorEl, onClose, open }) => {
               label="確認密碼"
               type="password"
               value={confirmPassword}
+              required
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </DialogContent>
