@@ -92,13 +92,13 @@ const SchedulePage = () => {
               const titleElement = (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ textAlign: 'center', margin: '0 10px' }}>
-                    <img src={hphoto} alt={`Logo of ${homeTeamName}`} style={{ width: '40px', height: '40px' }} />
-                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{homeTeamName}</div>
+                    <img src={aphoto} alt={`Logo of ${awayTeamName}`} style={{ width: '40px', height: '40px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{awayTeamName}</div>
                   </div>
                   <span style={{ fontWeight: 'bold', fontSize: '16px', color: 'black' }}>v.s.</span>
                   <div style={{ textAlign: 'center', margin: '0 10px' }}>
-                    <img src={aphoto} alt={`Logo of ${awayTeamName}`} style={{ width: '40px', height: '40px' }} />
-                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{awayTeamName}</div>
+                    <img src={hphoto} alt={`Logo of ${homeTeamName}`} style={{ width: '40px', height: '40px' }} />
+                    <div style={{ fontWeight: 'bold', fontSize: '10px', color: 'black' }}>{homeTeamName}</div>
                   </div>
                 </div>
               );
