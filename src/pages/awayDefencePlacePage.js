@@ -51,7 +51,7 @@ const DefencePlacePage = () => {
 
       try {
         const teamsCollectionRef = collection(firestore, 'team');
-        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', hcodeName)));
+        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', codeName)));
 
         if (querySnapshot.empty) {
           console.log('找不到匹配的团队文档');

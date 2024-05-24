@@ -49,7 +49,7 @@ const DefencePlacePage = () => {
 
       try {
         const teamsCollectionRef = collection(firestore, 'team');
-        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', codeName)));
+        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', hcodeName)));
 
         if (!querySnapshot.empty) {
           const teamDocSnapshot = querySnapshot.docs[0];
