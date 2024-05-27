@@ -29,7 +29,7 @@ const ALLPlayerPage = () => {
 
           const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
 
-          if (teamData.codeName === hcodeName && gameDoc) {
+          if (teamData.codeName === codeName && gameDoc) {
             setTeamName(teamData.Name || '');
             setPlayers(teamData.players || {});
             return;
@@ -114,7 +114,7 @@ const ALLPlayerPage = () => {
 
   const navigatetodefence = (gameId, codeName) => {
     router.push({
-      pathname: "/defencePlacePage",
+      pathname: "/awayDefencePlacePage",
       query: { gameId, hcodeName, teamId, codeName, timestamp }
     });
   };

@@ -664,11 +664,11 @@ const Page = () => {
       >
         <Container maxWidth="lg">
           <Stack spacing={3}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Typography variant="h3">
                 新增打席
               </Typography>
-            </div>
+            </div> */}
 
             <div style={{ marginTop: '20px' }}>
               <Grid
@@ -834,20 +834,20 @@ const Page = () => {
                   xs={12}
                   sm={6}
                   item
-                  style={{ marginTop: '-80px' }}
+                  style={{ marginTop: '-120px' }}
 
                 >
                   <form onSubmit={handleSubmit}>
                     <Card>
                       <CardContent>
                         <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                          <Divider style={{ flex: '1', marginTop: '20px', marginBottom: '20px' }} />
+                          <Divider style={{ flex: '1',  marginRight: '10px', marginTop: '20px', marginBottom: '20px' }} />
                           <Typography variant="body2">
                             打擊內容＆打點
                           </Typography>
                           <Divider style={{ flex: '1', marginLeft: '10px' }} />
                         </div>
-                        <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '0px' }}>
                           <div style={{ width: '100px', textAlign: 'center' }}>
                             <Button
                               variant={selectedHits['一安'] ? 'contained' : 'outlined'}

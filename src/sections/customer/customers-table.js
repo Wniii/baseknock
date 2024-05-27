@@ -233,9 +233,9 @@ export const CustomersTable = (props) => {
 
   return (
     <Card>
-      <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
+      {/* <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
         替補球員
-      </Button>
+      </Button> */}
       <ReplacementDialog
         open={open}
         onClose={() => setOpen(false)}

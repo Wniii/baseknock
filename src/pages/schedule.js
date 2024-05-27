@@ -333,7 +333,7 @@ const SchedulePage = () => {
   return (
     <>
       <Head>
-        <title>賽程表</title>
+        {/* <title>賽程表</title> */}
       </Head>
       <Box
         component="main"
@@ -345,7 +345,7 @@ const SchedulePage = () => {
         <Container maxWidth="lg">
           <Stack spacing={3}>
             <div>
-              <Typography variant="h4" sx={{ whiteSpace: 'normal' }}>賽程表</Typography>
+              {/* <Typography variant="h4" sx={{ whiteSpace: 'normal' }}>賽程表</Typography> */}
             </div>
             <Divider />
             <div>

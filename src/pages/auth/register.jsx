@@ -30,17 +30,17 @@ const Page = () => {
       submit: null
     },
     validationSchema: Yup.object({
-      u_email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-      u_password: Yup.string().max(255).required('Password is required'),
-      u_checkpsw: Yup.string().oneOf([Yup.ref('u_password'), null], 'Passwords must match').required('Please confirm your password'),
-      u_name: Yup.string().max(255).required('Name is required'),
+      u_email: Yup.string().email('必須是有效的電子郵件').max(255).required('電子郵件是必需的'),
+      u_password: Yup.string().max(255).required('密碼是必需的'),
+      u_checkpsw: Yup.string().oneOf([Yup.ref('u_password'), null], '密碼必須匹配').required('請確認您的密碼'),
+      u_name: Yup.string().max(255).required('姓名是必需的'),
     }),
 
     onSubmit: async (values, helpers) => {
       try {
         const emailAlreadyExists = await checkEmailExists(values.u_email);
         if (emailAlreadyExists) {
-          setEmailExistsError("This email is already registered. Please use another email.");
+          setEmailExistsError("此電子郵件已被註冊。請使用另一個電子郵件。");
           helpers.setSubmitting(false);
           return;
         }
@@ -54,12 +54,11 @@ const Page = () => {
         if (values.u_team) {
           const teamIds = values.u_team.split(",").map(teamId => teamId.trim());
           for (const teamId of teamIds) {
-            const teamSnapshot = await getDoc(doc(firestore, 'teams', teamId));
+            const teamSnapshot = await getDoc(doc(firestore, 'team', teamId));
             if (teamSnapshot.exists()) {
               userTeams.push(teamSnapshot.data().codeName);
             } else {
-              alert("The team with the provided ID does not exist.");
-              return;
+              throw new Error("提供的隊伍ID不存在。");
             }
           }
         }
@@ -72,17 +71,18 @@ const Page = () => {
           u_team: userTeams,
         });
 
-
         await updateProfile(userCredential.user, {
           displayName: values.u_name
         });
         
         router.push('/auth/login');
       } catch (error) {
-        console.error("Error during registration:", error);
+        console.error("註冊過程中發生錯誤：", error);
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: error.message });
         helpers.setSubmitting(false);
+        // 在發生錯誤時，不創建帳號
+        await auth.currentUser?.delete();
       }
     }
   });
@@ -93,12 +93,10 @@ const Page = () => {
       const querySnapshot = await getDocs(q);
       return !querySnapshot.empty;
     } catch (error) {
-      console.error("Error checking email:", error);
+      console.error("檢查電子郵件時發生錯誤：", error);
       return false;
     }
   };
-
-
 
   return (
     <>
@@ -125,7 +123,7 @@ const Page = () => {
             <Stack spacing={1} sx={{ mb: 3 }}>
               <Typography variant="h4">註冊</Typography>
               <Typography color="text.secondary" variant="body2">
-                Already have an account?
+                已經有帳號了？
                 &nbsp;
                 <Link component={NextLink} href="/auth/login" underline="hover" variant="subtitle2">登入</Link>
               </Typography>

@@ -296,13 +296,15 @@ const Page = () => {
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
-                        name: pitcher,
+                        name: pitcherNames,
                         total: parseInt(totalPitches),
                     },
                     'innouts': innOuts
                 }),
                 'outs': outs,
-                'position.P': pitcher  // 添加或更新 position map 中的 P 欄位
+                'position': {
+                    P:pitcherNames,
+                }  
 
             });
 
@@ -642,11 +644,11 @@ const Page = () => {
             >
                 <Container maxWidth="lg">
                     <Stack spacing={3}>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <Typography variant="h3">
                                 新增打席
                             </Typography>
-                        </div>
+                        </div> */}
 
                         <div style={{ marginTop: '20px' }}>
                             <Grid
