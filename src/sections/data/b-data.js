@@ -52,19 +52,23 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           };
 
           // 計算打席次數
-          game.ordermain.forEach(order => {
-            if (order.p_name === selectedPlayer.id) {
-              stats.plate_appearances += 1;
-              countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
-            }
-          });
+          if (Array.isArray(game.ordermain)) {
+            game.ordermain.forEach(order => {
+              if (order.p_name === selectedPlayer.id) {
+                stats.plate_appearances += 1;
+                countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
+              }
+            });
+          }
 
-          game.orderoppo.forEach(order => {
-            if (order.o_p_name === selectedPlayer.id) {
-              stats.plate_appearances += 1;
-              countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
-            }
-          });
+          if (Array.isArray(game.orderoppo)) {
+            game.orderoppo.forEach(order => {
+              if (order.o_p_name === selectedPlayer.id) {
+                stats.plate_appearances += 1;
+                countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
+              }
+            });
+          }
 
           // 計算打數
           stats.at_bats = stats.plate_appearances - (stats.walks + stats.sac_fly + stats.sac_bunt + stats.hit_by_pitch);
@@ -302,3 +306,4 @@ Bdata.propTypes = {
   ordermain: PropTypes.array.isRequired, // 確保傳入的 ordermain 是數組類型
   orderoppo: PropTypes.array.isRequired, // 確保傳入的 orderoppo 也是數組類型
 };
+
