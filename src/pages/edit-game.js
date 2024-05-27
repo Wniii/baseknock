@@ -28,7 +28,7 @@ const Page = () => {
             </div>
             <div>
               <Grid container spacing={3}>
-                <Grid xs={12} md={6} lg={12}>
+                <Grid xs={12} md={12} lg={12}>
                   {/* 将 g_id 作为属性传递给 EditGame 子组件 */}
                   <EditGame g_id={g_id} />
                 </Grid>
