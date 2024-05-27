@@ -644,11 +644,11 @@ const Page = () => {
             >
                 <Container maxWidth="lg">
                     <Stack spacing={3}>
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        {/* <div style={{ display: 'flex', justifyContent: 'center' }}>
                             <Typography variant="h3">
                                 新增打席
                             </Typography>
-                        </div>
+                        </div> */}
 
                         <div style={{ marginTop: '20px' }}>
                             <Grid
