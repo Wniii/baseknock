@@ -296,13 +296,15 @@ const Page = () => {
                     'pitcher': {
                         ball: balls.filter(Boolean).length,
                         strike: strikes.filter(Boolean).length,
-                        name: pitcher,
+                        name: pitcherNames,
                         total: parseInt(totalPitches),
                     },
                     'innouts': innOuts
                 }),
                 'outs': outs,
-                'position.P': pitcher  // 添加或更新 position map 中的 P 欄位
+                'position': {
+                    P:pitcherNames,
+                }  
 
             });
 

@@ -28,8 +28,7 @@ const ALLPlayerPage = () => {
           const gamesSnapshot = await getDocs(gamesCollectionRef);
 
           const gameDoc = gamesSnapshot.docs.find(gameDoc => gameDoc.id === timestamp);
-
-          if (teamData.codeName === codeName && gameDoc) {
+          if (teamData.codeName === hcodeName && gameDoc) {
             setTeamName(teamData.Name || '');
             setPlayers(teamData.players || {});
             return;

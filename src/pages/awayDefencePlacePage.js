@@ -51,7 +51,7 @@ const DefencePlacePage = () => {
 
       try {
         const teamsCollectionRef = collection(firestore, 'team');
-        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', hcodeName)));
+        const querySnapshot = await getDocs(query(teamsCollectionRef, where('codeName', '==', codeName)));
 
         if (querySnapshot.empty) {
           console.log('找不到匹配的团队文档');
@@ -356,22 +356,7 @@ const DefencePlacePage = () => {
                       </ListItem>
                     ))}
                   </List>
-                  {showPitchers && (
-                    <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-                      <Typography variant="h6">投手列表</Typography>
-                      <List>
-                        {pitcherKeys.map(pitcherKey => (
-                          <ListItem
-                            key={pitcherKey}
-                            divider
-                            onClick={() => assignPlayerToPosition(pitcherKey)}
-                          >
-                            <ListItemText primary={`${players[pitcherKey]?.name || pitcherKey}`} />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Paper>
-                  )}
+                 
                 </Paper>
               </div>
             )}
