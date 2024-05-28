@@ -85,6 +85,8 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                       totalPitches += Number(order.pitcher?.total) || 0;
                       // 累加打点
                       rbi += Number(order.rbi) || 0;  // 假设 RBI 数据位于 order 对象上
+                      rbi += Number(order.o_rbi) || 0;  // 假设 RBI 数据位于 order 对象上
+
                     }
                   });
                 }
