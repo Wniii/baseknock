@@ -1,25 +1,21 @@
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import {
   Box,
   Card,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TablePagination,
   TableRow,
-  Typography,
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
-import React, { useState, useEffect } from 'react';
 import { firestore } from 'src/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
-export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedPlayer, ordermain, orderoppo, selectedTeam }) => {
+  const Bdata = forwardRef(({ selectedTeam, selectedPlayer}, ref) => {
   const [playerGames, setPlayerGames] = useState([]);
-
   useEffect(() => {
     const fetchPlayerGames = async () => {
       if (selectedPlayer && selectedPlayer.id && selectedTeam && selectedTeam.id) {
@@ -34,11 +30,12 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
 
           // 初始化統計數據
           const stats = {
+            player_name: selectedPlayer.id,
+            game_date: format(game.GDate.toDate(), "dd/MM/yyyy"),
             plate_appearances: 0,
             at_bats: 0,
             hits: 0,
             total_bases: 0,
-            runs: 0,
             rbi: 0,
             single_hits: 0,
             double_hits: 0,
@@ -48,34 +45,44 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
             walks: 0,
             sac_fly: 0,
             sac_bunt: 0,
-            hit_by_pitch: 0
+            hit_by_pitch: 0,
+            batting_average: 0,
+            on_base_percentage: 0,
+            slugging_percentage: 0,
+            ops: 0
           };
 
-          // 計算打席次數
-          if (Array.isArray(game.ordermain)) {
-            game.ordermain.forEach(order => {
-              if (order.p_name === selectedPlayer.id) {
-                stats.plate_appearances += 1;
-                countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
-              }
-            });
-          }
+         // 計算打席次數
+        if (Array.isArray(game.ordermain)) {
+          game.ordermain.forEach(order => {
+            if (order.p_name === selectedPlayer.id) {
+              stats.plate_appearances += 1;
+              countPlayerStats(order.content, stats, { rbi: order.rbi || 0 });
+            }
+          });
+        }
 
-          if (Array.isArray(game.orderoppo)) {
-            game.orderoppo.forEach(order => {
-              if (order.o_p_name === selectedPlayer.id) {
-                stats.plate_appearances += 1;
-                countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
-              }
-            });
-          }
+        if (Array.isArray(game.orderoppo)) {
+          game.orderoppo.forEach(order => {
+            if (order.o_p_name === selectedPlayer.id) {
+              stats.plate_appearances += 1;
+              countPlayerStats(order.o_content, stats, { rbi: order.o_rbi || 0 });
+            }
+          });
+        }
 
           // 計算打數
           stats.at_bats = stats.plate_appearances - (stats.walks + stats.sac_fly + stats.sac_bunt + stats.hit_by_pitch);
+          // 計算率數據
+          stats.batting_average = calculateBattingAverage(stats.hits, stats.at_bats);
+          stats.on_base_percentage = calculateOnBasePercentage(stats.hits, stats.walks, stats.hit_by_pitch, stats.at_bats);
+          stats.slugging_percentage = calculateSluggingPercentage(stats.total_bases, stats.at_bats);
+          stats.ops = calculateOPS(stats.on_base_percentage, stats.slugging_percentage);
 
           return {
-            ...stats,
-            formattedDate: format(game.GDate.toDate(), "dd/MM/yyyy")
+            player_name: selectedPlayer.name,
+            game_date: format(game.GDate.toDate(), "dd/MM/yyyy"),
+            ...stats
           };
         }).filter(game => game != null);
 
@@ -152,19 +159,10 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
     return (parseFloat(onBasePct) + parseFloat(sluggingPct)).toFixed(3);
   };
 
-  useEffect(() => {
-    console.log('更新後的遊戲數據:', playerGames);
-  }, [playerGames]);
-
-  useEffect(() => {
-    console.log('Bdata 組件收到的球員信息:', selectedPlayer);
-  }, [selectedPlayer]);
-
-
-  useEffect(() => {
-    console.log('ordermain:', ordermain);
-    console.log('orderoppo:', orderoppo);
-  }, [ordermain, orderoppo]);
+  useImperativeHandle(ref, () => ({
+    getPlayerGames: () => playerGames,
+    getTotals: () => totals
+  }));
 
   const totals = playerGames.reduce((acc, game) => ({
     plate_appearances: acc.plate_appearances + game.plate_appearances,
@@ -198,6 +196,11 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
     hit_by_pitch: 0
   });
 
+  totals.batting_average = calculateBattingAverage(totals.hits, totals.at_bats);
+  totals.on_base_percentage = calculateOnBasePercentage(totals.hits, totals.walks, totals.hit_by_pitch, totals.at_bats);
+  totals.slugging_percentage = calculateSluggingPercentage(totals.total_bases, totals.at_bats);
+  totals.ops = calculateOPS(totals.on_base_percentage, totals.slugging_percentage);
+
   return (
     <Card>
       <Scrollbar>
@@ -229,7 +232,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
             <TableBody>
               {playerGames.length > 0 ? playerGames.map((game) => (
                 <TableRow hover key={game.id}>
-                  <TableCell>{game.formattedDate}</TableCell>
+                  <TableCell>{game.game_date}</TableCell>
                   <TableCell>{game.plate_appearances}</TableCell>
                   <TableCell>{game.at_bats}</TableCell>
                   <TableCell>{game.hits}</TableCell>
@@ -255,7 +258,7 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                 </TableRow>
               )}
 
-               {playerGames.length > 0 && (
+              {playerGames.length > 0 && (
                 <TableRow>
                   <TableCell>成績總和</TableCell>
                   <TableCell>{totals.plate_appearances}</TableCell>
@@ -282,18 +285,9 @@ export const Bdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           </Table>
         </Box>
       </Scrollbar>
-      {/* <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      /> */}
     </Card>
   );
-};
+});
 
 Bdata.propTypes = {
   count: PropTypes.number,
@@ -307,3 +301,4 @@ Bdata.propTypes = {
   orderoppo: PropTypes.array.isRequired, // 確保傳入的 orderoppo 也是數組類型
 };
 
+export default Bdata;

@@ -15,39 +15,37 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  IconButton,
 } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
 import SearchIcon from "@mui/icons-material/Search";
-import { IconButton } from "@mui/material";
 import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import * as XLSX from 'xlsx';
+import { ExportToExcel } from "@mui/icons-material";
 
 // 定義 HitrecordTable 組件
 export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameTypes }) => {
   const [open, setOpen] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playersData, setPlayersData] = useState([]);
+  const [teamData, setteamData] = useState([]);
   const [playerPlateAppearances, setPlayerPlateAppearances] = useState({});
-  const [currentPlayerName, setCurrentPlayerName] = useState("");
   const [playerHits, setPlayerHits] = useState({});
-  const [selectedLocation, setSelectedLocation] = useState([]); // Initialized as an array
+  const [selectedLocation, setSelectedLocation] = useState([]);
   const updateLocations = (newLocation) => {
-    setSelectedLocation([newLocation]); // 將單個對象包裹在數組中
+    setSelectedLocation([newLocation]);
   };
 
   // 計算球員統計數據的方法
   const calculateStats = (playerId, hits, plateAppearances) => {
     const hitData = hits[playerId] || {};
     const atBats = plateAppearances[playerId] || 0;
-
-    // 計算總壘打數
     const totalBases =
       (hitData.single || 0) +
       (hitData.double || 0) * 2 +
       (hitData.triple || 0) * 3 +
       (hitData.homerun || 0) * 4;
-
-    // 計算上壘次數
     const onBaseCount =
       (hitData.single || 0) +
       (hitData.double || 0) +
@@ -55,8 +53,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
       (hitData.homerun || 0) +
       (hitData.bb || 0) +
       (hitData.touchball || 0);
-
-    // 計算打擊率
     const battingAverage =
       atBats > 0
         ? ((hitData.single || 0) +
@@ -65,14 +61,10 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
             (hitData.homerun || 0)) /
           atBats
         : 0;
-
-    // 計算上壘率
     const onBasePercentage =
       atBats > 0
         ? onBaseCount / (atBats + (hitData.bb || 0) + (hitData.sf || 0) + (hitData.touchball || 0))
         : 0;
-
-    // 計算長打率
     const sluggingPercentage = atBats > 0 ? totalBases / atBats : 0;
 
     return {
@@ -99,6 +91,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
       }
 
       const teamData = teamDocSnap.data();
+      setteamData(teamData)
       const playersInGames = new Set();
 
       let gamesQuery;
@@ -116,7 +109,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
         const gameData = doc.data();
         ["ordermain", "orderoppo"].forEach((orderKey) => {
           if (Array.isArray(gameData[orderKey])) {
-            // 確認這是一個數組
             gameData[orderKey].forEach((order) => {
               if (order.p_name) {
                 playersInGames.add(order.p_name);
@@ -148,18 +140,16 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     hits: 0,
     totalBases: 0,
     onBaseCount: 0,
-
-    trbi: 0, //打點
-    singles: 0, //一安
-    doubles: 0, //二安
-    triples: 0, //三安
-    homeruns: 0, //全壘打
-    doublePlays: 0, //雙殺
-    walks: 0, //四壞
-    sacrificeFlies: 0, //犧飛
-    sacrificeHits: 0, //犧觸
-    hitByPitch: 0, //觸身
-
+    trbi: 0,
+    singles: 0,
+    doubles: 0,
+    triples: 0,
+    homeruns: 0,
+    doublePlays: 0,
+    walks: 0,
+    sacrificeFlies: 0,
+    sacrificeHits: 0,
+    hitByPitch: 0,
     battingAverage: 0,
     onBasePercentage: 0,
     sluggingPercentage: 0,
@@ -169,7 +159,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   // 使用 useEffect 鉤子獲取比賽數據和計算打席次數
   useEffect(() => {
     const fetchGamesAndCalculatePlateAppearances = async () => {
-      // 確保 selectedGameTypes 不是 undefined 且有元素
       if (!selectedTeam || !playersData.length || !selectedGameTypes || !selectedGameTypes.length)
         return;
 
@@ -187,36 +176,27 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
 
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
-          console.log("Game Data:", gameData);
 
-          // 处理 ordermain 和 orderoppo
           if (gameData.ordermain) {
             gameData.ordermain.forEach((playerStat) => {
               const playerEntry = playersData.find((player) => player.p_id === playerStat.p_name);
               if (playerEntry) {
-                console.log(`Processing main order for player ${playerStat.p_name}`);
                 playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
               }
             });
-          } else {
-            console.log("No ordermain for this game:", docSnapshot.id);
           }
 
           if (gameData.orderoppo) {
             gameData.orderoppo.forEach((playerStat) => {
               const playerEntry = playersData.find((player) => player.p_id === playerStat.o_p_name);
               if (playerEntry) {
-                console.log(`Processing oppo order for player ${playerStat.o_p_name}`);
                 playersStats[playerEntry.p_id] = (playersStats[playerEntry.p_id] || 0) + 1;
               }
             });
-          } else {
-            console.log("No orderoppo for this game:", docSnapshot.id);
           }
         });
 
         setPlayerPlateAppearances(playersStats);
-        console.log("Player plate appearances calculated:", playersStats);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
@@ -234,11 +214,10 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
       const gamesQuery = query(gamesRef, where("gName", "in", selectedGameTypes));
       try {
         const querySnapshot = await getDocs(gamesQuery);
-        let newPlayerHits = {}; // 使用一個新的變量來存儲計算結果
+        let newPlayerHits = {};
         querySnapshot.forEach((docSnapshot) => {
           const gameData = docSnapshot.data();
 
-          // Process ordermain
           if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
             gameData.ordermain.forEach((playerStat) => {
               const playerEntry = playersData.find((player) => player.p_id === playerStat.p_name);
@@ -284,11 +263,8 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                   newPlayerHits[playerEntry.p_id].touchball += 1;
               }
             });
-          } else {
-            console.log("No ordermain for this game:", docSnapshot.id);
           }
 
-          // Process orderoppo and check for o_content
           if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
             gameData.orderoppo.forEach((playerStat) => {
               const playerEntry = playersData.find((player) => player.p_id === playerStat.o_p_name);
@@ -332,14 +308,10 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                   newPlayerHits[playerEntry.p_id].bunt += 1;
               }
             });
-          } else {
-            console.log("No orderoppo for this game:", docSnapshot.id);
           }
         });
 
-        // Update the state with the new hits
         setPlayerHits(newPlayerHits);
-        console.log("Player hits:", newPlayerHits);
       } catch (error) {
         console.error("Error fetching games data: ", error);
       }
@@ -355,7 +327,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     }
 
     const fetchGamesAndCalculateStats = async () => {
-      // 調用API之前檢查 selectedTeam 和 selectedGameTypes
       if (!selectedTeam) {
         console.error("selectedTeam is undefined");
         return;
@@ -369,7 +340,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
         let playersStats = {};
         querySnapshot.forEach((doc) => {
           const gameData = doc.data();
-          // 處理每個游戲的數據，更新狀態等...
         });
       } catch (error) {
         console.error("Error fetching games data: ", error);
@@ -384,66 +354,58 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     try {
       const querySnapshot = await getDocs(gamesRef);
       const locations = [];
-  
+
       querySnapshot.forEach((docSnapshot) => {
         const gameData = docSnapshot.data();
-  
-        // 檢查並處理 ordermain
+
         if (gameData.ordermain && Array.isArray(gameData.ordermain)) {
           gameData.ordermain.forEach((play) => {
             if (play.p_name === playerId && play.location) {
-              // 確保 location 數據有效且非空
               const x = parseFloat(play.location.x);
               const y = parseFloat(play.location.y);
               if (!isNaN(x) && !isNaN(y) && x !== 0 && y !== 0) {
                 locations.push({
                   x: x,
                   y: y,
-                  content: play.content // 添加 content 到 location
+                  content: play.content
                 });
               }
             }
           });
         }
-  
-        // 檢查並處理 orderoppo
+
         if (gameData.orderoppo && Array.isArray(gameData.orderoppo)) {
           gameData.orderoppo.forEach((play) => {
             if (play.o_p_name === playerId && play.location) {
-              // 確保 location 數據有效且非空
               const x = parseFloat(play.location.x);
               const y = parseFloat(play.location.y);
               if (!isNaN(x) && !isNaN(y) && x !== 0 && y !== 0) {
                 locations.push({
                   x: x,
                   y: y,
-                  content: play.o_content // 添加 o_content 到 location
+                  content: play.o_content
                 });
               }
             }
           });
         }
       });
-  
-      setSelectedLocation(locations); // 更新狀態
+
+      setSelectedLocation(locations);
     } catch (error) {
       console.error("Error fetching player locations: ", error);
     }
   };
-  
 
   useEffect(() => {
     const handleResize = () => {
-      // 如果 selectedLocation 確實是一個數組，這樣應該可以工作：
       setSelectedLocation([...selectedLocation]);
-      // 如果它不是一個數組，你可能想要基於一些其他狀態或屬性來重設它：
-      // setSelectedLocation(someOtherStateOrProp);
     };
 
     window.addEventListener("resize", handleResize);
 
     return () => window.removeEventListener("resize", handleResize);
-  }, [selectedLocation]); // 依賴數組應該包括 selectedLocation，如果它預計會隨時間變化
+  }, [selectedLocation]);
 
   useEffect(() => {
     console.log("Players Data:", playersData);
@@ -454,7 +416,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   // 打開對話框
   const handleOpen = (player) => {
     setSelectedPlayer(player);
-    fetchAndSetPlayerLocations(player.p_id).catch(console.error); // Fetch and set locations asynchronously
+    fetchAndSetPlayerLocations(player.p_id).catch(console.error);
     setOpen(true);
   };
 
@@ -465,24 +427,21 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
 
   useEffect(() => {
     const totals = {
-      plateAppearances: 0, //打席
-      atBats: 0, //打數
-      hits: 0, //安打
-      totalBases: 0, //壘打數
-      onBaseCount: 0, //上壘數
-
-      trbi: 0, //打點
-      singles: 0, //一安
-      doubles: 0, //二安
-      triples: 0, //三安
-      homeruns: 0, //全壘打
-      doublePlays: 0, //雙殺
-
-      walks: 0, //四壞
-
-      sacrificeFlies: 0, //犧飛
-      sacrificeHits: 0, //犧觸
-      hitByPitch: 0, //觸身
+      plateAppearances: 0,
+      atBats: 0,
+      hits: 0,
+      totalBases: 0,
+      onBaseCount: 0,
+      trbi: 0,
+      singles: 0,
+      doubles: 0,
+      triples: 0,
+      homeruns: 0,
+      doublePlays: 0,
+      walks: 0,
+      sacrificeFlies: 0,
+      sacrificeHits: 0,
+      hitByPitch: 0,
     };
 
     playersData.forEach((player) => {
@@ -508,14 +467,12 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
       totals.triples += playerHits[player.p_id]?.triple;
       totals.homeruns += playerHits[player.p_id]?.homerun;
       totals.doublePlays += playerHits[player.p_id]?.doubleplay;
-
       totals.walks += playerHits[player.p_id]?.bb || 0;
       totals.sacrificeFlies += playerHits[player.p_id]?.sf || 0;
       totals.sacrificeHits += playerHits[player.p_id]?.bunt || 0;
       totals.hitByPitch += playerHits[player.p_id]?.touchball || 0;
     });
 
-    // 以下是基於團隊總和數據計算的正確打擊率、上壘率和長打率
     totals.battingAverage = totals.atBats > 0 ? (totals.hits / totals.atBats).toFixed(3) : "0.000";
     totals.onBasePercentage =
       totals.plateAppearances > 0
@@ -537,7 +494,6 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   const [sortedColumn, setSortedColumn] = useState(null);
 
   const onSortChange = (key) => {
-    // 固定设置为降序
     setSortConfig({ key, direction: "descending" });
     setSortedColumn(key);
   };
@@ -595,7 +551,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
       case "OPS":
         return parseFloat(stats.onBasePercentage || 0) + parseFloat(stats.sluggingPercentage || 0);
       default:
-        return 0; // Default return 0 to avoid undefined errors
+        return 0;
     }
   }
 
@@ -610,9 +566,84 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
     return sortableItems;
   }, [playersData, sortConfig, playerHits, playerPlateAppearances]);
 
+  const exportToExcel = () => {
+    const dataToExport = sortedPlayers.map((player) => {
+      const stats = calculateStats(player.p_id, playerHits, playerPlateAppearances);
+      const playerData = {
+        球員: player.p_id,
+        打席: playerPlateAppearances[player.p_id] || 0,
+        打數: playerPlateAppearances[player.p_id]
+          ? playerPlateAppearances[player.p_id] -
+            ((playerHits[player.p_id]?.bb || 0) +
+              (playerHits[player.p_id]?.touchball || 0) +
+              (playerHits[player.p_id]?.sf || 0) +
+              (playerHits[player.p_id]?.bunt || 0))
+          : 0,
+        安打: playerHits[player.p_id]
+          ? playerHits[player.p_id].single +
+            playerHits[player.p_id].double +
+            playerHits[player.p_id].triple +
+            playerHits[player.p_id].homerun
+          : 0,
+        壘打數: stats.totalBases || 0,
+        上壘數: stats.onBaseCount || 0,
+        打點: playerHits[player.p_id]?.rbi || 0,
+        一安: playerHits[player.p_id]?.single || 0,
+        二安: playerHits[player.p_id]?.double || 0,
+        三安: playerHits[player.p_id]?.triple || 0,
+        全壘打: playerHits[player.p_id]?.homerun || 0,
+        雙殺: playerHits[player.p_id]?.doubleplay || 0,
+        四壞: playerHits[player.p_id]?.bb || 0,
+        犧飛: playerHits[player.p_id]?.sf || 0,
+        犧觸: playerHits[player.p_id]?.bunt || 0,
+        觸身: playerHits[player.p_id]?.touchball || 0,
+        打擊率: stats.battingAverage || "0.000",
+        上壘率: stats.onBasePercentage || "0.000",
+        長打率: stats.sluggingPercentage || "0.000",
+        OPS: (parseFloat(stats.onBasePercentage || 0) + parseFloat(stats.sluggingPercentage || 0)).toFixed(3),
+      };
+      return playerData;
+    });
+  
+    // 添加團隊成績到數據
+    const teamDatas = {
+      球員: "團隊成績",
+      打席: teamTotals.plateAppearances,
+      打數: teamTotals.atBats,
+      安打: teamTotals.hits,
+      壘打數: teamTotals.totalBases,
+      上壘數: teamTotals.onBaseCount,
+      打點: teamTotals.trbi,
+      一安: teamTotals.singles,
+      二安: teamTotals.doubles,
+      三安: teamTotals.triples,
+      全壘打: teamTotals.homeruns,
+      雙殺: teamTotals.doublePlays,
+      四壞: teamTotals.walks,
+      犧飛: teamTotals.sacrificeFlies,
+      犧觸: teamTotals.sacrificeHits,
+      觸身: teamTotals.hitByPitch,
+      打擊率: teamTotals.battingAverage,
+      上壘率: teamTotals.onBasePercentage,
+      長打率: teamTotals.sluggingPercentage,
+      OPS: teamTotals.t_ops,
+    };
+  
+    dataToExport.unshift(teamDatas); // 將團隊成績添加到數據數組的開頭
+  
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${teamData.Name}打擊數據`);
+    XLSX.writeFile(wb, `${teamData.Name}打擊數據.xlsx`);
+  };
+  
+
   // 渲染組件
   return (
     <Card>
+       <Button onClick={exportToExcel} variant="contained" color="primary" style={{ margin: "10px" }}>
+        匯出Excel
+      </Button>
       <Scrollbar>
         <Box sx={{ minWidth: 2500 }}>
           <Table>
@@ -628,7 +659,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    background: "#DCDCDC", // 確保背景不透明，避免內容互相覆蓋時看到下面的文本
+                    background: "#DCDCDC",
                   }}
                 >
                   <div>落點</div>
@@ -892,16 +923,15 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                     left: 0,
                     zIndex: 1,
                     fontSize: "1.0em",
-                    textAlign: "center", // 水平置中
-                    display: "flex", // 使用flex布局
-                    alignItems: "center", // 垂直置中
-                    justifyContent: "center", // 水平置中
-                    background: "#DCDCDC", // 設置背景顏色以覆蓋下層內容
+                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#DCDCDC",
                   }}
                 >
                   團隊成績
                 </TableCell>
-
                 {selectedColumns.includes("打席") && (
                   <TableCell
                     style={{
@@ -1128,7 +1158,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
                       <TableCell
                         style={{
                           fontSize: "1.0em",
-                          color: sortedColumn === "打席" ? "red" : "black", // 使用相同的逻辑应用样式
+                          color: sortedColumn === "打席" ? "red" : "black",
                         }}
                       >
                         {playerPlateAppearances[player.p_id] || "N/A"}
@@ -1334,6 +1364,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
           </Table>
         </Box>
       </Scrollbar>
+     
       <PlayerDialog
         open={open}
         onClose={handleClose}
@@ -1354,7 +1385,6 @@ const parseLocationToZone = (x, y) => {
   const onOrRightOfVertical = (x, y, lineX) => x >= lineX;
   const onOrLeftOfVertical = (x, y, lineX) => x <= lineX;
 
-  // Zone 1: a, e, b, c
   if (
     inCircle(x, y, 201, 219.64, 175.64) &&
     onOrAboveLine(x, y, 209 / 65, -24719 / 65) &&
@@ -1363,7 +1393,6 @@ const parseLocationToZone = (x, y) => {
   ) {
     return "zone1";
   }
-  // Zone 2: b, c, j, g
   if (
     inCircle(x, y, 200, 223.24, 83) &&
     onOrBelowLine(x, y, 1, 65.8) &&
@@ -1371,15 +1400,13 @@ const parseLocationToZone = (x, y) => {
   ) {
     return "zone2";
   }
-  // Zone 3: c, d, j, k, l
   if (
     inCircle(x, y, 200, 223.24, 83) &&
-    onOrAboveLine(x, y, -2.18, 704.18)&&
+    onOrAboveLine(x, y, -2.18, 704.18) &&
     onOrBelowLine(x, y, -1, 465.7)
   ) {
     return "zone3";
   }
-  // Zone 4: i, b, l, d
   if (
     onOrAboveLine(x, y, -209 / 60, 19323 / 20) &&
     outCircle(x, y, 200, 223.24, 83) &&
@@ -1388,7 +1415,6 @@ const parseLocationToZone = (x, y) => {
   ) {
     return "zone4";
   }
-  // Zone 5: f, b, a, d
   if (
     inCircle(x, y, 201, 219.64, 175.64) &&
     onOrBelowLine(x, y, 209 / 65, -24719 / 65) &&
@@ -1397,7 +1423,6 @@ const parseLocationToZone = (x, y) => {
   ) {
     return "zone5";
   }
-  // Zone 6: a, e, b, f
   if (
     inCircle(x, y, 200, 223.24, 83) &&
     onOrLeftOfVertical(x, y, 201) &&
@@ -1405,11 +1430,10 @@ const parseLocationToZone = (x, y) => {
   ) {
     return "zone6";
   }
-  // Zone 7: b, g, h, k
   if (
     inCircle(x, y, 200, 223.24, 83) &&
     onOrBelowLine(x, y, -2.18, 704.18) &&
-    onOrRightOfVertical(x, y, 201) 
+    onOrRightOfVertical(x, y, 201)
   ) {
     return "zone7";
   }
@@ -1422,22 +1446,18 @@ const isOut = (content) =>
   ["飛球", "滾地", "失誤", "野選", "雙殺", "犧飛", "犧觸", "觸身"].some(
     (out) => content && content.includes(out)
   );
-  const isHR = (content) =>
-  ["全打"].some((hr) => content && content.includes(hr));
+const isHR = (content) => ["全打"].some((hr) => content && content.includes(hr));
 
 const PlayerDialog = ({ open, onClose, player, locations }) => {
   const imageContainerRef = React.useRef(null);
   const baseballFieldImage =
-    "https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU="; // 用实际图片URL替换此处文本
+    "https://media.istockphoto.com/id/1269757192/zh/%E5%90%91%E9%87%8F/%E6%A3%92%E7%90%83%E5%A0%B4%E5%9C%96%E7%A4%BA%E6%A3%92%E7%90%83%E5%A0%B4%E5%90%91%E9%87%8F%E8%A8%AD%E8%A8%88%E7%9A%84%E5%B9%B3%E9%9D%A2%E5%9C%96%E8%A7%A3%E9%A0%82%E8%A6%96%E5%9C%96-web.jpg?s=612x612&w=0&k=20&c=Zt85Kr6EksFKBmYQmgs138zfLRp3eoIzKeQLS2mirLU=";
   const picImage = "hi.png";
 
-  // 确保此函数正确计算位置百分比
   const convertLocationToPosition = (location) => {
-    // 假设imageContainerRef是图片容器的引用
     const container = imageContainerRef.current;
     if (container) {
       const { width: displayWidth, height: displayHeight } = container.getBoundingClientRect();
-      console.log(`Display Width: ${displayWidth}, Display Height: ${displayHeight}`); // 这将输出当前的宽度和高度
       const originalWidth = 400;
       const scaleFactor = displayWidth / originalWidth;
 
@@ -1448,9 +1468,6 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
     }
     return { left: "0%", top: "0%" };
   };
-
-  // 调试时，将位置记录到控制台
-  console.log("Locations:", locations);
 
   const zonePositions = {
     zone1: { left: "27%", top: "35%" },
@@ -1489,9 +1506,6 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
             const content = location.content || location.o_content || "";
             const pointColor = isHit(content) ? "blue" : isOut(content) ? "red" : isHR(content) ? "#6495ED" : "black";
 
-            // 打印content或o_content
-            console.log(`Location index ${index}: Content - ${content}`);
-
             return (
               <div
                 key={index}
@@ -1509,15 +1523,6 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
             );
           })}
         </div>
-        {/* <Typography
-          style={{
-            textAlign: "center",
-            fontSize: "1rem",
-            margin: "20px 0",
-          }}
-        >
-          {locations.length > 0 ? locations[0].content || locations[0].o_content || "" : ""}
-        </Typography> */}
         <div
           ref={imageContainerRef}
           style={{ position: "relative", width: "450px", height: "auto" }}
@@ -1530,8 +1535,8 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
                 position: "absolute",
                 left: left,
                 top: top,
-                color: "white", // 選擇合適的文字顏色
-                backgroundColor: "rgba(0, 0, 0, 0.5)", // 背景色增加可讀性
+                color: "white",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
                 padding: "2px 4px",
                 borderRadius: "4px",
                 transform: "translate(-50%, -50%)",
@@ -1547,14 +1552,10 @@ const PlayerDialog = ({ open, onClose, player, locations }) => {
   );
 };
 
-// 确保您有一个引用来获取容器的尺寸
-
-// 定義 PlayerDialog 組件的 prop 類型
 PlayerDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  // player: PropTypes.string // 假設 player 是一個字符串
-  player: PropTypes.object, // 確保 player 是對象類型
+  player: PropTypes.object,
   locations: PropTypes.arrayOf(
     PropTypes.shape({
       x: PropTypes.number.isRequired,

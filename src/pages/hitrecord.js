@@ -121,6 +121,7 @@ const Page = () => {
               rowsPerPage={rowsPerPage}
               selected={playerSelection.selected}
               selectedColumns={selectedColumns} // 将 selectedColumns 传递给 HitrecordTable 组件
+              
               selectedGameTypes={selectedGameTypes}
             />
 

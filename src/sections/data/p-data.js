@@ -1,34 +1,26 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import PropTypes from "prop-types";
 import { format } from "date-fns";
-import {
-  Box,
-  Card,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TablePagination,
-} from "@mui/material";
+import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
 import { firestore } from 'src/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
-export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, rowsPerPage = 0, selectedTeam, selectedPlayer }) => {
+const calculateEra = (runs, inningsPitched) => {
+  return inningsPitched > 0 ? ((runs * 9) / inningsPitched).toFixed(2) : 'N/A';
+};
+
+const calculateWhip = (hits, walks, inningsPitched) => {
+  return inningsPitched > 0 ? ((hits + walks) / inningsPitched).toFixed(2) : 'N/A';
+};
+
+const calculateRate = (count, inningsPitched) => {
+  return inningsPitched > 0 ? ((count * 9) / inningsPitched).toFixed(2) : 'N/A';
+};
+
+const Pdata = forwardRef(({ selectedTeam, selectedPlayer, onPageChange, onRowsPerPageChange, page, rowsPerPage }, ref) => {
   const [playerGames, setPlayerGames] = useState([]);
-
-  const calculateEra = (runs, inningsPitched) => {
-    return inningsPitched > 0 ? ((runs * 9) / inningsPitched).toFixed(2) : 'N/A';
-  };
-
-  const calculateWhip = (hits, walks, inningsPitched) => {
-    return inningsPitched > 0 ? ((hits + walks) / inningsPitched).toFixed(2) : 'N/A';
-  };
-
-  const calculateRate = (count, inningsPitched) => {
-    return inningsPitched > 0 ? ((count * 9) / inningsPitched).toFixed(2) : 'N/A';
-  };
 
   useEffect(() => {
     const fetchPlayerGames = async () => {
@@ -50,7 +42,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               let hits = 0;
               let walks = 0;
               let strikeouts = 0;
-              let rbi = 0;  // 初始化计数器统计打点
+              let rbi = 0;
               let outs = 0;
               let totalPitches = 0;
 
@@ -62,12 +54,10 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                     if (pitcherName === selectedPlayer.id) {
                       const content = order.content || order.o_content;
 
-                      // Check if the content indicates a hit, walk, or strikeout
                       const hasHit = ['一安', '二安', '三安', '全打'].some(hitType => content && content.includes(hitType));
                       const hasWalk = content && content.includes('四壞');
                       const hasStrikeout = content && content.includes('三振');
 
-                      // Update the counts for hits, walks, and strikeouts
                       if (hasHit) {
                         hits++;
                       }
@@ -78,21 +68,17 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                         strikeouts++;
                       }
 
-                      // Add counts for balls and strikes
                       totalBalls += Number(order.pitcher?.ball) || 0;
                       totalStrikes += Number(order.pitcher?.strike) || 0;
-                      outs += Number(order.innouts) || 0; // 計算局數
+                      outs += Number(order.innouts) || 0;
                       totalPitches += Number(order.pitcher?.total) || 0;
-                      // 累加打点
-                      rbi += Number(order.rbi) || 0;  // 假设 RBI 数据位于 order 对象上
-                      rbi += Number(order.o_rbi) || 0;  // 假设 RBI 数据位于 order 对象上
-
+                      rbi += Number(order.rbi) || 0;
+                      rbi += Number(order.o_rbi) || 0;
                     }
                   });
                 }
               });
 
-              // Calculate the innings pitched
               const inningsPitched = Math.floor(outs / 3) + (outs % 3) * 0.1;
               const era = calculateEra(rbi, inningsPitched);
               const whip = calculateWhip(hits, walks, inningsPitched);
@@ -102,7 +88,7 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
               const h9 = calculateRate(hits, inningsPitched);
 
               return {
-                id: game.id,
+                id: selectedPlayer.id,
                 GDate: game.GDate ? format(game.GDate.toDate(), "dd/MM/yyyy") : '未知',
                 totalStrikes,
                 totalBalls,
@@ -131,7 +117,6 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
     fetchPlayerGames();
   }, [selectedTeam, selectedPlayer]);
 
-
   const totals = playerGames.reduce((acc, game) => ({
     totalStrikes: acc.totalStrikes + game.totalStrikes,
     totalBalls: acc.totalBalls + game.totalBalls,
@@ -154,13 +139,18 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
 
   const calculatedTotals = {
     ...totals,
-    era: calculateEra(totals.rbi, totals.inningsPitched),  // 重新計算 ERA
-    whip: calculateWhip(totals.hits, totals.walks, totals.inningsPitched),  // 重新計算 WHIP
-    strikeBallRatio: totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 'N/A',  // 好壞球比
-    k9: calculateRate(totals.strikeouts, totals.inningsPitched),  // 重新計算 K/9
-    bb9: calculateRate(totals.walks, totals.inningsPitched),  // 重新計算 BB/9
-    h9: calculateRate(totals.hits, totals.inningsPitched)  // 重新計算 H/9
+    era: calculateEra(totals.rbi, totals.inningsPitched),
+    whip: calculateWhip(totals.hits, totals.walks, totals.inningsPitched),
+    strikeBallRatio: totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 'N/A',
+    k9: calculateRate(totals.strikeouts, totals.inningsPitched),
+    bb9: calculateRate(totals.walks, totals.inningsPitched),
+    h9: calculateRate(totals.hits, totals.inningsPitched)
   };
+
+  useImperativeHandle(ref, () => ({
+    getPlayerGames: () => playerGames,
+    getTotals: () => calculatedTotals
+  }));
 
   return (
     <Card>
@@ -210,7 +200,6 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
                   <TableCell colSpan={14}>該球員還沒有比賽數據</TableCell>
                 </TableRow>
               )}
-
               {playerGames.length > 0 && (
                 <TableRow>
                   <TableCell>成績總和</TableCell>
@@ -234,25 +223,18 @@ export const Pdata = ({ count = 0, onPageChange, onRowsPerPageChange, page = 0, 
           </Table>
         </Box>
       </Scrollbar>
-      {/* <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      /> */}
     </Card>
   );
-};
+});
 
 Pdata.propTypes = {
-  count: PropTypes.number,
+  selectedTeam: PropTypes.object.isRequired,
+  selectedPlayer: PropTypes.object.isRequired,
   onPageChange: PropTypes.func,
   onRowsPerPageChange: PropTypes.func,
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
-  selectedTeam: PropTypes.object.isRequired,
-  selectedPlayer: PropTypes.object.isRequired,
 };
+
+export default Pdata;
+

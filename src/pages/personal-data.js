@@ -1,38 +1,20 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Head from "next/head";
-import { Box, Typography } from "@mui/material";
-import { useSelection } from "src/hooks/use-selection";
+import { Box, Typography, Button, Container, Stack } from "@mui/material";
 import { Layout as DashboardLayout } from "src/layouts/dashboard/layout";
-import { Bdata } from "src/sections/data/b-data";
-import { Pdata } from "src/sections/data/p-data";
-import { applyPagination } from "src/utils/apply-pagination";
-import { Container, Stack } from "@mui/material";
+import Bdata  from "src/sections/data/b-data";
+import Pdata from "src/sections/data/p-data"; // 确保这里是默认导出
+import * as XLSX from 'xlsx';
 import { AccountProfile } from "src/sections/data/account-profile";
-
-// 假设这是你的数据
-// const data = [
-  // 数据项
-// ];
-
-// const now = new Date();
-
-// const useCustomers = (page, rowsPerPage) => {
-//   return useMemo(() => {
-//     return applyPagination(data, page, rowsPerPage);
-//   }, [page, rowsPerPage]);
-// };
-
-// const useCustomerIds = (customers) => {
-//   return useMemo(() => {
-//     return customers.map((customer) => customer.id);
-//   }, [customers]);
-// };
 
 const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
+
+  const bDataRef = useRef();
+  const pDataRef = useRef();
 
   const handlePageChange = useCallback((event, value) => {
     setPage(value);
@@ -42,34 +24,57 @@ const Page = () => {
     setRowsPerPage(event.target.value);
   }, []);
 
-  // 定義函數來更新 selectedPlayer 和 selectedTeam 狀態
+  const exportToExcel = () => {
+    const bData = bDataRef.current.getPlayerGames();
+    const bDataTotals = bDataRef.current.getTotals();
+  
+    const pData = pDataRef.current.getPlayerGames();
+    const pDataTotals = pDataRef.current.getTotals();
+  
+    const wb = XLSX.utils.book_new();
+  
+    const bDataSheet = XLSX.utils.json_to_sheet([...bData, bDataTotals]);
+    XLSX.utils.sheet_add_aoa(bDataSheet, [['球員','比賽日期', '打席', '打數', '安打', '壘打數', '打點', '一安', '二安', '三安', '全壘打', '雙殺', '四壞', '犧飛', '犧觸', '觸身','打擊率','上壘率','長打率','OPS']], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(wb, bDataSheet, "打擊成績");
+  
+    const pDataSheet = XLSX.utils.json_to_sheet([...pData, pDataTotals]);
+    XLSX.utils.sheet_add_aoa(pDataSheet, [['球員','比賽日期', '好球數', '壞球數', '耗球數', 'ERA', '局數', '安打', '失分', '四壞', '奪三振', 'WHIP', '好壞球比', 'K/9', 'BB/9', 'H/9']], { origin: 'A1' });
+    XLSX.utils.book_append_sheet(wb, pDataSheet, "投手成績");
+  
+    XLSX.writeFile(wb, `${selectedPlayer.id}投手個人數據.xlsx`);
+  };
+  
+  
 
   return (
     <>
       <Head>
         <title>頁面 | Devias Kit</title>
       </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-        }}
-      >
+      
+      <Box component="main" sx={{ flexGrow: 1 }}>
         <Container maxWidth="xl">
-        <Stack spacing={1}>
-                <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
-                  球員個人數據
-                </Typography>
-              </Stack>
+          <Stack spacing={1}>
+            <Typography variant="h4" sx={{ fontFamily: 'Montserrat sans-serif', fontWeight: 'bold' }}>
+              球員個人數據
+            </Typography>
+          </Stack>
+          
           <Stack spacing={3}>
-            <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam}/>
+            <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam} />
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={exportToExcel}
+              sx={{ width: '110px' }}  
+              >
+              匯出 Excel
+            </Button>
             <div>
               <Typography variant="h6">打擊成績</Typography>
             </div>
             <Bdata
-              // count={data.length}
-              // items={customers}
-
+              ref={bDataRef}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
@@ -79,8 +84,7 @@ const Page = () => {
             />
             <Typography variant="h6">投球成績</Typography>
             <Pdata
-              // count={data.length}
-              // items={customers}
+              ref={pDataRef}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
               page={page}
@@ -88,6 +92,7 @@ const Page = () => {
               selectedPlayer={selectedPlayer}
               selectedTeam={selectedTeam}
             />
+            
           </Stack>
         </Container>
       </Box>

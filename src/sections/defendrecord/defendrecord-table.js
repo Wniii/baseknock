@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow,Button } from "@mui/material";
 import { Scrollbar } from "src/components/scrollbar";
 import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import * as XLSX from 'xlsx';
 
 // 定義 DefendTable 組件
 export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType }) => {
   // const [open, setOpen] = useState(false);
   // const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [playersData, setPlayersData] = useState([]);
-
+  const [teamData, setteamData] = useState([]);
   const [teamTotals, setTeamTotals] = useState({
     totalStrikes: 0,
     totalBalls: 0,
@@ -174,6 +175,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       }
 
       const teamData = teamDocSnap.data();
+      setteamData(teamData)
       const playerNames = Object.keys(teamData.players);
       const pitchersInGames = new Set();
 
@@ -446,9 +448,63 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     return sortableItems;
   }, [playersData, sortConfig]); // Removed playerHits, playerPlateAppearances if they're no longer relevant
 
+
+  const exportToExcel = () => {
+    const dataToExport = sortedPlayers.map((player) => ({
+      球員: player.name,
+      好球數: player.totalStrikes || 0,
+      壞球數: player.totalBalls || 0,
+      耗球數: player.totalPitches || 0,
+      ERA: player.era || "N/A",
+      先發: player.gamesStarted || 0,
+      出賽: player.gamesPlayed || 0,
+      局數: player.inningsPitched.toFixed(1) || 0,
+      安打: player.totalHits || 0,
+      失分: player.runsBattedIn || 0,
+      四壞: player.totalWalks || 0,
+      奪三振: player.totalStrikeouts || 0,
+      WHIP: player.whip.toFixed(2) || 0,
+      好壞球比: player.strikeBallRatio || 0,
+      K9: Number(player.K9).toFixed(2) || 0,
+      BB9: Number(player.BB9).toFixed(2) || 0,
+      H9: Number(player.H9).toFixed(2) || 0,
+    }));
+  
+    // 添加團隊成績到數據
+    const teamDatas = {
+      球員: "團隊成績",
+      好球數: teamTotals.totalStrikes,
+      壞球數: teamTotals.totalBalls,
+      耗球數: teamTotals.teamTotalPitches,
+      ERA: teamTotals.teamERA,
+      先發: teamTotals.totalGamesStarted,
+      出賽: teamTotals.totalGamesPlayed,
+      局數: teamTotals.totalInningsPitched.toFixed(1),
+      安打: teamTotals.totalHits,
+      失分: teamTotals.totalRunsBattedIn,
+      四壞: teamTotals.totalWalks,
+      奪三振: teamTotals.totalStrikeouts,
+      WHIP: teamTotals.teamWHIP,
+      好壞球比: teamTotals.strikeBallRatio,
+      K9: teamTotals.teamK9,
+      BB9: teamTotals.teamBB9,
+      H9: teamTotals.teamH9,
+    };
+  
+    dataToExport.unshift(teamDatas); // 將團隊成績添加到數據數組的開頭
+  
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${teamData.Name}投球數據`);
+    XLSX.writeFile(wb, `${teamData.Name}投球數據.xlsx`);
+  };
   // 渲染組件
   return (
+    
     <Card>
+      <Button onClick={exportToExcel} variant="contained" color="primary" style={{ margin: "10px" }}>
+        匯出Excel
+      </Button>
       <Scrollbar>
         <Box sx={{ minWidth: 2500 }}>
           <Table>
