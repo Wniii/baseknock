@@ -22,7 +22,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import * as XLSX from 'xlsx';
-import { ExportToExcel } from "@mui/icons-material";
 
 // 定義 HitrecordTable 組件
 export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameTypes }) => {
