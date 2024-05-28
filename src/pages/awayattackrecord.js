@@ -968,10 +968,7 @@ const Page = () => {
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
-                                                            onClick={() => {
-                                                                handleToggle('野選');
-                                                            }
-                                                            }
+                                                            onClick={() => handleCheckboxChange('野選')}
                                                         >
                                                             野選
                                                         </Button>
