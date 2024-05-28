@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { collection, getDoc, getDocs, doc, query, where, updateDoc, writeBatch } from "firebase/firestore";
-import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, Table, TableBody, TableCell, TableHead, TableRow, IconButton } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
-import AddIcon from '@mui/icons-material/Add';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import AddIcon from '@mui/icons-material/Add';
 import { firestore } from 'src/firebase';
 import { useRouter } from 'next/router';
 import { green, red } from '@mui/material/colors';
-import { IconButton } from '@mui/material';
 
 const determineButtonProps = (content, index) => {
   let buttonColor;
@@ -34,11 +33,11 @@ const determineButtonProps = (content, index) => {
     case '觸身':
       buttonColor = 'lightblue'; // 淡蓝色
       break;
-      case '不知':
-        buttonColor = 'black'; // 黑色
-      default:
-        buttonColor = 'gray'; // 黑色
-    }
+    case '不知':
+      buttonColor = 'black'; // 黑色
+    default:
+      buttonColor = 'gray'; // 黑色
+  }
   return {
     color: buttonColor,
     text: content
@@ -46,16 +45,9 @@ const determineButtonProps = (content, index) => {
 };
 
 const AwayCustomersTable = (props) => {
-  const {
-    
-    teamId,
-    codeName,
-    acodeName,
-    timestamp,
-    outs
-  } = props;
+  const { teamId, codeName, acodeName, timestamp, outs } = props;
   const [awayattackListData, setAwayAttackListData] = useState([]);
-  const [orderoppo, setorderoppo] = useState([]);
+  const [orderoppo, setOrderoppo] = useState([]);
   const [gameDocSnapshot, setGameDocSnapshot] = useState(null);
   const [lastValidIndex, setLastValidIndex] = useState(0);
   const [filteredPlayers, setFilteredPlayers] = useState([]);
@@ -73,24 +65,43 @@ const AwayCustomersTable = (props) => {
     const updateSubstituteInFirestore = async (teamId, timestamp, originalPlayer, substitutePlayer) => {
       const teamRef = doc(firestore, "team", teamId);
       const gamesCollectionRef = collection(teamRef, "games");
-
+  
       const q = query(gamesCollectionRef, where("g_id", "==", timestamp));
       const querySnapshot = await getDocs(q);
-
+  
       if (!querySnapshot.empty) {
         querySnapshot.forEach(async (doc) => {
           const gameRef = doc.ref;
-          try {
-            await updateDoc(gameRef, {
-              [`substitute.${originalPlayer}`]: substitutePlayer
-            });
-          } catch (error) {
-            console.error(`Failed to update substitute for game ${doc.id} in team ${teamId}`, error);
+          const gameData = doc.data();
+          const awayattackList = gameData.awayattacklist || [];
+  
+          let updated = false;
+          const newAwayattackList = awayattackList.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              for (let key in item) {
+                if (Array.isArray(item[key]) && item[key].includes(originalPlayer)) {
+                  const index = item[key].indexOf(originalPlayer);
+                  if (index !== -1) {
+                    item[key].splice(index + 1, 0, substitutePlayer);  // 在原球員之後插入新球員
+                    updated = true;
+                  }
+                }
+              }
+            }
+            return item;
+          });
+  
+          if (updated) {
+            try {
+              await updateDoc(gameRef, { awayattacklist: newAwayattackList });
+            } catch (error) {
+              console.error(`Failed to update substitute for game ${doc.id} in team ${teamId}`, error);
+            }
           }
         });
       }
     };
-
+  
     try {
       const teamsData = await getDocs(collection(firestore, "team"));
       const teamIdMap = new Map();
@@ -98,9 +109,9 @@ const AwayCustomersTable = (props) => {
         const data = doc.data();
         teamIdMap.set(data.codeName, doc.id);
       });
-
+  
       await updateSubstituteInFirestore(teamId, timestamp, originalPlayer, substitutePlayer);
-
+  
       const awayTeamId = teamIdMap.get(acodeName);
       if (awayTeamId) {
         await updateSubstituteInFirestore(awayTeamId, timestamp, originalPlayer, substitutePlayer);
@@ -109,6 +120,47 @@ const AwayCustomersTable = (props) => {
       console.error("Failed to update substitutes for both teams:", error);
     }
   };
+  
+  // 新增一個函數來獲取更新後的 awayattackListData
+  const fetchUpdatedAwayAttackListData = async () => {
+    if (!teamId || !timestamp) {
+      console.log('Required IDs are missing.');
+      return [];
+    }
+  
+    const teamDocRef = doc(firestore, "team", teamId);
+    const teamDocSnapshot = await getDoc(teamDocRef);
+    if (!teamDocSnapshot.exists()) {
+      console.log("No team document found with ID:", teamId);
+      return [];
+    }
+  
+    const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
+    const gameDocRef = doc(gamesCollectionRef, timestamp);
+    const gameDocSnapshot = await getDoc(gameDocRef);
+    if (!gameDocSnapshot.exists()) {
+      console.log("No matching game document with ID:", timestamp);
+      return [];
+    }
+  
+    const gameData = gameDocSnapshot.data();
+    const updatedAwayAttackListData = [];
+  
+    if (gameData.awayattacklist) {
+      gameData.awayattacklist.forEach((item) => {
+        for (const key in item) {
+          if (Array.isArray(item[key])) {
+            item[key].forEach(player => {
+              updatedAwayAttackListData.push(player);
+            });
+          }
+        }
+      });
+    }
+  
+    return updatedAwayAttackListData;
+  };
+  
 
   const ReplacementDialog = ({ open, onClose, filteredPlayers, originalPlayer, teamId, acodeName, timestamp, onSelectPlayer }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -121,7 +173,9 @@ const AwayCustomersTable = (props) => {
       if (selectedPlayer && originalPlayer) {
         onSelectPlayer(selectedPlayer);
         updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
+        window.location.reload();
         onClose();
+        
       } else {
         console.log("No player or substitute selected");
       }
@@ -246,23 +300,10 @@ const AwayCustomersTable = (props) => {
     const gameData = gameDocSnapshot.data();
     const orderOppoLength = gameData.orderoppo ? gameData.orderoppo.length : 0;
     const lastValidIndex = orderOppoLength + 1;
-    const awayattackListData = [];
 
-    if (gameData.awayattacklist) {
-      gameData.awayattacklist.forEach((item) => {
-        const key = Object.keys(item)[0];
-        const playerData = item[key];
-
-        console.log(`playerData for ${key}:`, playerData);
-
-        if (Array.isArray(playerData) && playerData.length > 0) {
-          awayattackListData.push(playerData[0]);
-        }
-      });
-    }
     setLastValidIndex(lastValidIndex);
-    setAwayAttackListData(awayattackListData);
-    setorderoppo(gameData.orderoppo || []);
+    setAwayAttackListData(gameData.awayattacklist || []);
+    setOrderoppo(gameData.orderoppo || []);
     setGameDocSnapshot(gameDocSnapshot);
 
     if (gameData.substitute) {
@@ -304,7 +345,7 @@ const AwayCustomersTable = (props) => {
     }
 
     const teamData = teamDocSnap.data();
-    const normalizedAwayList = awayattackListData.map(name => name.trim().toLowerCase());
+    const normalizedAwayList = awayattackListData.flatMap(attack => attack[Object.keys(attack)[0]]).map(name => name.trim().toLowerCase());
     const filteredPlayers = Object.entries(teamData.players || {})
       .filter(([playerName]) => !normalizedAwayList.includes(playerName.trim().toLowerCase()))
       .map(([playerName, playerData]) => ({ name: playerName, ...playerData }));
@@ -312,11 +353,11 @@ const AwayCustomersTable = (props) => {
     setFilteredPlayers(filteredPlayers);
   };
 
-  const handleClick = (attack) => {
+  const handleClick = (playerName) => {
     router.push({
       pathname: '/awayattackrecord',
       query: {
-        attack: attack,
+        attack: playerName,
         timestamp: timestamp,
         codeName: codeName,
         teamId: teamId,
@@ -342,67 +383,116 @@ const AwayCustomersTable = (props) => {
     });
   };
 
-  const renderRowWithSubstitutes = (attack, substituteMap, visibleContentArray, index) => {
-    const generateSubstituteRow = (playerName) => (
-      <TableRow hover key={`${playerName}-substitute`}>
-        <TableCell>
-          <Box sx={{ position: 'relative' }}>
-            {/* <IconButton
-              onClick={() => handleSwap(playerName)}
-              sx={{
-                position: 'absolute',
-                left: '-15px',
-                top: '-10px',
-                minWidth: '10px',
-                height: '10px',
-                width: '1px',
-                borderRadius: '50%',
-                backgroundColor: 'lightblue',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'darkblue'
-                }
-              }}
-            >
-              <SwapHorizIcon fontSize="small" />
-            </IconButton> */}
-            (替){playerName}
-          </Box>
-        </TableCell>
-        {Array(8).fill(null).map((_, i) => (
-          <TableCell key={i}></TableCell>
-        ))}
-      </TableRow>
-    );
-
+  const renderRowWithSubstitutes = (attack, substituteMap, visibleContentArray, index, handleSwap, handleEditClick, buttonRow, buttonColumn) => {
+    if (!Array.isArray(attack) || attack.length === 0) {
+      return null; // 如果 attack 不是陣列或為空，直接返回 null
+    }
+  
+    const mainPlayer = attack[0]; // 主球員
+    const substitutePlayers = attack.slice(1); // 替補球員
+  
+    const generateSubstituteRow = (playerName, isLast) => {
+      const substituteContentArray = getContentArrayForPlayer(playerName, orderoppo);
+      return (
+        <TableRow hover key={`${playerName}-substitute`}>
+          <TableCell>
+            <Box sx={{ position: 'relative' }}>
+              {isLast && (
+                <IconButton
+                  onClick={() => handleSwap(playerName)}
+                  sx={{
+                    position: 'absolute',
+                    left: '-15px',
+                    top: '-10px',
+                    minWidth: '10px',
+                    height: '10px',
+                    width: '1px',
+                    borderRadius: '50%',
+                    backgroundColor: 'lightblue',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'darkblue'
+                    }
+                  }}
+                >
+                  <SwapHorizIcon fontSize="small" />
+                </IconButton>
+              )}
+              (替){playerName}
+            </Box>
+          </TableCell>
+          {substituteContentArray.map((content, i) => {
+            if (content) {
+              const buttonProps = determineButtonProps(content, i);
+              return (
+                <TableCell key={i}>
+                  <Button
+                    variant="contained"
+                    style={{
+                      height: '30px',
+                      backgroundColor: buttonProps.color,
+                      color: 'white',
+                    }}
+                    onClick={() => handleEditClick(playerName, index, i + 1)}
+                  >
+                    {buttonProps.text}
+                  </Button>
+                </TableCell>
+              );
+            } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+              return (
+                <TableCell key={i}>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    sx={{ height: '30px', padding: 0 }}
+                    onClick={() => handleClick(playerName)}
+                  >
+                    <AddIcon />
+                  </Button>
+                </TableCell>
+              );
+            } else {
+              return <TableCell key={i}></TableCell>;
+            }
+          })}
+          {Array(9 - substituteContentArray.length).fill(null).map((_, i) => (
+            <TableCell key={substituteContentArray.length + i}></TableCell>
+          ))}
+        </TableRow>
+      );
+    };
+  
     const mainRow = (
       <TableRow hover key={index}>
         <TableCell>
           <Box sx={{ position: 'relative' }}>
-            {/* <IconButton
-              onClick={() => handleSwap(attack)}
-              sx={{
-                position: 'absolute',
-                left: '-15px',
-                top: '-10px',
-                minWidth: '10px',
-                height: '10px',
-                width: '1px',
-                borderRadius: '50%',
-                backgroundColor: 'lightblue',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: 'darkblue'
-                }
-              }}
-            >
-              <SwapHorizIcon fontSize="small" />
-            </IconButton> */}
-            {attack}
+            {substitutePlayers.length === 0 && (
+              <IconButton
+                onClick={() => handleSwap(mainPlayer)}
+                sx={{
+                  position: 'absolute',
+                  left: '-15px',
+                  top: '-10px',
+                  minWidth: '10px',
+                  height: '10px',
+                  width: '1px',
+                  borderRadius: '50%',
+                  backgroundColor: 'lightblue',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'darkblue'
+                  }
+                }}
+              >
+                <SwapHorizIcon fontSize="small" />
+              </IconButton>
+            )}
+            {mainPlayer}
           </Box>
         </TableCell>
         {visibleContentArray.map((content, i) => {
-          if (content) {
+          if (content && orderoppo.some(item => item.o_p_name === mainPlayer && item.o_inn - 1 === i)) {
             const buttonProps = determineButtonProps(content, i);
             return (
               <TableCell key={i}>
@@ -413,20 +503,20 @@ const AwayCustomersTable = (props) => {
                     backgroundColor: buttonProps.color,
                     color: 'white',
                   }}
-                  onClick={() => handleEditClick(attack, index, i + 1)}
+                  onClick={() => handleEditClick(mainPlayer, index, i + 1)}
                 >
                   {buttonProps.text}
                 </Button>
               </TableCell>
             );
-          } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+          } else if (i === buttonColumn - 1 && index === buttonRow - 1 && substitutePlayers.length === 0) {
             return (
               <TableCell key={i}>
                 <Button
                   variant="outlined"
                   color="inherit"
                   sx={{ height: '30px', padding: 0 }}
-                  onClick={() => handleClick(attack)}
+                  onClick={() => handleClick(mainPlayer)}
                 >
                   <AddIcon />
                 </Button>
@@ -441,16 +531,12 @@ const AwayCustomersTable = (props) => {
         ))}
       </TableRow>
     );
-
-    const substituteRows = [];
-    let currentPlayer = attack;
-
-    while (substituteMap[currentPlayer]) {
-      const substitutePlayer = substituteMap[currentPlayer];
-      substituteRows.push(generateSubstituteRow(substitutePlayer));
-      currentPlayer = substitutePlayer;
-    }
-
+  
+    const substituteRows = substitutePlayers.map((playerName, i) => {
+      const isLast = i === substitutePlayers.length - 1;
+      return generateSubstituteRow(playerName, isLast);
+    });
+  
     return (
       <>
         {mainRow}
@@ -458,7 +544,18 @@ const AwayCustomersTable = (props) => {
       </>
     );
   };
-
+  
+  const getContentArrayForPlayer = (playerName, orderoppo) => {
+    const contentArray = new Array(9).fill('');
+    orderoppo.forEach(item => {
+      if (item.o_p_name === playerName && item.o_inn) {
+        contentArray[item.o_inn - 1] = item.o_content.split(',')[0];
+      }
+    });
+    return contentArray;
+  };
+  
+  
   let buttonRow = -1;
   let buttonColumn = -1;
 
@@ -470,7 +567,7 @@ const AwayCustomersTable = (props) => {
       remainder = 9;
     }
     buttonRow = remainder;
-    console.log("aaaa:",buttonRow)
+    console.log("aaaa:", buttonRow)
   }
 
   return (
@@ -503,8 +600,9 @@ const AwayCustomersTable = (props) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {awayattackListData.slice(0, 9).map((attack, index) => {
-                const orderOppoItems = orderoppo.filter((item) => item.o_p_name === attack);
+              {awayattackListData.slice(0, 9).map((attackMap, index) => {
+                const playerArray = Object.values(attackMap)[0];  // 獲取球員陣列
+                const orderOppoItems = orderoppo.filter((item) => playerArray.includes(item.o_p_name));
                 const contentArray = new Array(9).fill('');
                 orderOppoItems.forEach((orderOppoItem) => {
                   if (orderOppoItem && orderOppoItem.o_inn) {
@@ -514,14 +612,12 @@ const AwayCustomersTable = (props) => {
                 });
 
                 const visibleContentArray = contentArray.slice(0, 9);
-
-                return renderRowWithSubstitutes(attack, substituteMap, visibleContentArray, index);
+                return renderRowWithSubstitutes(playerArray, substituteMap, visibleContentArray, index, handleSwap, handleEditClick, buttonRow, buttonColumn);
               })}
             </TableBody>
           </Table>
         </Box>
       </Scrollbar>
-      
     </Card>
   );
 };
