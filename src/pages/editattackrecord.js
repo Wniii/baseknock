@@ -42,23 +42,23 @@ const Page = () => {
         二安: false,
         三安: false,
         全打: false,
-        一分: false,
         三振: false,
         飛球: false,
         滾地: false,
         失誤: false,
-        兩分: false,
         野選: false,
         雙殺: false,
         違規: false,
         不知: false,
-        三分: false,
         四壞: false,
         犧飛: false,
         犧觸: false,
         觸身: false,
+        一分: false,
+        兩分: false,    
+        三分: false,
         四分: false,
-    });
+      });
     const [balls, setBalls] = useState([false, false, false]);
     const [strikes, setStrikes] = useState([false, false]);
     const [outs, setOuts] = useState(0);
@@ -254,10 +254,12 @@ const Page = () => {
 
 
     const saveData = async () => {
-        const hitContents = ['一安', '二安', '三安', '全打', '一分',
-            '三振', '飛球', '滾地', '失誤', '兩分',
-            '野選', '雙殺', '違規', '不知', '三分',
-            '四壞', '犧飛', '犧觸', '觸身', '四分'];
+        const hitContents = [
+            '一安', '二安', '三安', '全打',
+            '三振', '飛球', '滾地', '失誤',
+            '野選', '雙殺', '違規', '不知',
+            '四壞', '犧飛', '犧觸', '觸身', 
+            '一分', '兩分', '三分', '四分'];
 
         const baseStatuses = ['一壘', '二壘', '三壘'];
 
@@ -764,8 +766,10 @@ const Page = () => {
                                                                 width: 150,
                                                                 height: 50,
                                                                 padding: '8px',
-                                                                borderRadius: 5,
-                                                                bgcolor: 'info.main',
+                                                                borderRadius: 2,
+                                                                borderColor: '#8E8E8E', // 設定邊框顏色
+                                                                borderWidth: '3px', // 設定邊框寬度
+                                                                borderStyle: 'solid', // 設定邊框樣式
                                                                 display: 'flex',
                                                                 alignItems: 'center',
                                                                 justifyContent: 'center',
@@ -1023,7 +1027,7 @@ const Page = () => {
                                                     </div>
                                                     <div style={{ width: '100px', textAlign: 'center' }}>
                                                         <Button
-                                                            variant={selectedHits[' 失誤'] ? 'contained' : 'outlined'}
+                                                            variant={selectedHits['失誤'] ? 'contained' : 'outlined'}
                                                             borderRadius={5}
                                                             padding={1}
                                                             color='error'
