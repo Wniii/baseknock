@@ -502,7 +502,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
   return (
     
     <Card>
-      <Button onClick={exportToExcel} variant="contained" color="primary" style={{ margin: "10px" }}>
+      <Button onClick={exportToExcel}style={{ margin: "10px" }}>
         匯出Excel
       </Button>
       <Scrollbar>

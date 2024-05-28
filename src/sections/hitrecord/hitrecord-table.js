@@ -640,7 +640,7 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   // 渲染組件
   return (
     <Card>
-       <Button onClick={exportToExcel} variant="contained" color="primary" style={{ margin: "10px" }}>
+       <Button onClick={exportToExcel} style={{ margin: "10px" }}>
         匯出Excel
       </Button>
       <Scrollbar>
