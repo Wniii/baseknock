@@ -41,7 +41,7 @@ const Page = () => {
     XLSX.utils.sheet_add_aoa(pDataSheet, [['球員','比賽日期', '好球數', '壞球數', '耗球數', 'ERA', '局數', '安打', '失分', '四壞', '奪三振', 'WHIP', '好壞球比', 'K/9', 'BB/9', 'H/9']], { origin: 'A1' });
     XLSX.utils.book_append_sheet(wb, pDataSheet, "投手成績");
   
-    XLSX.writeFile(wb, `${selectedPlayer.id}投手個人數據.xlsx`);
+    XLSX.writeFile(wb, `${selectedPlayer.id}個人數據.xlsx`);
   };
   
   
