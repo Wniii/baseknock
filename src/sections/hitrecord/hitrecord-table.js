@@ -20,6 +20,7 @@ import {
 import { Scrollbar } from "src/components/scrollbar";
 import SearchIcon from "@mui/icons-material/Search";
 import { firestore } from "src/firebase";
+import DownloadIcon from '@mui/icons-material/Download';
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import * as XLSX from 'xlsx';
 
@@ -643,8 +644,8 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
   // 渲染組件
   return (
     <Card>
-       <Button onClick={exportToExcel} style={{ margin: "10px" }}>
-        匯出Excel
+       <Button onClick={exportToExcel} style={{ margin: "10px" }}startIcon={<DownloadIcon />}>
+      下載數據
       </Button>
       <Scrollbar>
         <Box sx={{ minWidth: 2500 }}>

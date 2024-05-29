@@ -6,6 +6,7 @@ import Bdata  from "src/sections/data/b-data";
 import Pdata from "src/sections/data/p-data"; // 确保这里是默认导出
 import * as XLSX from 'xlsx';
 import { AccountProfile } from "src/sections/data/account-profile";
+import DownloadIcon from '@mui/icons-material/Download';
 
 const Page = () => {
   const [page, setPage] = useState(0);
@@ -62,13 +63,10 @@ const Page = () => {
           
           <Stack spacing={3}>
             <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam} />
-            <Button 
-              
-              onClick={exportToExcel}
-              sx={{ width: '110px' }}  
-              >
-              匯出 Excel
-            </Button>
+      
+            <Button onClick={exportToExcel} sx={{ width: '120px' }} startIcon={<DownloadIcon />}>
+      下載數據
+      </Button>
             <div>
               <Typography variant="h6">打擊成績</Typography>
             </div>

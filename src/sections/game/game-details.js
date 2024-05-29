@@ -261,22 +261,7 @@ export const AddGame = () => {
                 </Typography>
               </Grid> */}
                 <Grid item xs={12} md={4}>
-                  {/* <TextField
-                  fullWidth
-                  label="對手"
-                  name="awayteam"
-                  onChange={handleChange}
-                  required
-                  select
-                  SelectProps={{ native: true }}
-                  value={values.awayteam}
-                >
-                  {awayteam.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField> */}
+                 
 
                   <FormControl fullWidth required>
                     <InputLabel>客隊</InputLabel>
@@ -290,22 +275,7 @@ export const AddGame = () => {
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={12}>
-                  {/* <TextField
-                  fullWidth
-                  label="比賽性質"
-                  name="gName"
-                  onChange={handleChange}
-                  required
-                  select
-                  SelectProps={{ native: true }}
-                  value={values.gName}
-                >
-                  {gName.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField> */}
+                
 
                   <FormControl fullWidth required>
                     <InputLabel>比賽性質</InputLabel>
