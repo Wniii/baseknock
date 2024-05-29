@@ -94,6 +94,8 @@ const AwayCustomersTable = (props) => {
           if (updated) {
             try {
               await updateDoc(gameRef, { awayattacklist: newAwayattackList });
+              // 更新本地状态以触发重新渲染
+              setAwayAttackListData(newAwayattackList);
             } catch (error) {
               console.error(`Failed to update substitute for game ${doc.id} in team ${teamId}`, error);
             }
@@ -121,6 +123,7 @@ const AwayCustomersTable = (props) => {
     }
   };
   
+  
 
   const ReplacementDialog = ({ open, onClose, filteredPlayers, originalPlayer, teamId, acodeName, timestamp, onSelectPlayer }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -129,13 +132,11 @@ const AwayCustomersTable = (props) => {
       setSelectedPlayer(player);
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
       if (selectedPlayer && originalPlayer) {
+        await updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
         onSelectPlayer(selectedPlayer);
-        updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
-        window.location.reload();
         onClose();
-        
       } else {
         console.log("No player or substitute selected");
       }
@@ -399,7 +400,7 @@ const AwayCustomersTable = (props) => {
                   </Button>
                 </TableCell>
               );
-            } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+            } else if (isLast && i === buttonColumn - 1 && index === buttonRow - 1) {
               return (
                 <TableCell key={i}>
                   <Button
@@ -514,6 +515,7 @@ const AwayCustomersTable = (props) => {
     });
     return contentArray;
   };
+  
   
   
   let buttonRow = -1;

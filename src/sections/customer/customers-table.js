@@ -94,6 +94,8 @@ const CustomersTable = (props) => {
           if (updated) {
             try {
               await updateDoc(gameRef, { attacklist: newAttackList });
+              // 更新本地状态以触发重新渲染
+              setAttackListData(newAttackList);
             } catch (error) {
               console.error(`Failed to update substitute for game ${doc.id} in team ${teamId}`, error);
             }
@@ -129,13 +131,11 @@ const CustomersTable = (props) => {
       setSelectedPlayer(player);
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
       if (selectedPlayer && originalPlayer) {
+        await updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
         onSelectPlayer(selectedPlayer);
-        updateSubstitutesForBothTeams(teamId, acodeName, timestamp, originalPlayer, selectedPlayer.name);
-        window.location.reload();
         onClose();
-        
       } else {
         console.log("No player or substitute selected");
       }
@@ -399,7 +399,7 @@ const CustomersTable = (props) => {
                   </Button>
                 </TableCell>
               );
-            } else if (i === buttonColumn - 1 && index === buttonRow - 1) {
+            } else if (isLast && i === buttonColumn - 1 && index === buttonRow - 1) {
               return (
                 <TableCell key={i}>
                   <Button
