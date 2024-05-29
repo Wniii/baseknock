@@ -155,7 +155,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       // 確保我們有有效的局數來避免除以零的錯誤
       eraByPitcher[pitcher] = innings > 0
         ? (9 * runsBattedIn / innings).toFixed(2)
-        : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
+        : "0.00"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
     });
     return eraByPitcher;
   };

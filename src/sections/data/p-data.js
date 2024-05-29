@@ -8,15 +8,15 @@ import { firestore } from 'src/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 const calculateEra = (runs, inningsPitched) => {
-  return inningsPitched > 0 ? ((runs * 9) / inningsPitched).toFixed(2) : 'N/A';
+  return inningsPitched > 0 ? ((runs * 9) / inningsPitched).toFixed(2) : '0.00';
 };
 
 const calculateWhip = (hits, walks, inningsPitched) => {
-  return inningsPitched > 0 ? ((hits + walks) / inningsPitched).toFixed(2) : 'N/A';
+  return inningsPitched > 0 ? ((hits + walks) / inningsPitched).toFixed(2) : '0.00';
 };
 
 const calculateRate = (count, inningsPitched) => {
-  return inningsPitched > 0 ? ((count * 9) / inningsPitched).toFixed(2) : 'N/A';
+  return inningsPitched > 0 ? ((count * 9) / inningsPitched).toFixed(2) : '0.00';
 };
 
 const Pdata = forwardRef(({ selectedTeam, selectedPlayer, onPageChange, onRowsPerPageChange, page, rowsPerPage }, ref) => {
