@@ -439,14 +439,15 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     let sortableItems = [...playersData];
     if (sortConfig && sortConfig.key) {
       sortableItems.sort((a, b) => {
-        const valueA = getValueByKey(a, sortConfig.key);
-        const valueB = getValueByKey(b, sortConfig.key);
-        // Assuming descending sort for all, as mentioned earlier; reverse the comparisons for ascending
+        const valueA = Number(getValueByKey(a, sortConfig.key));
+        const valueB = Number(getValueByKey(b, sortConfig.key));
+        // 假設所有排序都是降序; 對於升序，反轉比較
         return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
       });
     }
     return sortableItems;
-  }, [playersData, sortConfig]); // Removed playerHits, playerPlateAppearances if they're no longer relevant
+  }, [playersData, sortConfig]);
+
 
 
   const exportToExcel = () => {

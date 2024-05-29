@@ -556,14 +556,17 @@ export const HitrecordTable = ({ selectedTeam, selectedColumns, selectedGameType
 
   const sortedPlayers = useMemo(() => {
     let sortableItems = [...playersData];
-    sortableItems.sort((a, b) => {
-      const valueA = getValueByKey(a, sortConfig.key, playerHits, playerPlateAppearances);
-      const valueB = getValueByKey(b, sortConfig.key, playerHits, playerPlateAppearances);
-      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
-    });
-
+    if (sortConfig && sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        const valueA = Number(getValueByKey(a, sortConfig.key));
+        const valueB = Number(getValueByKey(b, sortConfig.key));
+        // 假設所有排序都是降序; 對於升序，反轉比較
+        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+      });
+    }
     return sortableItems;
-  }, [playersData, sortConfig, playerHits, playerPlateAppearances]);
+  }, [playersData, sortConfig]);
+
 
   const exportToExcel = () => {
     const dataToExport = sortedPlayers.map((player) => {
