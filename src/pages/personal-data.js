@@ -49,7 +49,7 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>頁面 | Devias Kit</title>
+        <title>球員個人數據</title>
       </Head>
       
       <Box component="main" sx={{ flexGrow: 1 }}>
@@ -63,8 +63,7 @@ const Page = () => {
           <Stack spacing={3}>
             <AccountProfile onPlayerSelect={setSelectedPlayer} onTeamSelect={setSelectedTeam} />
             <Button 
-              variant="contained" 
-              color="primary" 
+              
               onClick={exportToExcel}
               sx={{ width: '110px' }}  
               >
