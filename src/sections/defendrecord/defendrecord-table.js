@@ -155,7 +155,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       // 確保我們有有效的局數來避免除以零的錯誤
       eraByPitcher[pitcher] = innings > 0
         ? (9 * runsBattedIn / innings).toFixed(2)
-        : "0.00"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
+        : "0.00" ; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
     });
     return eraByPitcher;
   };
@@ -258,9 +258,9 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
               if (hasStrikeout) hitsByPitcher[pitcherName].strikeouts++;
               if (hashitByPitches) hitsByPitcher[pitcherName].hitByPitches++;
               const balls = Number(order.pitcher?.ball) || 0;
-              const strikes = Number(order.pitcher?.strike) || 0;
-              const  hitByPitches = Number(order.pitcher?. hitByPitches) || 0;
               const total = Number(order.pitcher?.total) || 0;
+              const strikes = total - balls;
+              const hitByPitches = Number(order.pitcher?.hitByPitches) || 0;
               hitsByPitcher[pitcherName].totalBalls += balls;
               hitsByPitcher[pitcherName].totalStrikes += strikes;
               hitsByPitcher[pitcherName].hitByPitches += hitByPitches;
@@ -357,7 +357,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
     totals.teamERA =
       totals.totalInningsPitched > 0
-        ? ((totals.totalRunsBattedIn * 9) / totals.totalInningsPitched).toFixed(2)
+        ? ((totals.totalEarnedRuns * 9) / totals.totalInningsPitched).toFixed(2)
         : "∞"; //ERA
     totals.teamWHIP =
       totals.totalInningsPitched > 0
@@ -447,7 +447,6 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     }
     return sortableItems;
   }, [playersData, sortConfig]);
-
 
 
   const exportToExcel = () => {
