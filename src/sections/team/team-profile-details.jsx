@@ -24,6 +24,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import AddIcon from '@mui/icons-material/Add';
 
 
 import { v4 as uuidv4 } from "uuid";
@@ -417,7 +418,7 @@ export const TeamManagement = () => {
               </Card>
               <div style={{ textAlign: "center", marginTop: "16px" }}>
                 <Button onClick={handleAddPlayer} variant="contained">
-                  新增
+                  <AddIcon />
                 </Button>&nbsp;&nbsp;
                 <Button type="submit" variant="contained">
                   確認新增
