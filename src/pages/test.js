@@ -115,17 +115,54 @@ const Page = () => {
 
   // 定義每個範圍對應的表格類型
   const renderTableComponent = () => {
-    const numericOuts = Number(outs); // 確保outs是一個數字
+    const numericOuts = Number(outs); // 确保 outs 是一个数字
     const tableComponents = [AwayCustomersTable, CustomersTable];
     const rangeIndex = Math.floor(numericOuts / 3) % 2;
 
-    // 確保選擇的組件在範圍內，並檢查是否為 undefined
+    // 如果 outs 等于 54，则同时显示 AwayCustomersTable 和 CustomersTable
+    if (numericOuts === 54) {
+      return (
+        <>
+          <div style={{ marginBottom: '10px' }}>
+            <AwayCustomersTable
+              teamId={teamId}
+              timestamp={timestamp}
+              codeName={codeName}
+              acodeName={acodeName}
+              outs={numericOuts}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              row={row}
+              column={column}
+            />
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <CustomersTable
+              teamId={teamId}
+              timestamp={timestamp}
+              codeName={codeName}
+              acodeName={acodeName}
+              outs={numericOuts}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              row={row}
+              column={column}
+            />
+          </div>
+        </>
+      );
+    }
+
+    // 否则按照原有逻辑渲染对应的表格组件
     const TableComponent = tableComponents[rangeIndex];
     if (!TableComponent) {
       console.error('TableComponent is undefined. Check the rangeIndex and outs value:', rangeIndex, outs);
-      return <div>Error: Table component not found.</div>;  // 或其他錯誤處理方式
+      return <div>Error: Table component not found.</div>; // 或其他错误处理方式
     }
-
 
     return (
       <TableComponent
@@ -144,10 +181,17 @@ const Page = () => {
     );
   };
 
+
   const teamType = useMemo(() => {
+    // 如果 outs 等于 54，返回 "比賽結束"
+    if (outs === 54) {
+      return "比賽結束";
+    }
+  
     const rangeIndex = Math.floor(Number(outs) / 3) % 2;
     return rangeIndex === 0 ? "客隊" : "主隊";
   }, [outs]);
+  
 
 
 
