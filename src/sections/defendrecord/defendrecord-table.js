@@ -358,11 +358,11 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     totals.teamERA =
       totals.totalInningsPitched > 0
         ? ((totals.totalEarnedRuns * 9) / totals.totalInningsPitched).toFixed(2)
-        : "∞"; //ERA
+        : "0.00"; //ERA
     totals.teamWHIP =
       totals.totalInningsPitched > 0
         ? ((totals.totalHits + totals.totalWalks+ totals.totalHitByPitches) / totals.totalInningsPitched).toFixed(2)
-        : "∞"; //WHIP
+        : "0.00"; //WHIP
         
 
 
