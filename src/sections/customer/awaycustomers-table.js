@@ -121,46 +121,6 @@ const AwayCustomersTable = (props) => {
     }
   };
   
-  // 新增一個函數來獲取更新後的 awayattackListData
-  const fetchUpdatedAwayAttackListData = async () => {
-    if (!teamId || !timestamp) {
-      console.log('Required IDs are missing.');
-      return [];
-    }
-  
-    const teamDocRef = doc(firestore, "team", teamId);
-    const teamDocSnapshot = await getDoc(teamDocRef);
-    if (!teamDocSnapshot.exists()) {
-      console.log("No team document found with ID:", teamId);
-      return [];
-    }
-  
-    const gamesCollectionRef = collection(teamDocSnapshot.ref, "games");
-    const gameDocRef = doc(gamesCollectionRef, timestamp);
-    const gameDocSnapshot = await getDoc(gameDocRef);
-    if (!gameDocSnapshot.exists()) {
-      console.log("No matching game document with ID:", timestamp);
-      return [];
-    }
-  
-    const gameData = gameDocSnapshot.data();
-    const updatedAwayAttackListData = [];
-  
-    if (gameData.awayattacklist) {
-      gameData.awayattacklist.forEach((item) => {
-        for (const key in item) {
-          if (Array.isArray(item[key])) {
-            item[key].forEach(player => {
-              updatedAwayAttackListData.push(player);
-            });
-          }
-        }
-      });
-    }
-  
-    return updatedAwayAttackListData;
-  };
-  
 
   const ReplacementDialog = ({ open, onClose, filteredPlayers, originalPlayer, teamId, acodeName, timestamp, onSelectPlayer }) => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
