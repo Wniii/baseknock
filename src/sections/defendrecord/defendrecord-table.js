@@ -357,7 +357,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
     totals.teamERA =
       totals.totalInningsPitched > 0
-        ? ((totals.totalEarnedRuns * 9) / totals.totalInningsPitched).toFixed(2)
+        ? ((totals.totalRunsBattedIn * 9) / totals.totalInningsPitched).toFixed(2)
         : "∞"; //ERA
     totals.teamWHIP =
       totals.totalInningsPitched > 0
