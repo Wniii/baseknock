@@ -521,8 +521,8 @@ const Page = () => {
     console.log("hitytype", hitType)
     let additionalOuts = 1; // 預設增加一個出局
     if (hitType === "雙殺") {
-      additionalOuts = 2; // 如果是雙殺，增加兩個出局
-      baseOuts = 2
+      additionalOuts = 1; // 如果是雙殺，增加兩個出局
+      baseOuts = 1
     }
     else {
       additionalOuts = 1;
@@ -576,9 +576,6 @@ const Page = () => {
   const handleInnOutsChange = (selectedHitType, baseOuts) => {
     console.log('hitType1111:', selectedHitType, 'baseOuts:', baseOuts);
     let additionalOuts = 1; // 預設增加一個出局
-    if (selectedHitType === "雙殺") {
-      additionalOuts = 2; // 如果是雙殺，增加兩個出局
-    }
     if (baseOuts === 0) {
       additionalOuts = 0;
     }
