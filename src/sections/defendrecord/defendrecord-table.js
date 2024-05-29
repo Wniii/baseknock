@@ -155,7 +155,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       // 確保我們有有效的局數來避免除以零的錯誤
       eraByPitcher[pitcher] = innings > 0
         ? (9 * runsBattedIn / innings).toFixed(2)
-        : "∞"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
+        : "0.00"; // 如果沒有投球局，就設定為無窮大或其他適當的預設值
     });
     return eraByPitcher;
   };
@@ -357,7 +357,7 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
       totals.totalBalls > 0 ? (totals.totalStrikes / totals.totalBalls).toFixed(2) : 0; //好壞球比
     totals.teamERA =
       totals.totalInningsPitched > 0
-        ? ((totals.totalEarnedRuns * 9) / totals.totalInningsPitched).toFixed(2)
+        ? ((totals.totalRunsBattedIn * 9) / totals.totalInningsPitched).toFixed(2)
         : "∞"; //ERA
     totals.teamWHIP =
       totals.totalInningsPitched > 0
@@ -439,14 +439,15 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
     let sortableItems = [...playersData];
     if (sortConfig && sortConfig.key) {
       sortableItems.sort((a, b) => {
-        const valueA = getValueByKey(a, sortConfig.key);
-        const valueB = getValueByKey(b, sortConfig.key);
-        // Assuming descending sort for all, as mentioned earlier; reverse the comparisons for ascending
+        const valueA = Number(getValueByKey(a, sortConfig.key));
+        const valueB = Number(getValueByKey(b, sortConfig.key));
+        // 假設所有排序都是降序; 對於升序，反轉比較
         return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
       });
     }
     return sortableItems;
-  }, [playersData, sortConfig]); // Removed playerHits, playerPlateAppearances if they're no longer relevant
+  }, [playersData, sortConfig]);
+
 
 
   const exportToExcel = () => {
