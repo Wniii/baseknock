@@ -783,7 +783,7 @@ const Page = () => {
                                                         >
                                                             {attackData}
                                                         </Paper>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '100px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '92px' }}>
                                                             <Typography variant='h5'>B</Typography>
                                                             {balls.map((ball, index) => (
                                                                 <Checkbox
@@ -844,7 +844,7 @@ const Page = () => {
                                                             <Typography variant='body3' style={{ marginLeft: '20px', fontSize: '1.5rem', fontWeight: 'bold' }}>
                                                                 {column}
                                                             </Typography>
-                                                            <ArrowDropDownIcon />
+                                                            <ArrowDropDownIcon style={{ fontSize: '2rem' }} />
                                                         </div>
                                                         <TextField
                                                             label="總投球數"
@@ -916,20 +916,20 @@ const Page = () => {
                                     xs={12}
                                     sm={6}
                                     item
-                                    style={{ marginTop: '-130px' }}
+                                    style={{ marginTop: '-120px' }}
 
                                 >
                                     <form onSubmit={handleSubmit}>
                                         <Card>
                                             <CardContent>
                                                 <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                                    <Divider style={{ flex: '1', marginRight: '10px' }} />
+                                                    <Divider style={{ flex: '1', marginRight: '10px' , marginTop: '20px', marginBottom: '20px' }} />
                                                     <Typography variant="body2">
                                                         打擊內容＆打點
                                                     </Typography>
                                                     <Divider style={{ flex: '1', marginLeft: '10px' }} />
                                                 </div>
-                                                <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '10px' }}>
+                                                <div style={{ display: 'flex', marginLeft: '30px', marginBottom: '10px', marginTop: '0px' }}>
                                                     <div style={{ width: '100px', textAlign: 'center' }}>
                                                         <Button
                                                             variant={selectedHits['一安'] ? 'contained' : 'outlined'}
