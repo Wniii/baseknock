@@ -69,9 +69,9 @@ const Pdata = forwardRef(({ selectedTeam, selectedPlayer, onPageChange, onRowsPe
                       }
 
                       totalBalls += Number(order.pitcher?.ball) || 0;
-                      totalStrikes += Number(order.pitcher?.strike) || 0;
-                      outs += Number(order.innouts) || 0;
                       totalPitches += Number(order.pitcher?.total) || 0;
+                      totalStrikes = totalPitches - totalBalls; // 將 totalStrikes 計算為 totalPitches - totalBalls
+                      outs += Number(order.innouts) || 0;
                       rbi += Number(order.rbi) || 0;
                       rbi += Number(order.o_rbi) || 0;
                     }
