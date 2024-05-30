@@ -113,39 +113,42 @@ export const ManagePlayer = ({ teamInfo }) => {
     const handleAddPlayer = async (teamInfo) => {
         try {
             const teamRef = doc(firestore, 'team', teamInfo.id);
-
+    
             // 構造要添加的新球員數據
             const newPlayerData = {
                 PNum: newPlayerNumber,
                 habit: newPlayerHabit,
                 position: newPlayerPosition
             };
-
+    
             // 將新球員數據添加到球隊集合中的 players 欄位
             await setDoc(teamRef, { players: { ...teamInfo.players, [newPlayerName]: newPlayerData } }, { merge: true });
-
-            // 更新選定的球隊信息
+    
+            // 更新本地狀態中的球員列表
             const updatedPlayers = {
                 ...teamInfo.players,
                 [newPlayerName]: newPlayerData
             };
-            const updatedTeamInfo = { ...teamInfo, players: updatedPlayers };
-            setSelectedTeamInfo(updatedTeamInfo);
-
+    
+            // 更新選定的球隊信息
+            setSelectedTeamInfo({ ...teamInfo, players: updatedPlayers });
+    
+            // 更新本地 playerKeys 狀態
+            setPlayerKeys([...playerKeys, newPlayerName]);
+    
             // 重置輸入框的值
             setNewPlayerName('');
             setNewPlayerNumber('');
             setNewPlayerPosition('');
             setNewPlayerHabit('');
-
+    
             // 關閉對話框
             handleCloseAddPlayerDialog();
-
+    
             console.log('Player added successfully');
-            window.location.reload();
         } catch (error) {
             console.error('Error adding player:', error);
-
+    
             console.log('Player data:', {
                 PName: newPlayerName,
                 PNum: newPlayerNumber,
@@ -230,7 +233,7 @@ export const ManagePlayer = ({ teamInfo }) => {
             await updateDoc(teamRef, playerUpdate);
             console.log("Player updated successfully:", playerKey);
             alert("修改成功！");
-            window.location.reload();  // 刷新页面
+            window.location.reload();
 
         } catch (error) {
             console.error("Error updating player:", error);
