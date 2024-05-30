@@ -135,6 +135,11 @@ export const AddGame = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!values.GDate) {
+        alert("日期不能為空，請輸入日期！");
+        return;
+    }
   
     try {
       const g_id = await generateGameId();
@@ -159,7 +164,7 @@ export const AddGame = () => {
       }
       
       if (hteam === ateam) {
-        alert("主队和客队不能相同，请重新选择！");
+        alert("主對和客隊不能相同，請重新選擇！");
         return; // 如果主队和客队相同，中止操作并提示用户
       }
   
@@ -203,6 +208,7 @@ export const AddGame = () => {
       alert("An error occurred while creating game document.");
     }
   };
+
   
   async function updateGamesField(teamId, g_id, GDate) {
     const teamDocRef = doc(firestore, "team", teamId);
