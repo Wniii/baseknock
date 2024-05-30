@@ -110,42 +110,29 @@ export const ManagePlayer = ({ teamInfo }) => {
         console.log('Add player dialog closed'); // 打印对话框关闭信息
     };
 
-    const handleAddPlayer = async (teamInfo) => {
+    const handleAddPlayer = async () => {
         try {
-            const teamRef = doc(firestore, 'team', teamInfo.id);
-
-            // 構造要添加的新球員數據
+            const teamRef = doc(firestore, 'team', selectedTeamInfo.id);
             const newPlayerData = {
                 PNum: newPlayerNumber,
                 habit: newPlayerHabit,
                 position: newPlayerPosition
             };
+            await setDoc(teamRef, { players: { ...selectedTeamInfo.players, [newPlayerName]: newPlayerData } }, { merge: true });
 
-            // 將新球員數據添加到球隊集合中的 players 欄位
-            await setDoc(teamRef, { players: { ...teamInfo.players, [newPlayerName]: newPlayerData } }, { merge: true });
+            const updatedPlayers = { ...selectedTeamInfo.players, [newPlayerName]: newPlayerData };
+            setSelectedTeamInfo({ ...selectedTeamInfo, players: updatedPlayers });
+            setPlayerKeys([...playerKeys, newPlayerName]);
 
-            // 更新選定的球隊信息
-            const updatedPlayers = {
-                ...teamInfo.players,
-                [newPlayerName]: newPlayerData
-            };
-            const updatedTeamInfo = { ...teamInfo, players: updatedPlayers };
-            setSelectedTeamInfo(updatedTeamInfo);
-
-            // 重置輸入框的值
             setNewPlayerName('');
             setNewPlayerNumber('');
             setNewPlayerPosition('');
             setNewPlayerHabit('');
-
-            // 關閉對話框
             handleCloseAddPlayerDialog();
 
             console.log('Player added successfully');
-            window.location.reload();
         } catch (error) {
             console.error('Error adding player:', error);
-
             console.log('Player data:', {
                 PName: newPlayerName,
                 PNum: newPlayerNumber,
@@ -154,7 +141,6 @@ export const ManagePlayer = ({ teamInfo }) => {
             });
         }
     };
-
 
 
     const isLargeScreen = useMediaQuery('(min-width:600px)');
@@ -194,13 +180,11 @@ export const ManagePlayer = ({ teamInfo }) => {
     }));
 
     const handleClick = (player) => {
-        const playerData = teamInfo.players[player.title]; // 获取点击球员的完整信息
-
+        const playerData = selectedTeamInfo.players[player.title];
         if (!editMode) {
             setOpenDialog(true);
             setSelectedPlayer(playerData);
             setDialogTitle(player.author);
-
         }
     };
 
@@ -230,7 +214,7 @@ export const ManagePlayer = ({ teamInfo }) => {
             await updateDoc(teamRef, playerUpdate);
             console.log("Player updated successfully:", playerKey);
             alert("修改成功！");
-            window.location.reload();  // 刷新页面
+            window.location.reload();
 
         } catch (error) {
             console.error("Error updating player:", error);
@@ -268,7 +252,6 @@ export const ManagePlayer = ({ teamInfo }) => {
                                     position="below"
                                     title={item.author}
                                     sx={{ textAlign: 'center', cursor: 'pointer' }}
-                                    onClick={() => handleClick(item)}
                                 />
                                 {editMode && (
                                     <IconButton
@@ -276,12 +259,12 @@ export const ManagePlayer = ({ teamInfo }) => {
                                         color="error"
                                         aria-label="delete team"
                                         sx={{
-                                            position: "absolute", // 绝对定位
-                                            top: 6, // 顶部
-                                            right: 0, // 右边
-                                            padding: "3px", // 更小的内边距
-                                            "& .MuiSvgIcon-root": { fontSize: "1rem" }, // 调整图标大小
-                                            backgroundColor: "rgba(255, 255, 255, 0.7)", // 半透明背景增加可见性
+                                            position: "absolute",
+                                            top: 6,
+                                            right: 0,
+                                            padding: "3px",
+                                            "& .MuiSvgIcon-root": { fontSize: "1rem" },
+                                            backgroundColor: "rgba(255, 255, 255, 0.7)"
                                         }}
                                     >
                                         <DeleteIcon />
@@ -312,7 +295,6 @@ export const ManagePlayer = ({ teamInfo }) => {
                                         ))}
                                     </Select>
                                 </FormControl>
-
                                 <FormControl fullWidth margin="normal">
                                     <InputLabel>投打習慣</InputLabel>
                                     <Select value={selectedPlayer.habit} onChange={e => setSelectedPlayer({ ...selectedPlayer, habit: e.target.value })} label="投打習慣">
@@ -324,7 +306,7 @@ export const ManagePlayer = ({ teamInfo }) => {
                             </>
                         )}
                     </DialogContent>
-                    <DialogActions >
+                    <DialogActions>
                         <Button onClick={handleUpdatePlayer}>確認修改</Button>
                     </DialogActions>
                 </Dialog>

@@ -752,7 +752,7 @@ const Page = () => {
 
                                                 </div>
                                                 <div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginTop: '20px', marginleft: '10px'}}>
                                                         <Typography variant='body1'>
                                                             第{currentRow}棒
                                                         </Typography>
@@ -772,10 +772,11 @@ const Page = () => {
                                                                 justifyContent: 'center',
                                                                 textAlign: 'center',
                                                             }}
+                                                        
                                                         >
                                                             {attackData}
                                                         </Paper>
-                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '92px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '82px' }}>
                                                             <Typography variant='h5'>B</Typography>
                                                             {balls.map((ball, index) => (
                                                                 <Checkbox
