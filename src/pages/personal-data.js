@@ -26,6 +26,11 @@ const Page = () => {
   }, []);
 
   const exportToExcel = () => {
+
+    if (!selectedPlayer || !selectedTeam) {
+      alert("請選擇完隊伍和球員");
+      return;
+    }
     const bData = bDataRef.current.getPlayerGames();
     const bDataTotals = bDataRef.current.getTotals();
   
