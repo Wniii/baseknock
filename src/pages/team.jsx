@@ -1,10 +1,25 @@
-import React, { useRef } from 'react';
+import React, { useEffect } from 'react';
 import Head from 'next/head';
-import { Box, Button, Container, Stack, Typography, Grid, Divider } from '@mui/material';
+import { Box, Container, Stack, Typography, Grid, Divider } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import TeamManagement from 'src/sections/team/team-profile-details.jsx'; // 修改這一行，确保路徑正確
+import TeamManagement from 'src/sections/team/team-profile-details.jsx'; // 確保路徑正確
+import { useRouter } from 'next/router';
+import { useAuthContext } from 'src/contexts/auth-context'; // 確保路徑正確
 
 const Page = () => {
+  const { isAuthenticated, isLoading } = useAuthContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading || !isAuthenticated) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Head>
