@@ -4,6 +4,8 @@ import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow,Button } fr
 import { Scrollbar } from "src/components/scrollbar";
 import { firestore } from "src/firebase";
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import DownloadIcon from '@mui/icons-material/Download';
+
 import * as XLSX from 'xlsx';
 
 // 定義 DefendTable 組件
@@ -502,8 +504,8 @@ export const DefendTable = ({ selectedTeam, selectedColumns, selectedGameType })
   return (
     
     <Card>
-      <Button onClick={exportToExcel}style={{ margin: "10px" }}>
-        匯出Excel
+      <Button onClick={exportToExcel} style={{ margin: "10px" }}startIcon={<DownloadIcon />}>
+      下載數據
       </Button>
       <Scrollbar>
         <Box sx={{ minWidth: 2500 }}>
